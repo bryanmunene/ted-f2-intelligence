@@ -243,7 +243,6 @@ def _render_dashboard() -> None:
                             "Open live TED notice",
                             official_url,
                             width="stretch",
-                            key=f"dashboard_ted_link_{notice['id']}",
                         )
         else:
             st.info("No stored notices available yet.")
