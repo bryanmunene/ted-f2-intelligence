@@ -147,6 +147,18 @@ class SearchProfileRegistry(BaseModel):
         return [profile.name for profile in self.profiles]
 
 
+class TenderChecklistItem(BaseModel):
+    id: str
+    label: str
+
+
+class TenderChecklistTemplate(BaseModel):
+    name: str
+    version: str
+    source_document: str | None = None
+    items: list[TenderChecklistItem] = Field(default_factory=list)
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="APP_",
@@ -183,6 +195,7 @@ class Settings(BaseSettings):
     ted_search_scope: str = "ACTIVE"
     keyword_pack_path: Path = Path("config/keyword_pack.yaml")
     search_profiles_path: Path = Path("config/search_profiles.yaml")
+    tender_checklist_template_path: Path = Path("config/tender_checklist.yaml")
     scoring_version: str = "2026.03.2"
     analysis_extraction_version: str = "2026.03.2"
 
@@ -197,6 +210,10 @@ class Settings(BaseSettings):
     @property
     def resolved_search_profiles_path(self) -> Path:
         return self._resolve_path(self.search_profiles_path)
+
+    @property
+    def resolved_tender_checklist_template_path(self) -> Path:
+        return self._resolve_path(self.tender_checklist_template_path)
 
     @property
     def templates_dir(self) -> Path:
@@ -228,6 +245,10 @@ def load_keyword_pack(path: Path) -> KeywordPack:
 
 def load_search_profiles(path: Path) -> SearchProfileRegistry:
     return SearchProfileRegistry.model_validate(_read_yaml(path))
+
+
+def load_tender_checklist_template(path: Path) -> TenderChecklistTemplate:
+    return TenderChecklistTemplate.model_validate(_read_yaml(path))
 
 
 @lru_cache(maxsize=1)

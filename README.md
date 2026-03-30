@@ -111,6 +111,7 @@ mypy app
 
 - `config/keyword_pack.yaml`: canonical scoring vocabulary and signal weights
 - `config/search_profiles.yaml`: scan profiles and strategy presets
+- `config/tender_checklist.yaml`: cBrain tender checklist template used for opportunity cross-reference
 - `.env`: deployment-specific runtime configuration
 
 ## Security and Hosting Notes

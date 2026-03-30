@@ -30,6 +30,11 @@ def test_dashboard_and_notice_endpoints(db_session, seeded_notice: str) -> None:
     assert notice.status_code == 200
     assert notice.json()["id"] == seeded_notice
 
+    checklist = client.get(f"/api/v1/notices/{seeded_notice}/checklist")
+    assert checklist.status_code == 200
+    assert checklist.json()["publication_number"] == "12345-2026"
+    assert len(checklist.json()["items"]) == 12
+
     results_page = client.get("/results")
     assert results_page.status_code == 200
     assert "TED F2 Intelligence" in results_page.text

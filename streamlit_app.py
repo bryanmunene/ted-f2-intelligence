@@ -10,6 +10,7 @@ from app.database import get_session_factory
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.demo_bootstrap import ensure_streamlit_demo_data
+from app.services.tender_checklist import TenderChecklistService
 from app.services.ted_documents import DocumentSpec, TedDocumentService
 from app.utils.time import format_date, format_datetime
 
@@ -380,6 +381,59 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
         pdf_column.link_button("Open Official PDF", pdf_url, width="stretch")
 
 
+@st.cache_resource(show_spinner=False)
+def get_tender_checklist_service() -> TenderChecklistService:
+    return TenderChecklistService.from_settings(settings)
+
+
+def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
+    st.markdown("#### cBrain Tender Checklist")
+    st.caption(
+        "Cross-reference this opportunity against the cBrain East Africa tender checklist template. "
+        "Answers are marked as filled, inferred, or review."
+    )
+
+    state_key = f"show_checklist_{detail['id']}"
+    button_cols = st.columns([0.34, 0.66])
+    if button_cols[0].button("Run checklist cross-reference", key=f"run_checklist_{detail['id']}", width="stretch"):
+        st.session_state[state_key] = True
+
+    if not st.session_state.get(state_key):
+        button_cols[1].caption("Run the checklist when you want a structured cross-reference for this tender.")
+        return
+
+    service = get_tender_checklist_service()
+    report = service.evaluate_notice(detail)
+
+    summary_cols = st.columns(3)
+    summary_cols[0].metric("Filled", report["filled_count"])
+    summary_cols[1].metric("Inferred", report["inferred_count"])
+    summary_cols[2].metric("Review", report["review_count"])
+
+    button_cols[1].download_button(
+        "Download checklist summary",
+        data=service.build_markdown(report),
+        file_name=f"{detail['publication_number']}-checklist.md",
+        mime="text/markdown",
+        key=f"download_checklist_{detail['id']}",
+        width="stretch",
+    )
+
+    st.dataframe(
+        [
+            {
+                "Checklist Element": item["label"],
+                "Status": item["status"].upper(),
+                "Answer": item["answer"],
+                "Basis": item["basis"],
+            }
+            for item in report["items"]
+        ],
+        width="stretch",
+        hide_index=True,
+    )
+
+
 def _render_notice_detail(notice_id: str | None) -> None:
     st.subheader("Notice Detail", anchor=False)
     if not notice_id:
@@ -403,6 +457,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
         st.caption(f"{detail['fit_label']} | {detail['priority_bucket']}")
 
     _render_download_controls(detail)
+    _render_checklist_cross_reference(detail)
 
     meta_col, assessment_col = st.columns([0.42, 0.58], gap="large")
     with meta_col:
@@ -411,6 +466,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
         st.write(f"**Procedure Type:** {detail['procedure_type'] or 'Unknown'}")
         st.write(f"**Publication Date:** {format_date(detail['publication_date'])}")
         st.write(f"**Deadline:** {format_datetime(detail['deadline'], settings.ui_timezone)}")
+        st.write(f"**Contract Duration:** {detail['contract_duration'] or 'Unknown'}")
         st.write(f"**Place of Performance:** {detail['place_of_performance'] or 'Unknown'}")
         st.write(f"**CPV Codes:** {', '.join(detail['cpv_codes']) if detail['cpv_codes'] else 'None'}")
         st.write(f"**Confidence:** {detail['confidence_indicator'] or 'N/A'}")

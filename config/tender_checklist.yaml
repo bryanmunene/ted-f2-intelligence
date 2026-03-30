@@ -1,0 +1,28 @@
+name: "Tender Document Checklist for cBrain East Africa"
+version: "2026.03.30"
+source_document: "Tender Document Checklist for cBrain East Africa.docx"
+items:
+  - id: deadline_tender
+    label: "Deadline for tender"
+  - id: deadline_prebid
+    label: "Deadline for pre-bid meeting (if relevant)"
+  - id: f2_relevance
+    label: "Is it relevant for F2/cBrain? And why"
+  - id: budget
+    label: "Budget"
+  - id: number_users
+    label: "Number of users"
+  - id: number_integrations
+    label: "Number of integrations"
+  - id: contract_duration
+    label: "Number of years/months the contract is running"
+  - id: hosting_included
+    label: "Is hosting to be included in the price?"
+  - id: multiple_lots
+    label: "Are there more than one lot?"
+  - id: financial_evaluation_criteria
+    label: "Financial evaluation criteria (weighted price/quality or lowest cost/lowest evaluated tender)"
+  - id: evaluation_weight_split
+    label: "Evaluation criteria (if weighted): Weight for technical requirements vs. Financials (for example 70/30)"
+  - id: hardware_scope
+    label: "Any hardware as part of the tender?"

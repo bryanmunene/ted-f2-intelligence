@@ -4,11 +4,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.presenters import notice_to_detail_dict, notice_to_summary_dict, scan_run_to_dict
-from app.api.schemas import DashboardMetricsResponse, NoticeDetailResponse, NoticeSummaryResponse, ScanRequestPayload, ScanRunResponse
+from app.api.schemas import (
+    DashboardMetricsResponse,
+    NoticeDetailResponse,
+    NoticeSummaryResponse,
+    ScanRequestPayload,
+    ScanRunResponse,
+    TenderChecklistResponse,
+)
 from app.deps import get_db, get_scan_service
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.scan_service import ScanService
+from app.services.tender_checklist import TenderChecklistService
 
 router = APIRouter(prefix="/api/v1", tags=["api"])
 
@@ -70,3 +78,11 @@ def get_notice(notice_id: str, session: Session = Depends(get_db)) -> NoticeDeta
         raise HTTPException(status_code=404, detail="Notice not found.")
     return NoticeDetailResponse.model_validate(notice_to_detail_dict(notice))
 
+
+@router.get("/notices/{notice_id}/checklist", response_model=TenderChecklistResponse)
+def get_notice_checklist(notice_id: str, session: Session = Depends(get_db)) -> TenderChecklistResponse:
+    notice = NoticeRepository(session).get_by_id(notice_id)
+    if notice is None:
+        raise HTTPException(status_code=404, detail="Notice not found.")
+    report = TenderChecklistService.from_settings().evaluate_notice(notice_to_detail_dict(notice))
+    return TenderChecklistResponse.model_validate(report)

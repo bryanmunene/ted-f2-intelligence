@@ -45,6 +45,7 @@ def notice_to_detail_dict(notice: Notice) -> dict[str, Any]:
             "notice_type": notice.notice_type,
             "procedure_type": notice.procedure_type,
             "cpv_codes": notice.cpv_codes,
+            "contract_duration": notice.contract_duration,
             "source_url": notice.source_url,
             "html_url": notice.html_url,
             "pdf_url": notice.pdf_url,

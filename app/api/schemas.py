@@ -61,6 +61,7 @@ class NoticeDetailResponse(NoticeSummaryResponse):
     notice_type: str | None
     procedure_type: str | None
     cpv_codes: list[str]
+    contract_duration: str | None
     source_url: str | None
     html_url: str | None
     pdf_url: str | None
@@ -75,6 +76,27 @@ class NoticeDetailResponse(NoticeSummaryResponse):
     timing_flags: list[dict[str, Any]]
     raw_payload_json: dict[str, Any]
     notes: list[dict[str, Any]]
+
+
+class TenderChecklistItemResponse(BaseModel):
+    id: str
+    label: str
+    status: str
+    answer: str
+    basis: str
+
+
+class TenderChecklistResponse(BaseModel):
+    template_name: str
+    template_version: str
+    source_document: str | None
+    generated_at: datetime
+    notice_id: str | None
+    publication_number: str | None
+    filled_count: int
+    inferred_count: int
+    review_count: int
+    items: list[TenderChecklistItemResponse]
 
 
 class ScanRunResponse(BaseModel):
@@ -100,4 +122,3 @@ class DashboardMetricsResponse(BaseModel):
     expiring_soon: int
     hard_lock: int
     scan_freshness: datetime | None
-
