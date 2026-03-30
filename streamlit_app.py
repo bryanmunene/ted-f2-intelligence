@@ -18,7 +18,7 @@ from app.services.scan_service import ScanService
 from app.services.tender_checklist import TenderChecklistService
 from app.services.ted_client import TedApiClient
 from app.services.ted_documents import DocumentSpec, TedDocumentService
-from app.utils.time import format_date, format_datetime
+from app.utils.time import ensure_utc, format_date, format_datetime, parse_ted_date, parse_ted_datetime
 
 settings = get_settings()
 
@@ -523,6 +523,30 @@ def _render_rich_text_cell(value: Any) -> str:
     return html.escape(_display_value(value)).replace("\n", "<br>")
 
 
+def _coerce_notice_datetime(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return ensure_utc(value)
+    if isinstance(value, date):
+        return datetime.combine(value, datetime.min.time(), tzinfo=UTC)
+    if isinstance(value, str):
+        return parse_ted_datetime(value)
+    return None
+
+
+def _coerce_notice_date(value: Any) -> date | None:
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return ensure_utc(value).date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        return parse_ted_date(value)
+    return None
+
+
 def _card_tone_class(notice: dict[str, Any]) -> str:
     priority = _display_value(notice.get("priority_bucket")).upper()
     fit = _display_value(notice.get("fit_label")).upper()
@@ -712,13 +736,15 @@ def _build_results_metrics(notices: list[dict[str, Any]], *, total_matches: int)
     expiring_soon = sum(
         1
         for notice in notices
-        if notice.get("deadline") is not None and now <= notice["deadline"] <= now + timedelta(days=7)
+        if (deadline := _coerce_notice_datetime(notice.get("deadline"))) is not None
+        and now <= deadline <= now + timedelta(days=7)
     )
     hard_locks = sum(1 for notice in notices if notice.get("hard_lock_detected"))
     recent_publications = sum(
         1
         for notice in notices
-        if notice.get("publication_date") is not None and (today - notice["publication_date"]).days <= 30
+        if (publication_date := _coerce_notice_date(notice.get("publication_date"))) is not None
+        and 0 <= (today - publication_date).days <= 30
     )
     live_notices = sum(1 for notice in notices if not notice.get("is_demo_record"))
     highest_score = max(int(notice.get("score") or 0) for notice in notices)
