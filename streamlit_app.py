@@ -484,51 +484,55 @@ def _render_chip(label: str) -> str:
 
 
 def _render_stat_cards(cards: list[dict[str, str]]) -> None:
-    markup = "".join(
-        f"""
-        <div class="cb-stat-card">
-          <div class="cb-stat-label">{html.escape(card['label'])}</div>
-          <div class="cb-stat-value">{html.escape(card['value'])}</div>
-          <div class="cb-stat-note">{html.escape(card['note'])}</div>
-        </div>
-        """
-        for card in cards
-    )
-    st.markdown(f"<div class='cb-stat-grid'>{markup}</div>", unsafe_allow_html=True)
+    if not cards:
+        return
+
+    per_row = 4
+    for start in range(0, len(cards), per_row):
+        row_cards = cards[start : start + per_row]
+        columns = st.columns(len(row_cards), gap="medium")
+        for column, card in zip(columns, row_cards):
+            with column:
+                with st.container(border=True):
+                    st.caption(card["label"].upper())
+                    st.markdown(f"### {card['value']}")
+                    st.caption(card["note"])
 
 
 def _render_profile_cards() -> None:
     profiles = get_search_profiles_registry().profiles
-    markup = "".join(
-        f"""
-        <div class="cb-profile-card">
-          <div class="cb-profile-title">{html.escape(profile.name)}</div>
-          <div class="cb-profile-text">{html.escape(profile.description)}</div>
-          <div class="cb-chip-row">
-            {''.join(_render_chip(term) for term in profile.search_terms[:4])}
-          </div>
-        </div>
-        """
-        for profile in profiles
-    )
-    st.markdown(f"<div class='cb-profile-grid'>{markup}</div>", unsafe_allow_html=True)
+    if not profiles:
+        return
+
+    per_row = 3
+    for start in range(0, len(profiles), per_row):
+        row_profiles = profiles[start : start + per_row]
+        columns = st.columns(len(row_profiles), gap="medium")
+        for column, profile in zip(columns, row_profiles):
+            with column:
+                with st.container(border=True):
+                    st.markdown(f"**{profile.name}**")
+                    st.caption(profile.description)
+                    if profile.search_terms:
+                        st.markdown(
+                            "<div class='cb-chip-row'>"
+                            + "".join(_render_chip(term) for term in profile.search_terms[:4])
+                            + "</div>",
+                            unsafe_allow_html=True,
+                        )
 
 
 def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
-    markup = "".join(
-        f"""
-        <div class="cb-list-card">
-          <div class="cb-list-title">{html.escape(scan['status'])}</div>
-          <div class="cb-list-text">
-            Started {html.escape(format_datetime(scan['started_at'], settings.ui_timezone))}<br>
-            Ingested {scan['total_notices_ingested']} notices | High fit {scan['total_high_fit']}<br>
-            Requests {scan['request_count']} | Rate-limit events {scan['rate_limit_events']}
-          </div>
-        </div>
-        """
-        for scan in recent_scans
-    )
-    st.markdown(f"<div class='cb-list-stack'>{markup}</div>", unsafe_allow_html=True)
+    for scan in recent_scans:
+        with st.container(border=True):
+            st.markdown(f"**{scan['status']}**")
+            st.caption(f"Started {format_datetime(scan['started_at'], settings.ui_timezone)}")
+            detail_cols = st.columns(3, gap="small")
+            detail_cols[0].metric("Ingested", scan["total_notices_ingested"])
+            detail_cols[1].metric("High Fit", scan["total_high_fit"])
+            detail_cols[2].metric("Requests", scan["request_count"])
+            if scan["rate_limit_events"]:
+                st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
 
 
 def _status_tone(status: str) -> str:
