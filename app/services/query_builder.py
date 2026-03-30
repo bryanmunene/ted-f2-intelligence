@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 from app.api.schemas import ScanRequestPayload
 from app.config import SearchProfile
 
@@ -23,6 +25,17 @@ def _quote_term(term: str) -> str:
     return "\"" + term.replace("\"", "\\\"") + "\""
 
 
+def _format_text_term(term: str) -> str:
+    cleaned = term.strip()
+    if not cleaned:
+        return ""
+    return _quote_term(cleaned)
+
+
+def _format_date_term(value: date) -> str:
+    return value.strftime("%Y%m%d")
+
+
 class TedExpertQueryBuilder:
     """
     Centralizes TED expert-query construction so syntax can be tuned in one place if TED's
@@ -34,22 +47,24 @@ class TedExpertQueryBuilder:
 
         search_terms = payload.keyword_override_terms() or profile.search_terms
         if search_terms:
-            term_clause = " OR ".join(_quote_term(term) for term in search_terms)
-            clauses.append(f"({term_clause})")
+            text_clauses = [f"FT~{_format_text_term(term)}" for term in search_terms if term.strip()]
+            if text_clauses:
+                clauses.append("(" + " OR ".join(text_clauses) + ")")
 
         if payload.country:
-            clauses.append(f'(buyer-country="{payload.country.upper()}")')
+            clauses.append(f"buyer-country={payload.country.upper()}")
 
         if payload.cpv:
             cpv = payload.cpv.strip()
             if cpv:
-                clauses.append(f'(classification-cpv="{cpv}")')
+                clauses.append(f"classification-cpv={cpv}")
 
         if payload.date_from:
-            clauses.append(f"(publication-date>={payload.date_from.isoformat()})")
+            clauses.append(f"publication-date>={_format_date_term(payload.date_from)}")
 
         if payload.date_to:
-            clauses.append(f"(publication-date<={payload.date_to.isoformat()})")
+            clauses.append(f"publication-date<={_format_date_term(payload.date_to)}")
 
-        return " AND ".join(clauses) if clauses else "*"
-
+        if not clauses:
+            raise ValueError("At least one TED search criterion is required to build a live query.")
+        return " AND ".join(clauses)

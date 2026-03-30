@@ -136,6 +136,13 @@ class TedApiClient:
         response = self._client.post(self.settings.ted_search_path, json=payload)
         if response.status_code >= 500 or response.status_code == 429:
             raise TedApiError(f"TED Search API transient failure: {response.status_code}")
+        if response.status_code >= 400:
+            detail = response.text.strip()
+            if len(detail) > 500:
+                detail = detail[:500] + "..."
+            raise TedApiError(
+                f"TED Search API returned {response.status_code} for payload {payload!r}. Response: {detail}"
+            )
         response.raise_for_status()
         body = response.json()
         parsed = self._parse_response(body)
@@ -166,4 +173,3 @@ class TedApiClient:
     def _cache_key(self, request: TedSearchRequest) -> str:
         raw = json.dumps(request.api_payload(), sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
