@@ -466,9 +466,9 @@ class ScoringEngine:
             return FitLabel.CONDITIONAL
         if not result.viable_timing and result.score < 60:
             return FitLabel.NO
-        if result.score >= 65:
+        if result.score >= 60:
             return FitLabel.YES
-        if result.score >= 45:
+        if result.score >= 35:
             return FitLabel.CONDITIONAL
         return FitLabel.NO
 
@@ -480,7 +480,7 @@ class ScoringEngine:
         if result.fit_label == FitLabel.CONDITIONAL:
             if result.score >= 70 and result.viable_timing and not result.hard_lock_detected:
                 return PriorityBucket.GOOD
-            if result.score >= 45:
+            if result.score >= 35:
                 return PriorityBucket.WATCHLIST
         return PriorityBucket.IGNORE
 

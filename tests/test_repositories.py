@@ -60,6 +60,7 @@ def test_notice_repository_default_review_queue_excludes_soon_and_irrelevant_not
     seeded_notice: str,
 ) -> None:
     repository = NoticeRepository(db_session)
+    soon_deadline = (datetime.now(tz=UTC) + timedelta(hours=12)).isoformat().replace("+00:00", "Z")
 
     soon_notice_id = _store_scored_notice(
         db_session,
@@ -69,7 +70,7 @@ def test_notice_repository_default_review_queue_excludes_soon_and_irrelevant_not
             "buyer-name": "Regional Permits Authority",
             "buyer-country": "DK",
             "publication-date": "2026-03-29",
-            "deadline": "2026-04-01T10:00:00Z",
+            "deadline": soon_deadline,
             "additional-information": "Case management, workflow automation, records handling, and citizen services.",
         },
     )

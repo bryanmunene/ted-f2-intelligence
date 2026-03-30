@@ -1187,7 +1187,7 @@ def _render_dashboard() -> None:
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Results Filters")
     st.sidebar.caption(
-        "The review queue automatically hides expired notices. By default it requires at least 3 days remaining "
+        "The review queue automatically hides expired notices. By default it requires at least 1 day remaining "
         "and keeps the F2 relevance gate on, but you can relax or tighten that here."
     )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
@@ -1208,7 +1208,7 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
 
     st.sidebar.markdown("#### Deadline Window")
-    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=3, step=1)
+    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=1, step=1)
     deadline_from = st.sidebar.date_input("Deadline From", value=None)
     deadline_to = st.sidebar.date_input("Deadline To", value=None)
     deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
@@ -1621,7 +1621,7 @@ def main() -> None:
                 max_score=None,
                 confidence_indicator=None,
                 relevant_only=True,
-                min_days_remaining=3,
+                min_days_remaining=1,
                 hard_lock_only=False,
                 publication_date_from=None,
                 publication_date_to=None,

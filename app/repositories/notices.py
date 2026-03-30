@@ -21,7 +21,7 @@ class NoticeListFilters:
     max_score: int | None = None
     confidence_indicator: str | None = None
     relevant_only: bool = True
-    min_days_remaining: int | None = 3
+    min_days_remaining: int | None = 1
     hard_lock_only: bool = False
     publication_date_from: date | None = None
     publication_date_to: date | None = None

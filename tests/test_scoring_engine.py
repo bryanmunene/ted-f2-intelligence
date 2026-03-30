@@ -32,7 +32,7 @@ def test_scoring_engine_penalizes_hard_lock_and_timing(ted_fixture_payload: dict
     keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
     profiles = load_search_profiles(settings.resolved_search_profiles_path)
     payload = dict(ted_fixture_payload["results"][1])
-    payload["deadline"] = "2026-03-31T10:00:00Z"
+    payload["deadline"] = "2026-03-30T12:00:00Z"
     notice = normalize_notice(payload, extraction_version="test-version")
     score = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version).score(
         notice,
@@ -93,7 +93,7 @@ def test_keyword_requires_context_and_title_bonus_applies() -> None:
     assert score_with_context.score > score_without_context.score
 
 
-def test_scoring_engine_accepts_notices_with_three_plus_days_remaining() -> None:
+def test_scoring_engine_accepts_notices_with_one_plus_days_remaining() -> None:
     settings = get_settings()
     keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
     profiles = load_search_profiles(settings.resolved_search_profiles_path)
@@ -106,7 +106,7 @@ def test_scoring_engine_accepts_notices_with_three_plus_days_remaining() -> None
             "buyer-name": "Municipal Services Office",
             "buyer-country": "DK",
             "publication-date": "2026-03-28",
-            "deadline": "2026-04-02T10:00:00Z",
+            "deadline": "2026-03-31T10:00:00Z",
             "additional-information": "Case handling, workflow automation, records management, and correspondence tracking.",
         },
         extraction_version="test-version",

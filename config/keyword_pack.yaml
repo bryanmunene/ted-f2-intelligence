@@ -1,6 +1,6 @@
 version: "2026.03.2"
 timing:
-  min_days_to_deadline: 3
+  min_days_to_deadline: 1
   exclude_after_days_since_publication: 90
   expiring_soon_days: 7
   missing_deadline_penalty: 18
