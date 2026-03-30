@@ -8,6 +8,7 @@ from app.models.base import Base, IdMixin, TimestampMixin
 
 class SavedSearch(IdMixin, TimestampMixin, Base):
     __tablename__ = "saved_searches"
+    __table_args__ = {"extend_existing": True}
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -21,4 +22,3 @@ class SavedSearch(IdMixin, TimestampMixin, Base):
     )
 
     created_by = relationship("User", back_populates="saved_searches")
-
