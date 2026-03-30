@@ -584,6 +584,9 @@ def _render_profile_cards() -> None:
     if not profiles:
         return
 
+    keyword_pack = get_keyword_pack_resource()
+    positive_groups = keyword_pack.positive_group_map()
+
     per_row = 3
     for start in range(0, len(profiles), per_row):
         row_profiles = profiles[start : start + per_row]
@@ -593,10 +596,22 @@ def _render_profile_cards() -> None:
                 with st.container(border=True):
                     st.markdown(f"**{profile.name}**")
                     st.caption(profile.description)
-                    if profile.search_terms:
+                    category_labels = [
+                        positive_groups[group_id].name
+                        for group_id in profile.keyword_group_ids
+                        if group_id in positive_groups
+                    ]
+                    if category_labels:
                         st.markdown(
                             "<div class='cb-chip-row'>"
-                            + "".join(_render_chip(term) for term in profile.search_terms[:4])
+                            + "".join(_render_chip(label) for label in category_labels)
+                            + "</div>",
+                            unsafe_allow_html=True,
+                        )
+                    elif profile.search_terms:
+                        st.markdown(
+                            "<div class='cb-chip-row'>"
+                            + "".join(_render_chip(term) for term in profile.search_terms)
                             + "</div>",
                             unsafe_allow_html=True,
                         )

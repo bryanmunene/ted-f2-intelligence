@@ -6,6 +6,24 @@ from app.api.schemas import ScanRequestPayload
 from app.config import get_settings, load_search_profiles
 
 
+def test_f2_core_profile_covers_full_f2_category_set() -> None:
+    profiles = load_search_profiles(get_settings().resolved_search_profiles_path)
+    profile = profiles.by_name("F2 Core")
+
+    assert profile.keyword_group_ids == [
+        "document_management",
+        "records_management",
+        "case_management",
+        "workflow_bpm",
+        "correspondence_registry",
+        "digital_services",
+        "egov",
+        "compliance_audit",
+        "digitisation_platform",
+        "interoperability",
+    ]
+
+
 def test_query_builder_uses_ted_expert_search_syntax() -> None:
     from app.services.query_builder import TedExpertQueryBuilder
 

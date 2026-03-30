@@ -1,7 +1,7 @@
 profiles:
   - name: F2 Core
     slug: f2-core
-    description: Balanced default scan for strong F2 workflow, case, records, and digital service opportunities.
+    description: Full-spectrum default scan covering the complete F2 capability set across case, workflow, records, correspondence, digital services, audit, digitisation, and interoperability.
     keyword_group_ids:
       - document_management
       - records_management
@@ -11,6 +11,7 @@ profiles:
       - digital_services
       - egov
       - compliance_audit
+      - digitisation_platform
       - interoperability
     negative_group_ids:
       - hardware_supply
@@ -24,13 +25,18 @@ profiles:
       - isolated_ocr
       - erp_only
     search_terms:
+      - document management system
+      - electronic records management
       - case management
       - workflow automation
-      - records management
       - correspondence management
+      - records management
+      - audit trail
+      - scanning and archiving
       - e-government platform
       - permit management system
       - service request system
+      - interoperability platform
     hard_lock_penalty_multiplier: 1.0
     soft_lock_penalty_multiplier: 1.0
     openness_bonus_multiplier: 1.0
@@ -169,4 +175,3 @@ profiles:
     hard_lock_penalty_multiplier: 0.7
     soft_lock_penalty_multiplier: 0.8
     openness_bonus_multiplier: 1.0
-
