@@ -1,21 +1,48 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import streamlit as st
 
 from app.api.presenters import notice_to_detail_dict, notice_to_summary_dict, scan_run_to_dict
-from app.config import get_settings
+from app.api.schemas import ScanRequestPayload
+from app.auth import ActorContext
+from app.config import get_settings, load_keyword_pack, load_search_profiles
 from app.database import get_session_factory
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
-from app.services.demo_bootstrap import ensure_streamlit_demo_data
+from app.services.demo_bootstrap import ensure_streamlit_storage
+from app.services.scan_service import ScanService
 from app.services.tender_checklist import TenderChecklistService
+from app.services.ted_client import TedApiClient
 from app.services.ted_documents import DocumentSpec, TedDocumentService
 from app.utils.time import format_date, format_datetime
 
 settings = get_settings()
-ensure_streamlit_demo_data()
+
+
+@st.cache_resource(show_spinner=False)
+def initialize_streamlit_storage() -> dict[str, int]:
+    return ensure_streamlit_storage(purge_demo=True)
+
+
+@st.cache_resource(show_spinner=False)
+def get_search_profiles_registry():
+    return load_search_profiles(settings.resolved_search_profiles_path)
+
+
+@st.cache_resource(show_spinner=False)
+def get_keyword_pack_resource():
+    return load_keyword_pack(settings.resolved_keyword_pack_path)
+
+
+@st.cache_resource(show_spinner=False)
+def get_ted_client_resource() -> TedApiClient:
+    return TedApiClient(settings=settings)
+
+
+initialize_streamlit_storage()
 
 st.set_page_config(
     page_title="cBrain TED F2 Intelligence",
@@ -147,6 +174,10 @@ def _notice_option_label(item: dict[str, Any]) -> str:
     return f"{item['score']:>3} | {item['publication_number']} | {item['title']}"
 
 
+def _notice_source_label(item: dict[str, Any]) -> str:
+    return "DEMO" if item.get("is_demo_record") else "LIVE"
+
+
 def _seed_selected_notice(notices: list[dict[str, Any]]) -> None:
     if not notices:
         st.session_state.pop("selected_notice_id", None)
@@ -169,19 +200,151 @@ def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
     return notice.get("source_url") or notice.get("html_url") or notice.get("pdf_url")
 
 
+def run_live_scan(
+    *,
+    profile_name: str,
+    country: str | None,
+    cpv: str | None,
+    keyword_override: str | None,
+    date_from: date | None,
+    date_to: date | None,
+    include_conditional: bool,
+    exclude_old: bool,
+    include_soft_locks: bool,
+    page_size: int,
+    max_pages: int,
+) -> dict[str, Any]:
+    session = get_session_factory()()
+    try:
+        service = ScanService(
+            session=session,
+            settings=settings,
+            ted_client=get_ted_client_resource(),
+            keyword_pack=get_keyword_pack_resource(),
+            search_profiles=get_search_profiles_registry(),
+            actor=ActorContext(
+                email=settings.default_user_email,
+                display_name=settings.default_user_name,
+                auth_provider="streamlit-shell",
+            ),
+        )
+        payload = ScanRequestPayload(
+            profile_name=profile_name,
+            country=country or None,
+            cpv=cpv or None,
+            keyword_override=keyword_override or None,
+            date_from=date_from,
+            date_to=date_to,
+            include_conditional=include_conditional,
+            exclude_old=exclude_old,
+            include_soft_locks=include_soft_locks,
+            page_size=page_size,
+            max_pages=max_pages,
+        )
+        outcome = service.run_manual_scan(payload)
+        session.commit()
+        return {
+            "scan_run_id": outcome.scan_run_id,
+            "total_notices_returned": outcome.total_notices_returned,
+            "total_notices_ingested": outcome.total_notices_ingested,
+            "total_after_timing_filters": outcome.total_after_timing_filters,
+            "total_high_fit": outcome.total_high_fit,
+            "total_conditional": outcome.total_conditional,
+            "total_ignored": outcome.total_ignored,
+            "request_count": outcome.request_count,
+            "rate_limit_events": outcome.rate_limit_events,
+        }
+    finally:
+        session.close()
+
+
 def _render_banner() -> None:
+    storage_state = initialize_streamlit_storage()
+    purged_demo_notices = storage_state.get("purged_demo_notices", 0)
     st.markdown(
         """
         <div class="cb-banner">
           <div class="cb-kicker">Temporary Streamlit Shell</div>
           <h1 class="cb-title">cBrain TED F2 Intelligence</h1>
           <div class="cb-subtitle">
-            Read-only Streamlit interface over the existing database. FastAPI remains the canonical backend.
+            Streamlit interface over the existing database. FastAPI remains the canonical backend and live scans use TED's public API.
           </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+    if purged_demo_notices:
+        st.info(
+            f"Removed {purged_demo_notices} seeded demo notices from the local store so the app can focus on live TED data."
+        )
+
+
+def _render_live_scan() -> None:
+    profiles = get_search_profiles_registry()
+
+    st.subheader("Live TED Scan", anchor=False)
+    st.caption(
+        "Run a live search against TED's public Search API. This populates the same database used by the rest of the app."
+    )
+
+    with st.form("live_ted_scan_form"):
+        left, right = st.columns(2, gap="large")
+        with left:
+            profile_name = st.selectbox("Search Profile", options=profiles.names, index=0)
+            country = st.text_input("Buyer Country", value="", placeholder="DK")
+            cpv = st.text_input("CPV Code", value="", placeholder="72260000")
+            keyword_override = st.text_input(
+                "Keyword Override",
+                value="",
+                placeholder="case management, workflow automation",
+            )
+            date_from = st.date_input("Publication Date From", value=None)
+            date_to = st.date_input("Publication Date To", value=None)
+        with right:
+            page_size = st.slider("Page Size", min_value=10, max_value=100, value=25, step=5)
+            max_pages = st.slider("Max Pages", min_value=1, max_value=settings.ted_max_pages_per_scan, value=1)
+            include_conditional = st.checkbox("Include Conditional", value=True)
+            exclude_old = st.checkbox("Exclude Older Notices", value=True)
+            include_soft_locks = st.checkbox("Include Soft Locks", value=True)
+
+        submitted = st.form_submit_button("Run live TED scan", width="stretch")
+
+    if not submitted:
+        st.info("Run a scan to replace empty or demo-only views with real TED notices.")
+        return
+
+    with st.spinner("Querying TED public API and scoring notices..."):
+        try:
+            outcome = run_live_scan(
+                profile_name=profile_name,
+                country=country.strip() or None,
+                cpv=cpv.strip() or None,
+                keyword_override=keyword_override.strip() or None,
+                date_from=date_from,
+                date_to=date_to,
+                include_conditional=include_conditional,
+                exclude_old=exclude_old,
+                include_soft_locks=include_soft_locks,
+                page_size=page_size,
+                max_pages=max_pages,
+            )
+        except Exception as exc:
+            st.error(f"Live TED scan failed: {exc}")
+            return
+
+    st.cache_data.clear()
+    st.success(
+        f"Live TED scan completed. Ingested {outcome['total_notices_ingested']} notices from "
+        f"{outcome['request_count']} TED API requests."
+    )
+    outcome_cols = st.columns(4)
+    outcome_cols[0].metric("Returned", outcome["total_notices_returned"])
+    outcome_cols[1].metric("Ingested", outcome["total_notices_ingested"])
+    outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
+    outcome_cols[3].metric("Conditional", outcome["total_conditional"])
+
+    st.session_state["active_view"] = "Results"
+    st.rerun()
 
 
 def _render_dashboard() -> None:
@@ -228,7 +391,7 @@ def _render_dashboard() -> None:
                     st.markdown(f"**{notice['title']}**")
                     st.caption(
                         f"{notice['publication_number']} | {notice['buyer'] or 'Unknown buyer'} | "
-                        f"{notice['buyer_country'] or 'N/A'}"
+                        f"{notice['buyer_country'] or 'N/A'} | Source: {_notice_source_label(notice)}"
                     )
                     action_cols = st.columns([1, 1, 1, 1])
                     action_cols[0].metric("Score", notice["score"])
@@ -291,6 +454,7 @@ def _render_results() -> list[dict[str, Any]]:
     st.dataframe(
         [
             {
+                "Source": _notice_source_label(notice),
                 "Score": notice["score"],
                 "Fit": notice["fit_label"] or "N/A",
                 "Priority": notice["priority_bucket"] or "N/A",
@@ -462,7 +626,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
         st.markdown(f"### {detail['title']}")
         st.caption(
             f"{detail['publication_number']} | {detail['buyer'] or 'Unknown buyer'} | "
-            f"{detail['buyer_country'] or 'N/A'}"
+            f"{detail['buyer_country'] or 'N/A'} | Source: {_notice_source_label(detail)}"
         )
     with score_col:
         st.metric("Score", detail["score"])
@@ -532,7 +696,7 @@ def main() -> None:
     _apply_theme()
     _render_banner()
 
-    views = ["Dashboard", "Results", "Notice Detail"]
+    views = ["Dashboard", "Live Scan", "Results", "Notice Detail"]
     active_view = st.session_state.get("active_view", "Dashboard")
     if active_view not in views:
         active_view = "Dashboard"
@@ -546,12 +710,14 @@ def main() -> None:
     st.session_state["active_view"] = current_view
     st.sidebar.markdown("---")
     st.sidebar.caption(
-        "This Streamlit shell is intentionally temporary and read-only. "
-        "FastAPI remains the canonical production-oriented app."
+        "This Streamlit shell is intentionally temporary. FastAPI remains the canonical "
+        "production-oriented app, and live scans use TED's public API."
     )
 
     if current_view == "Dashboard":
         _render_dashboard()
+    elif current_view == "Live Scan":
+        _render_live_scan()
     elif current_view == "Results":
         _render_results()
     else:
