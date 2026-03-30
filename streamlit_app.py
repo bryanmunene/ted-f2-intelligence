@@ -1060,6 +1060,94 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
             st.caption(item["basis"])
 
 
+def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
+    module = detail.get("keyword_evidence_module") or {}
+    st.markdown("#### Eligibility Keywords")
+    st.caption("Deterministic keyword evidence showing exactly why this opportunity was surfaced for F2 review.")
+
+    st.info(module.get("statement") or "No keyword evidence module is available for this notice.")
+
+    _render_stat_cards(
+        [
+            {
+                "label": "Matched Keywords",
+                "value": str(module.get("matched_keyword_count", 0)),
+                "note": "Distinct positive keyword matches",
+            },
+            {
+                "label": "Matched Domains",
+                "value": str(module.get("matched_domain_count", 0)),
+                "note": "F2-aligned domain groups triggered",
+            },
+            {
+                "label": "Title Hits",
+                "value": str(module.get("title_keyword_count", 0)),
+                "note": "Matches found directly in the notice title",
+            },
+            {
+                "label": "Summary Hits",
+                "value": str(module.get("summary_keyword_count", 0)),
+                "note": "Matches found in summary or body text",
+            },
+        ]
+    )
+
+    left, right = st.columns([0.58, 0.42], gap="large")
+    with left:
+        st.markdown("**Matched Domains**")
+        if module.get("domain_matches"):
+            for domain in module["domain_matches"]:
+                with st.container(border=True):
+                    header_cols = st.columns([0.72, 0.28], gap="small")
+                    header_cols[0].markdown(f"**{domain['label']}**")
+                    header_cols[1].metric("Points", domain.get("points", 0))
+                    if domain.get("terms"):
+                        st.markdown(
+                            "<div class='cb-chip-row'>"
+                            + "".join(_render_chip(term) for term in domain["terms"])
+                            + "</div>",
+                            unsafe_allow_html=True,
+                        )
+                    if domain.get("scope_labels"):
+                        st.caption("Matched in: " + ", ".join(domain["scope_labels"]))
+        else:
+            st.caption("No mapped F2 domain groups were stored for this notice.")
+
+    with right:
+        st.markdown("**Keyword Scope Map**")
+        if module.get("scope_hits"):
+            for scope_group in module["scope_hits"]:
+                with st.container(border=True):
+                    st.markdown(f"**{scope_group['label']}**")
+                    st.caption(f"{scope_group['count']} matched term(s)")
+                    st.markdown(
+                        "<div class='cb-chip-row'>"
+                        + "".join(_render_chip(term) for term in scope_group["terms"])
+                        + "</div>",
+                        unsafe_allow_html=True,
+                    )
+        else:
+            st.caption("No positive keyword hits were stored for this notice.")
+
+        if module.get("amplifiers"):
+            st.markdown("**Eligibility Amplifiers**")
+            for amplifier in module["amplifiers"]:
+                with st.container(border=True):
+                    st.markdown(f"**{amplifier['label']}**")
+                    st.caption(f"Points: {amplifier['points']}")
+                    if amplifier.get("evidence"):
+                        st.caption(", ".join(amplifier["evidence"]))
+
+        if module.get("weakening_factors"):
+            st.markdown("**Weakening Factors**")
+            for weakening in module["weakening_factors"]:
+                with st.container(border=True):
+                    st.markdown(f"**{weakening['label']}**")
+                    st.caption(f"Points: {weakening['points']}")
+                    if weakening.get("evidence"):
+                        st.caption(", ".join(weakening["evidence"]))
+
+
 def _render_notice_detail(notice_id: str | None) -> None:
     st.subheader("Notice Detail", anchor=False)
     if not notice_id:
@@ -1128,21 +1216,12 @@ def _render_notice_detail(notice_id: str | None) -> None:
         with st.container(border=True):
             st.markdown("#### Fit Assessment")
             st.write(detail["reasoning"] or "No reasoning available.")
-            if detail["keyword_hits"]:
-                st.markdown("**Keyword Evidence**")
-                st.markdown(
-                    "<div class='cb-chip-row'>"
-                    + "".join(
-                        _render_chip(f"{hit['term']} [{hit['scope']}]")
-                        for hit in detail["keyword_hits"]
-                    )
-                    + "</div>",
-                    unsafe_allow_html=True,
-                )
             if detail["qualification_questions"]:
                 st.markdown("**Qualification Questions**")
                 for question in detail["qualification_questions"]:
                     st.write(f"- {question}")
+
+    _render_keyword_evidence_module(detail)
 
     breakdown_col, notes_col = st.columns([0.6, 0.4], gap="large")
     with breakdown_col:

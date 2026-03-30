@@ -61,13 +61,6 @@
       <h2>Fit Assessment</h2>
     </div>
     <p class="reasoning">{{ notice.reasoning }}</p>
-    {% if notice.keyword_hits %}
-      <div class="chip-row spaced">
-        {% for hit in notice.keyword_hits %}
-          <span class="chip">{{ hit.term }} - {{ hit.scope }}</span>
-        {% endfor %}
-      </div>
-    {% endif %}
     <div class="chip-row spaced">
       {% for signal in notice.positive_signals %}
         <span class="chip">{{ signal.label }} (+{{ signal.points }})</span>
@@ -81,6 +74,45 @@
         </span>
       {% endfor %}
     </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Eligibility Keywords</h2>
+    </div>
+    <p class="reasoning">{{ notice.keyword_evidence_module.statement }}</p>
+    <dl class="detail-list">
+      <div><dt>Matched Keywords</dt><dd>{{ notice.keyword_evidence_module.matched_keyword_count }}</dd></div>
+      <div><dt>Matched Domains</dt><dd>{{ notice.keyword_evidence_module.matched_domain_count }}</dd></div>
+      <div><dt>Title Hits</dt><dd>{{ notice.keyword_evidence_module.title_keyword_count }}</dd></div>
+      <div><dt>Summary Hits</dt><dd>{{ notice.keyword_evidence_module.summary_keyword_count }}</dd></div>
+    </dl>
+    {% if notice.keyword_evidence_module.domain_matches %}
+      <h3>Matched Domains</h3>
+      <div class="note-list">
+        {% for domain in notice.keyword_evidence_module.domain_matches %}
+          <article class="note-card">
+            <div class="note-meta">{{ domain.label }}{% if domain.points %} | {{ domain.points }} pts{% endif %}</div>
+            <div class="chip-row spaced">
+              {% for term in domain.terms %}
+                <span class="chip">{{ term }}</span>
+              {% endfor %}
+            </div>
+            {% if domain.scope_labels %}
+              <div class="table-subtext">Matched in: {{ domain.scope_labels | join(", ") }}</div>
+            {% endif %}
+          </article>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if notice.keyword_evidence_module.weakening_factors %}
+      <h3>Weakening Factors</h3>
+      <div class="chip-row spaced">
+        {% for item in notice.keyword_evidence_module.weakening_factors %}
+          <span class="chip chip-muted">{{ item.label }} ({{ item.points }})</span>
+        {% endfor %}
+      </div>
+    {% endif %}
   </article>
 
   <article class="panel">

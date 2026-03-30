@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from app.models import Notice, NoticeAnalysis, ScanRun
+from app.services.keyword_evidence import build_keyword_evidence_module
 
 
 def _analysis_or_default(notice: Notice) -> NoticeAnalysis | None:
@@ -56,6 +57,7 @@ def notice_to_detail_dict(notice: Notice) -> dict[str, Any]:
             "reasoning": analysis.reasoning if analysis else "",
             "qualification_questions": analysis.qualification_questions if analysis else [],
             "score_breakdown": analysis.score_breakdown if analysis else [],
+            "domain_hits": analysis.domain_hits if analysis else [],
             "positive_signals": analysis.positive_signals if analysis else [],
             "negative_signals": analysis.negative_signals if analysis else [],
             "platform_lock_signals": analysis.platform_lock_signals if analysis else [],
@@ -72,6 +74,7 @@ def notice_to_detail_dict(notice: Notice) -> dict[str, Any]:
             ],
         }
     )
+    payload["keyword_evidence_module"] = build_keyword_evidence_module(payload)
     return payload
 
 

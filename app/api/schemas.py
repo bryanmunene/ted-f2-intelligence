@@ -70,10 +70,12 @@ class NoticeDetailResponse(NoticeSummaryResponse):
     reasoning: str
     qualification_questions: list[str]
     score_breakdown: list[dict[str, Any]]
+    domain_hits: list[dict[str, Any]]
     positive_signals: list[dict[str, Any]]
     negative_signals: list[dict[str, Any]]
     platform_lock_signals: list[dict[str, Any]]
     timing_flags: list[dict[str, Any]]
+    keyword_evidence_module: dict[str, Any]
     raw_payload_json: dict[str, Any]
     notes: list[dict[str, Any]]
 
