@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class TimingConfig(BaseModel):
-    min_days_to_deadline: int = 5
+    min_days_to_deadline: int = 3
     exclude_after_days_since_publication: int = 90
     expiring_soon_days: int = 7
     missing_deadline_penalty: int = 18

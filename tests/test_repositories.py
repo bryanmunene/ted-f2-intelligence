@@ -69,7 +69,7 @@ def test_notice_repository_default_review_queue_excludes_soon_and_irrelevant_not
             "buyer-name": "Regional Permits Authority",
             "buyer-country": "DK",
             "publication-date": "2026-03-29",
-            "deadline": "2026-04-03T10:00:00Z",
+            "deadline": "2026-04-01T10:00:00Z",
             "additional-information": "Case management, workflow automation, records handling, and citizen services.",
         },
     )

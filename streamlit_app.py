@@ -430,6 +430,8 @@ def load_filtered_notices(
     min_score: int | None,
     max_score: int | None,
     confidence_indicator: str | None,
+    relevant_only: bool,
+    min_days_remaining: int | None,
     hard_lock_only: bool,
     publication_date_from: date | None,
     publication_date_to: date | None,
@@ -450,6 +452,8 @@ def load_filtered_notices(
             min_score=min_score,
             max_score=max_score,
             confidence_indicator=confidence_indicator,
+            relevant_only=relevant_only,
+            min_days_remaining=min_days_remaining,
             hard_lock_only=hard_lock_only,
             publication_date_from=publication_date_from,
             publication_date_to=publication_date_to,
@@ -1183,13 +1187,14 @@ def _render_dashboard() -> None:
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Results Filters")
     st.sidebar.caption(
-        "The review queue automatically hides expired notices, tenders with fewer than 5 days remaining, "
-        "and notices that do not clear the F2 relevance gate."
+        "The review queue automatically hides expired notices. By default it requires at least 3 days remaining "
+        "and keeps the F2 relevance gate on, but you can relax or tighten that here."
     )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     search = st.sidebar.text_input("Search", "").strip() or None
 
     st.sidebar.markdown("#### Qualification")
+    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=True)
     fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
     priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
     confidence_indicator = st.sidebar.selectbox("Confidence", ["Any", "HIGH", "MEDIUM", "LOW"], index=0)
@@ -1203,6 +1208,7 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
 
     st.sidebar.markdown("#### Deadline Window")
+    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=3, step=1)
     deadline_from = st.sidebar.date_input("Deadline From", value=None)
     deadline_to = st.sidebar.date_input("Deadline To", value=None)
     deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
@@ -1221,6 +1227,8 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         min_score=score_range[0] if score_range[0] > 0 else None,
         max_score=score_range[1] if score_range[1] < 100 else None,
         confidence_indicator=None if confidence_indicator == "Any" else confidence_indicator,
+        relevant_only=relevant_only,
+        min_days_remaining=min_days_remaining if min_days_remaining > 0 else None,
         hard_lock_only=hard_lock_only,
         publication_date_from=publication_date_from,
         publication_date_to=publication_date_to,
@@ -1233,8 +1241,8 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         page_size=page_size,
     )
     filter_state = {
-        "relevant_only": True,
-        "min_days_remaining": 5,
+        "relevant_only": relevant_only,
+        "min_days_remaining": min_days_remaining if min_days_remaining > 0 else None,
         "country": country,
         "fit_label": None if fit_label == "Any" else fit_label,
         "priority_bucket": None if priority_bucket == "Any" else priority_bucket,
@@ -1612,6 +1620,8 @@ def main() -> None:
                 min_score=None,
                 max_score=None,
                 confidence_indicator=None,
+                relevant_only=True,
+                min_days_remaining=3,
                 hard_lock_only=False,
                 publication_date_from=None,
                 publication_date_to=None,
