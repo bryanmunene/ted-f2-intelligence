@@ -20,6 +20,8 @@ class NoticeListFilters:
     min_score: int | None = None
     max_score: int | None = None
     confidence_indicator: str | None = None
+    relevant_only: bool = True
+    min_days_remaining: int | None = 5
     hard_lock_only: bool = False
     publication_date_from: date | None = None
     publication_date_to: date | None = None
@@ -148,6 +150,8 @@ class NoticeRepository:
         }
 
     def _apply_filters(self, stmt: Select[tuple[Notice]], filters: NoticeListFilters) -> Select[tuple[Notice]]:
+        if filters.relevant_only:
+            stmt = stmt.where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
         if filters.country:
             country_variants = ted_country_code_variants(filters.country)
             if country_variants:
@@ -162,6 +166,9 @@ class NoticeRepository:
             stmt = stmt.where(NoticeAnalysis.score >= filters.min_score)
         if filters.max_score is not None:
             stmt = stmt.where(NoticeAnalysis.score <= filters.max_score)
+        if filters.min_days_remaining is not None:
+            minimum_deadline = datetime.now(tz=UTC) + timedelta(days=filters.min_days_remaining)
+            stmt = stmt.where(Notice.deadline.is_not(None), Notice.deadline >= minimum_deadline)
         if filters.hard_lock_only:
             stmt = stmt.where(NoticeAnalysis.hard_lock_detected.is_(True))
         if filters.publication_date_from is not None:

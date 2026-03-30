@@ -675,6 +675,10 @@ def _status_tone(status: str) -> str:
 
 def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
     chips: list[str] = []
+    if filter_state.get("relevant_only"):
+        chips.append("Relevant to F2 Only")
+    if filter_state.get("min_days_remaining") is not None:
+        chips.append(f"Deadline >= {filter_state['min_days_remaining']} days")
     if filter_state.get("country"):
         chips.append(f"Country: {filter_state['country']}")
     if filter_state.get("fit_label"):
@@ -1163,7 +1167,10 @@ def _render_dashboard() -> None:
 
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Results Filters")
-    st.sidebar.caption("Filter the current review queue by fit, timing, score, and publication window.")
+    st.sidebar.caption(
+        "The review queue automatically hides expired notices, tenders with fewer than 5 days remaining, "
+        "and notices that do not clear the F2 relevance gate."
+    )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     search = st.sidebar.text_input("Search", "").strip() or None
 
@@ -1211,6 +1218,8 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         page_size=page_size,
     )
     filter_state = {
+        "relevant_only": True,
+        "min_days_remaining": 5,
         "country": country,
         "fit_label": None if fit_label == "Any" else fit_label,
         "priority_bucket": None if priority_bucket == "Any" else priority_bucket,

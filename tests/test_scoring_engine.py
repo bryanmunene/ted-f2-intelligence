@@ -89,3 +89,31 @@ def test_keyword_requires_context_and_title_bonus_applies() -> None:
     assert all(hit["term"] != "registry" for hit in score_without_context.keyword_hits)
     assert any(hit["term"] == "registry" and hit["scope"] == "title" for hit in score_with_context.keyword_hits)
     assert score_with_context.score > score_without_context.score
+
+
+def test_scoring_engine_accepts_notices_with_five_plus_days_remaining() -> None:
+    settings = get_settings()
+    keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
+    profiles = load_search_profiles(settings.resolved_search_profiles_path)
+    scorer = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version)
+
+    notice = normalize_notice(
+        {
+            "publication-number": "33333-2026",
+            "notice-title": "Case management and document workflow platform",
+            "buyer-name": "Municipal Services Office",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-28",
+            "deadline": "2026-04-05T10:00:00Z",
+            "additional-information": "Case handling, workflow automation, records management, and correspondence tracking.",
+        },
+        extraction_version="test-version",
+    )
+    score = scorer.score(
+        notice,
+        profile=profiles.by_name("F2 Core"),
+        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
+    )
+
+    assert score.viable_timing is True
+    assert all(flag["flag"] != "expiring_soon" for flag in score.timing_flags)
