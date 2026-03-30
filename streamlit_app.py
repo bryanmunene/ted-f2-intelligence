@@ -342,6 +342,61 @@ def _apply_theme() -> None:
         .cb-detail-line strong {
             color: #162434;
         }
+        .cb-checklist-table-wrap {
+            overflow-x: auto;
+            margin-top: 0.75rem;
+        }
+        .cb-checklist-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .cb-checklist-table thead th {
+            background: #eef3f8;
+            color: #4f6276;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.8rem 0.9rem;
+            text-align: left;
+            border-bottom: 1px solid #d9e1ea;
+        }
+        .cb-checklist-table tbody tr:nth-child(even) {
+            background: #fbfcfe;
+        }
+        .cb-checklist-table tbody tr:hover {
+            background: #f5f8fc;
+        }
+        .cb-checklist-table td {
+            padding: 0.8rem 0.9rem;
+            border-top: 1px solid #e3e9f0;
+            vertical-align: top;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            color: #23384d;
+            word-break: break-word;
+        }
+        .cb-checklist-table td.cb-checklist-col-item {
+            width: 20%;
+            font-weight: 700;
+            color: #162434;
+        }
+        .cb-checklist-table td.cb-checklist-col-status {
+            width: 11%;
+            white-space: nowrap;
+        }
+        .cb-checklist-table td.cb-checklist-col-answer {
+            width: 34%;
+        }
+        .cb-checklist-table td.cb-checklist-col-basis {
+            width: 35%;
+            color: #5f7185;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -449,6 +504,10 @@ def _render_chip(label: str) -> str:
     return f"<span class='cb-chip'>{html.escape(label)}</span>"
 
 
+def _render_rich_text_cell(value: Any) -> str:
+    return html.escape(_display_value(value)).replace("\n", "<br>")
+
+
 def _card_tone_class(notice: dict[str, Any]) -> str:
     priority = _display_value(notice.get("priority_bucket")).upper()
     fit = _display_value(notice.get("fit_label")).upper()
@@ -515,6 +574,47 @@ def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
             detail_cols[2].metric("Requests", scan["request_count"])
             if scan["rate_limit_events"]:
                 st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
+
+
+def _render_checklist_table(items: list[dict[str, Any]]) -> None:
+    if not items:
+        st.info("No checklist items are available for this notice.")
+        return
+
+    rows: list[str] = []
+    for item in items:
+        status = _display_value(item.get("status")).upper()
+        rows.append(
+            "<tr>"
+            f"<td class='cb-checklist-col-item'>{_render_rich_text_cell(item.get('label'))}</td>"
+            f"<td class='cb-checklist-col-status'>{_render_pill(status, _status_tone(status))}</td>"
+            f"<td class='cb-checklist-col-answer'>{_render_rich_text_cell(item.get('answer'))}</td>"
+            f"<td class='cb-checklist-col-basis'>{_render_rich_text_cell(item.get('basis'))}</td>"
+            "</tr>"
+        )
+
+    st.markdown(
+        """
+        <div class="cb-checklist-table-wrap">
+          <table class="cb-checklist-table">
+            <thead>
+              <tr>
+                <th>Checklist Element</th>
+                <th>Status</th>
+                <th>Answer</th>
+                <th>Basis</th>
+              </tr>
+            </thead>
+            <tbody>
+        """
+        + "".join(rows)
+        + """
+            </tbody>
+          </table>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _status_tone(status: str) -> str:
@@ -1048,16 +1148,8 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
         width="stretch",
     )
 
-    for item in report["items"]:
-        with st.container(border=True):
-            header_cols = st.columns([0.72, 0.28], gap="small")
-            header_cols[0].markdown(f"**{item['label']}**")
-            header_cols[1].markdown(
-                _render_pill(item["status"].upper(), _status_tone(item["status"])),
-                unsafe_allow_html=True,
-            )
-            st.write(item["answer"])
-            st.caption(item["basis"])
+    st.caption("Reference table for analyst review and handoff.")
+    _render_checklist_table(report["items"])
 
 
 def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
