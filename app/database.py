@@ -13,10 +13,15 @@ from app.config import Settings, get_settings
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     settings = get_settings()
+    connect_args: dict[str, object] = {}
+    if settings.database_url.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+
     return create_engine(
         settings.database_url,
         echo=settings.sqlalchemy_echo,
         pool_pre_ping=True,
+        connect_args=connect_args,
         future=True,
     )
 
@@ -38,4 +43,3 @@ def create_all_schema() -> None:
     from app.models import Base
 
     Base.metadata.create_all(bind=get_engine())
-

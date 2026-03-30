@@ -168,9 +168,9 @@ class Settings(BaseSettings):
     session_https_only: bool = False
     session_max_age_seconds: int = 8 * 60 * 60
     ui_timezone: str = "Europe/Copenhagen"
-    database_url: str = "postgresql+psycopg://ted_app:ted_app@localhost:5432/ted_app"
+    database_url: str = "sqlite+pysqlite:///./ted_app.db"
     sqlalchemy_echo: bool = False
-    auto_create_schema: bool = False
+    auto_create_schema: bool = True
     ted_api_base_url: str = "https://api.ted.europa.eu"
     ted_search_path: str = "/v3/notices/search"
     ted_request_timeout_seconds: int = 30

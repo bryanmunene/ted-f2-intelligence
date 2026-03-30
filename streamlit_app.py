@@ -9,10 +9,12 @@ from app.config import get_settings
 from app.database import get_session_factory
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
+from app.services.demo_bootstrap import ensure_streamlit_demo_data
 from app.services.ted_documents import DocumentSpec, TedDocumentService
 from app.utils.time import format_date, format_datetime
 
 settings = get_settings()
+ensure_streamlit_demo_data()
 
 st.set_page_config(
     page_title="cBrain TED F2 Intelligence",
