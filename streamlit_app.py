@@ -57,334 +57,528 @@ def _apply_theme() -> None:
     st.markdown(
         """
         <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+        :root {
+            --cb-bg: #06101b;
+            --cb-bg-soft: #0a1625;
+            --cb-surface: #0d192b;
+            --cb-surface-2: #112239;
+            --cb-surface-3: #152844;
+            --cb-line: rgba(132, 166, 214, 0.22);
+            --cb-text: #edf4ff;
+            --cb-text-soft: #a9bdd9;
+            --cb-text-dim: #7d93b1;
+            --cb-accent: #4b8ef4;
+            --cb-accent-2: #8fd0ff;
+            --cb-good: #3da786;
+            --cb-watch: #d6a457;
+            --cb-risk: #e07b69;
+            --cb-glow: 0 24px 54px rgba(0, 0, 0, 0.28);
+        }
+        html, body, [class*="css"] {
+            font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        }
         .stApp,
         [data-testid="stAppViewContainer"],
         [data-testid="stAppViewContainer"] > .main,
         [data-testid="stMain"] {
-            background: #f3f5f8;
-            color: #162434;
+            background:
+                radial-gradient(circle at 8% 0%, rgba(75, 142, 244, 0.17), transparent 24%),
+                radial-gradient(circle at 92% 0%, rgba(143, 208, 255, 0.12), transparent 22%),
+                linear-gradient(180deg, #07111d 0%, #091321 42%, #0a1420 100%);
+            color: var(--cb-text);
         }
         [data-testid="stHeader"] {
-            background: rgba(255, 255, 255, 0.96);
-            border-bottom: 1px solid #d9e1ea;
+            background: rgba(6, 12, 21, 0.82);
+            border-bottom: 1px solid rgba(132, 166, 214, 0.14);
+            backdrop-filter: blur(16px);
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #17324d 0%, #12283f 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            background:
+                linear-gradient(180deg, rgba(11, 23, 37, 0.98) 0%, rgba(12, 27, 44, 0.98) 44%, rgba(15, 34, 57, 0.98) 100%);
+            border-right: 1px solid rgba(132, 166, 214, 0.12);
         }
         [data-testid="stSidebar"] * {
-            color: #eef4fb;
+            color: var(--cb-text);
+        }
+        [data-testid="stSidebarNav"] {
+            display: none;
         }
         .main .block-container {
-            padding-top: 1.35rem;
-            padding-bottom: 2rem;
-            max-width: 1320px;
+            max-width: 1410px;
+            padding-top: 1.05rem;
+            padding-bottom: 3rem;
         }
-        h1, h2, h3, h4, h5, h6, p, li, label, span, div {
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            letter-spacing: -0.03em;
+        }
+        p, li, label, span, div {
+            color: inherit;
+        }
+        [data-testid="stMarkdownContainer"] p,
+        [data-testid="stMarkdownContainer"] li {
             color: inherit;
         }
         div[data-testid="stMetric"] {
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-radius: 10px;
-            padding: 0.85rem 1rem;
-            box-shadow: 0 4px 14px rgba(15, 33, 56, 0.04);
+            background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
+            border: 1px solid var(--cb-line);
+            border-radius: 22px;
+            padding: 1rem 1.05rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
         }
         div[data-testid="stMetricLabel"] p {
-            color: #6c7b8b;
-            font-size: 0.82rem;
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.12em;
         }
         div[data-testid="stMetricValue"] {
-            color: #162434;
+            color: var(--cb-text);
+        }
+        div[data-testid="stForm"],
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: linear-gradient(180deg, rgba(16, 30, 48, 0.94) 0%, rgba(11, 22, 37, 0.98) 100%);
+            border: 1px solid var(--cb-line);
+            border-radius: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
         }
         div[data-testid="stForm"] {
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-radius: 12px;
-            padding: 0.9rem 1rem 1rem;
-            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
+            padding: 1.1rem 1.15rem 1.15rem;
         }
         div[data-baseweb="input"] > div,
         div[data-baseweb="select"] > div,
-        div[data-baseweb="textarea"] > div {
-            background: #ffffff;
-            border: 1px solid #cfd8e3;
-            border-radius: 8px;
+        div[data-baseweb="textarea"] > div,
+        .stDateInput > div > div,
+        .stNumberInput > div > div {
+            background: rgba(7, 17, 29, 0.98);
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            border-radius: 14px;
+            color: var(--cb-text);
         }
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
+        input, textarea {
+            color: var(--cb-text) !important;
         }
         .stButton > button,
         .stDownloadButton > button {
-            background: #1f5aa6;
-            color: #ffffff;
-            border: 1px solid #1f5aa6;
-            border-radius: 8px;
-            min-height: 2.7rem;
-            font-weight: 600;
-            box-shadow: none;
+            background: linear-gradient(135deg, #4b8ef4 0%, #2a67be 100%);
+            color: #f7fbff;
+            border: 1px solid rgba(143, 208, 255, 0.28);
+            border-radius: 999px;
+            min-height: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            box-shadow: 0 18px 34px rgba(41, 89, 166, 0.24);
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover {
-            border-color: #184a88;
-            background: #184a88;
+            background: linear-gradient(135deg, #63a1ff 0%, #316fca 100%);
+            border-color: rgba(143, 208, 255, 0.44);
             color: #ffffff;
         }
         .stLinkButton a {
-            background: #ffffff;
-            color: #1f5aa6;
-            border: 1px solid #cfd8e3;
-            border-radius: 8px;
-            min-height: 2.7rem;
-            font-weight: 600;
+            background: rgba(12, 27, 44, 0.86);
+            color: var(--cb-text);
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            border-radius: 999px;
+            min-height: 2.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
         .stLinkButton a:hover {
-            background: #f6f9fc;
-            border-color: #bcc9d7;
-            color: #173f74;
+            background: rgba(18, 37, 59, 0.96);
+            border-color: rgba(132, 166, 214, 0.3);
+            color: #ffffff;
         }
         .stAlert {
-            border-radius: 10px;
+            border-radius: 20px;
         }
-        .cb-banner {
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-left: 5px solid #1f5aa6;
-            border-radius: 10px;
-            padding: 0.95rem 1.1rem;
-            margin-bottom: 1.1rem;
-            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
+        [data-baseweb="tab-list"] {
+            gap: 0.5rem;
+            background: transparent;
         }
-        .cb-kicker {
-            color: #5d6c7c;
-            font-size: 0.78rem;
+        button[data-baseweb="tab"] {
+            height: 2.6rem;
+            border-radius: 999px;
+            background: rgba(12, 27, 44, 0.82);
+            border: 1px solid rgba(132, 166, 214, 0.16);
+            color: var(--cb-text-soft);
+            padding: 0 1rem;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] {
+            background: linear-gradient(135deg, rgba(75, 142, 244, 0.18) 0%, rgba(19, 42, 74, 0.9) 100%);
+            border-color: rgba(143, 208, 255, 0.3);
+            color: var(--cb-text);
+        }
+        [data-testid="stExpander"] {
+            background: linear-gradient(180deg, rgba(16, 30, 48, 0.94) 0%, rgba(11, 22, 37, 0.98) 100%);
+            border: 1px solid var(--cb-line);
+            border-radius: 20px;
+        }
+        .cb-shell-hero {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            border-radius: 30px;
+            padding: 1.5rem 1.55rem;
+            margin-bottom: 1.2rem;
+            background: linear-gradient(135deg, rgba(16, 29, 47, 0.98) 0%, rgba(9, 18, 31, 0.94) 44%, rgba(11, 26, 43, 0.98) 100%);
+            box-shadow: var(--cb-glow);
+        }
+        .cb-shell-hero::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(110deg, rgba(75, 142, 244, 0.12) 0%, transparent 34%),
+                repeating-linear-gradient(90deg, rgba(132, 166, 214, 0.05) 0 1px, transparent 1px 76px);
+            pointer-events: none;
+        }
+        .cb-shell-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.95fr);
+            gap: 1.2rem;
+            align-items: end;
+        }
+        .cb-shell-kicker,
+        .cb-panel-kicker,
+        .cb-sidebar-line {
+            color: var(--cb-accent-2);
+            font-size: 0.75rem;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            margin-bottom: 0.25rem;
-        }
-        .cb-title {
-            color: #162434;
-            font-size: 1.85rem;
+            letter-spacing: 0.16em;
+            margin-bottom: 0.45rem;
             font-weight: 700;
+        }
+        .cb-shell-title {
+            margin: 0;
+            font-size: clamp(2rem, 2.5vw, 3rem);
+            line-height: 1.04;
+            max-width: 9.5em;
+        }
+        .cb-shell-copy,
+        .cb-panel-copy {
+            color: var(--cb-text-soft);
+            line-height: 1.6;
+            font-size: 0.98rem;
+            max-width: 60rem;
+            margin-top: 0.75rem;
+            margin-bottom: 0;
+        }
+        .cb-shell-aside {
+            position: relative;
+            border: 1px solid rgba(132, 166, 214, 0.14);
+            border-radius: 24px;
+            padding: 1rem 1.05rem;
+            background: rgba(8, 17, 29, 0.68);
+            backdrop-filter: blur(10px);
+        }
+        .cb-shell-aside-item {
+            padding: 0.48rem 0;
+            border-bottom: 1px solid rgba(132, 166, 214, 0.08);
+        }
+        .cb-shell-aside-item:last-child {
+            border-bottom: none;
+        }
+        .cb-shell-aside-label {
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.12rem;
+        }
+        .cb-shell-aside-value {
+            color: var(--cb-text);
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+        .cb-panel-head {
+            margin-bottom: 0.8rem;
+        }
+        .cb-panel-title {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.35rem;
+            line-height: 1.08;
             margin: 0;
         }
-        .cb-subtitle {
-            color: #607084;
-            margin-top: 0.3rem;
+        .cb-signal-card {
+            min-height: 11.2rem;
+            padding: 1rem 1.05rem;
+            border-radius: 24px;
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
         }
-        .cb-section-title {
-            margin-top: 0;
-            margin-bottom: 0.3rem;
+        .cb-signal-label {
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-weight: 700;
         }
-        .cb-muted {
-            color: #667585;
+        .cb-signal-value {
+            margin-top: 0.9rem;
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: clamp(1.8rem, 2vw, 2.45rem);
+            font-weight: 700;
+            line-height: 1;
+        }
+        .cb-signal-note {
+            margin-top: 1rem;
+            color: var(--cb-text-soft);
+            line-height: 1.5;
             font-size: 0.92rem;
         }
         .cb-sidebar-brand {
-            padding: 0.35rem 0 1rem 0;
-            margin-bottom: 0.9rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            padding: 0.45rem 0 1.1rem 0;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(132, 166, 214, 0.12);
         }
-        .cb-sidebar-logo {
+        .cb-sidebar-mark {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 2rem;
-            height: 2rem;
-            border-radius: 6px;
-            background: #2b67b7;
-            color: #ffffff;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #8fd0ff 0%, #4b8ef4 46%, #244c82 100%);
+            color: #08111d;
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 0.88rem;
             font-weight: 700;
-            font-size: 0.9rem;
-            margin-bottom: 0.6rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 0 0 8px rgba(75, 142, 244, 0.08);
         }
         .cb-sidebar-title {
-            color: #f4f8fc;
-            font-size: 1rem;
-            font-weight: 700;
-            margin-bottom: 0.2rem;
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.18rem;
+            line-height: 1.08;
+            margin-bottom: 0.35rem;
         }
         .cb-sidebar-subtitle {
-            color: #a9bdd3;
-            font-size: 0.84rem;
-            line-height: 1.45;
+            color: var(--cb-text-soft);
+            font-size: 0.87rem;
+            line-height: 1.6;
         }
-        .cb-result-card {
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-left: 4px solid #b8c7d8;
-            border-radius: 10px;
-            padding: 1rem 1rem 0.9rem 1rem;
-            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
-            margin-bottom: 0.75rem;
-        }
-        .cb-result-card-high { border-left-color: #1f5aa6; }
-        .cb-result-card-good { border-left-color: #2d7c64; }
-        .cb-result-card-watch { border-left-color: #9b6b18; }
-        .cb-result-card-ignore { border-left-color: #8a97a8; }
-        .cb-result-card-conditional { border-left-color: #b85b3d; }
-        .cb-result-topline {
-            display: flex;
-            justify-content: space-between;
-            gap: 0.75rem;
-            align-items: flex-start;
-            margin-bottom: 0.75rem;
-        }
-        .cb-result-topline-left {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.4rem;
-        }
-        .cb-result-score {
-            text-align: right;
-        }
-        .cb-result-score-label {
-            color: #6b7a8a;
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .cb-result-score-value {
-            color: #162434;
-            font-size: 1.45rem;
-            font-weight: 700;
-            line-height: 1.1;
-        }
-        .cb-result-title {
-            color: #162434;
-            font-size: 1.04rem;
-            font-weight: 700;
-            line-height: 1.35;
-            margin-bottom: 0.55rem;
-        }
-        .cb-result-meta {
-            color: #657587;
-            font-size: 0.9rem;
-            margin-bottom: 0.3rem;
-        }
-        .cb-pill {
+        .cb-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.22rem 0.46rem;
-            border-radius: 6px;
-            border: 1px solid #d6dee8;
-            font-size: 0.73rem;
-            font-weight: 600;
+            padding: 0.34rem 0.65rem;
+            border-radius: 999px;
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            font-size: 0.72rem;
+            font-weight: 700;
             line-height: 1;
-            letter-spacing: 0.03em;
             text-transform: uppercase;
-            background: #f7f9fb;
-            color: #44586d;
+            letter-spacing: 0.08em;
+            background: rgba(12, 27, 44, 0.8);
+            color: var(--cb-text-soft);
         }
-        .cb-pill-source {
-            background: #edf3fb;
-            border-color: #c8d8ee;
-            color: #1f5aa6;
-        }
-        .cb-pill-fit {
-            background: #eef2f5;
-            border-color: #d2dbe4;
-            color: #3a536b;
-        }
-        .cb-pill-priority {
-            background: #eef3fb;
-            border-color: #cad8ea;
-            color: #355784;
-        }
-        .cb-pill-alert {
-            background: #fbefeb;
-            border-color: #efd0c6;
-            color: #a14e38;
-        }
-        .cb-pill-good {
-            background: #edf5f1;
-            border-color: #cce0d6;
-            color: #2f6c54;
-        }
-        .cb-pill-neutral {
-            background: #f2f4f7;
-            border-color: #d7dee6;
-            color: #596a7c;
-        }
+        .cb-badge-source { color: var(--cb-accent-2); border-color: rgba(75, 142, 244, 0.22); }
+        .cb-badge-fit { color: #dce8f9; }
+        .cb-badge-priority { color: #cce0ff; }
+        .cb-badge-good { color: #9ce0c9; border-color: rgba(61, 167, 134, 0.24); }
+        .cb-badge-watch { color: #f2d6a4; border-color: rgba(214, 164, 87, 0.24); }
+        .cb-badge-alert { color: #f5beb5; border-color: rgba(224, 123, 105, 0.28); }
+        .cb-badge-neutral { color: var(--cb-text-dim); }
         .cb-chip-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.38rem;
-            margin-top: 0.8rem;
+            gap: 0.42rem;
+            margin-top: 0.9rem;
         }
         .cb-chip {
             display: inline-flex;
             align-items: center;
-            padding: 0.22rem 0.46rem;
-            border-radius: 6px;
-            border: 1px solid #d4dde7;
-            background: #f7f9fb;
-            color: #4b6074;
-            font-size: 0.74rem;
+            padding: 0.32rem 0.62rem;
+            border-radius: 999px;
+            background: rgba(14, 30, 49, 0.92);
+            border: 1px solid rgba(132, 166, 214, 0.16);
+            color: var(--cb-text-soft);
+            font-size: 0.77rem;
             font-weight: 600;
             line-height: 1;
         }
-        .cb-detail-block {
-            display: flex;
-            flex-direction: column;
-            gap: 0.55rem;
+        .cb-dossier {
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            background: linear-gradient(180deg, rgba(17, 31, 50, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
+            padding: 1.2rem;
+            margin-bottom: 1rem;
         }
-        .cb-detail-line {
-            color: #23384d;
-            font-size: 0.93rem;
+        .cb-dossier::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: rgba(132, 166, 214, 0.26);
+        }
+        .cb-dossier-high::before { background: linear-gradient(180deg, #8fd0ff 0%, #4b8ef4 100%); }
+        .cb-dossier-good::before { background: linear-gradient(180deg, #6dd4b6 0%, #3da786 100%); }
+        .cb-dossier-watch::before { background: linear-gradient(180deg, #f2d08d 0%, #d6a457 100%); }
+        .cb-dossier-ignore::before { background: linear-gradient(180deg, #94a4ba 0%, #66778e 100%); }
+        .cb-dossier-conditional::before { background: linear-gradient(180deg, #f1ae95 0%, #e07b69 100%); }
+        .cb-dossier-grid {
+            display: grid;
+            grid-template-columns: minmax(150px, 0.22fr) minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+        .cb-dossier-rail {
+            padding-right: 1rem;
+            border-right: 1px solid rgba(132, 166, 214, 0.12);
+        }
+        .cb-dossier-score {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 2.6rem;
+            line-height: 0.95;
+            font-weight: 700;
+            margin-bottom: 0.22rem;
+        }
+        .cb-dossier-score-label {
+            color: var(--cb-text-dim);
+            font-size: 0.76rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 0.85rem;
+        }
+        .cb-dossier-rail-line {
+            margin-bottom: 0.7rem;
+        }
+        .cb-dossier-rail-key {
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.15rem;
+        }
+        .cb-dossier-rail-value {
+            color: var(--cb-text);
+            font-size: 0.94rem;
             line-height: 1.45;
+            font-weight: 600;
         }
-        .cb-detail-line strong {
-            color: #162434;
+        .cb-dossier-topline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.42rem;
+            margin-bottom: 0.8rem;
+        }
+        .cb-dossier-meta {
+            color: var(--cb-text-dim);
+            font-size: 0.84rem;
+            letter-spacing: 0.03em;
+            margin-bottom: 0.45rem;
+        }
+        .cb-dossier-title {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.32rem;
+            line-height: 1.18;
+            margin-bottom: 0.55rem;
+        }
+        .cb-dossier-summary {
+            color: var(--cb-text-soft);
+            font-size: 0.98rem;
+            line-height: 1.65;
+            margin-bottom: 0.45rem;
+            max-width: 60rem;
+        }
+        .cb-fact-list {
+            display: grid;
+            gap: 0.75rem;
+        }
+        .cb-fact-item {
+            border-bottom: 1px solid rgba(132, 166, 214, 0.09);
+            padding-bottom: 0.7rem;
+        }
+        .cb-fact-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .cb-fact-label {
+            color: var(--cb-text-dim);
+            font-size: 0.73rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 0.18rem;
+        }
+        .cb-fact-value {
+            color: var(--cb-text);
+            font-size: 0.98rem;
+            line-height: 1.55;
+        }
+        .cb-note-card {
+            border: 1px solid rgba(132, 166, 214, 0.14);
+            border-radius: 24px;
+            padding: 1rem 1.05rem;
+            background: rgba(9, 18, 31, 0.72);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+        .cb-note-title {
+            color: var(--cb-text);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.22rem;
+        }
+        .cb-note-copy {
+            color: var(--cb-text-soft);
+            line-height: 1.55;
+            font-size: 0.92rem;
         }
         .cb-checklist-table-wrap {
             overflow-x: auto;
-            margin-top: 0.75rem;
+            margin-top: 0.9rem;
         }
         .cb-checklist-table {
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: #ffffff;
-            border: 1px solid #d9e1ea;
-            border-radius: 12px;
+            background: rgba(8, 17, 29, 0.86);
+            border: 1px solid rgba(132, 166, 214, 0.18);
+            border-radius: 22px;
             overflow: hidden;
         }
         .cb-checklist-table thead th {
-            background: #eef3f8;
-            color: #4f6276;
-            font-size: 0.78rem;
+            background: rgba(18, 33, 53, 0.96);
+            color: var(--cb-text-dim);
+            font-size: 0.75rem;
             font-weight: 700;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.13em;
             text-transform: uppercase;
-            padding: 0.8rem 0.9rem;
+            padding: 0.95rem 1rem;
             text-align: left;
-            border-bottom: 1px solid #d9e1ea;
+            border-bottom: 1px solid rgba(132, 166, 214, 0.14);
         }
         .cb-checklist-table tbody tr:nth-child(even) {
-            background: #fbfcfe;
+            background: rgba(12, 24, 39, 0.85);
         }
         .cb-checklist-table tbody tr:hover {
-            background: #f5f8fc;
+            background: rgba(18, 33, 53, 0.92);
         }
         .cb-checklist-table td {
-            padding: 0.8rem 0.9rem;
-            border-top: 1px solid #e3e9f0;
+            padding: 0.95rem 1rem;
+            border-top: 1px solid rgba(132, 166, 214, 0.08);
             vertical-align: top;
             font-size: 0.92rem;
-            line-height: 1.45;
-            color: #23384d;
+            line-height: 1.55;
+            color: var(--cb-text-soft);
             word-break: break-word;
         }
         .cb-checklist-table td.cb-checklist-col-item {
             width: 20%;
             font-weight: 700;
-            color: #162434;
+            color: var(--cb-text);
         }
         .cb-checklist-table td.cb-checklist-col-status {
             width: 11%;
@@ -395,7 +589,22 @@ def _apply_theme() -> None:
         }
         .cb-checklist-table td.cb-checklist-col-basis {
             width: 35%;
-            color: #5f7185;
+            color: var(--cb-text-dim);
+        }
+        @media (max-width: 980px) {
+            .cb-shell-grid,
+            .cb-dossier-grid {
+                grid-template-columns: 1fr;
+            }
+            .cb-dossier-rail {
+                padding-right: 0;
+                padding-bottom: 0.9rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(132, 166, 214, 0.12);
+            }
+            .cb-signal-card {
+                min-height: auto;
+            }
         }
         </style>
         """,
@@ -514,9 +723,13 @@ def _display_value(value: Any) -> str:
     return str(raw)
 
 
+def _escape_text(value: Any) -> str:
+    return html.escape(_display_value(value))
+
+
 def _render_pill(label: str, tone: str) -> str:
     safe_label = html.escape(label)
-    return f"<span class='cb-pill cb-pill-{tone}'>{safe_label}</span>"
+    return f"<span class='cb-badge cb-badge-{tone}'>{safe_label}</span>"
 
 
 def _render_chip(label: str) -> str:
@@ -555,16 +768,30 @@ def _card_tone_class(notice: dict[str, Any]) -> str:
     priority = _display_value(notice.get("priority_bucket")).upper()
     fit = _display_value(notice.get("fit_label")).upper()
     if fit == "CONDITIONAL" or notice.get("hard_lock_detected"):
-        return "cb-result-card-conditional"
+        return "cb-dossier-conditional"
     if priority == "HIGH":
-        return "cb-result-card-high"
+        return "cb-dossier-high"
     if priority == "GOOD":
-        return "cb-result-card-good"
+        return "cb-dossier-good"
     if priority == "WATCHLIST":
-        return "cb-result-card-watch"
+        return "cb-dossier-watch"
     if priority == "IGNORE":
-        return "cb-result-card-ignore"
+        return "cb-dossier-ignore"
     return ""
+
+
+def _render_section_header(kicker: str, title: str, copy: str | None = None) -> None:
+    body = f"<p class='cb-panel-copy'>{html.escape(copy)}</p>" if copy else ""
+    st.markdown(
+        f"""
+        <div class="cb-panel-head">
+          <div class="cb-panel-kicker">{html.escape(kicker)}</div>
+          <h2 class="cb-panel-title">{html.escape(title)}</h2>
+          {body}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def _render_stat_cards(cards: list[dict[str, str]]) -> None:
@@ -577,10 +804,16 @@ def _render_stat_cards(cards: list[dict[str, str]]) -> None:
         columns = st.columns(len(row_cards), gap="medium")
         for column, card in zip(columns, row_cards):
             with column:
-                with st.container(border=True):
-                    st.caption(card["label"].upper())
-                    st.markdown(f"### {card['value']}")
-                    st.caption(card["note"])
+                st.markdown(
+                    f"""
+                    <div class="cb-signal-card">
+                      <div class="cb-signal-label">{html.escape(card["label"])}</div>
+                      <div class="cb-signal-value">{html.escape(card["value"])}</div>
+                      <div class="cb-signal-note">{html.escape(card["note"])}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
 
 def _render_profile_cards() -> None:
@@ -598,8 +831,13 @@ def _render_profile_cards() -> None:
         for column, profile in zip(columns, row_profiles):
             with column:
                 with st.container(border=True):
-                    st.markdown(f"**{profile.name}**")
-                    st.caption(profile.description)
+                    st.markdown(
+                        f"""
+                        <div class="cb-note-title">{html.escape(profile.name)}</div>
+                        <div class="cb-note-copy">{html.escape(profile.description)}</div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
                     category_labels = [
                         positive_groups[group_id].name
                         for group_id in profile.keyword_group_ids
@@ -624,8 +862,13 @@ def _render_profile_cards() -> None:
 def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
     for scan in recent_scans:
         with st.container(border=True):
-            st.markdown(f"**{scan['status']}**")
-            st.caption(f"Started {format_datetime(scan['started_at'], settings.ui_timezone)}")
+            st.markdown(
+                f"""
+                <div class="cb-note-title">{html.escape(scan['status'])}</div>
+                <div class="cb-note-copy">Started {html.escape(format_datetime(scan['started_at'], settings.ui_timezone))}</div>
+                """,
+                unsafe_allow_html=True,
+            )
             detail_cols = st.columns(3, gap="small")
             detail_cols[0].metric("Ingested", scan["total_notices_ingested"])
             detail_cols[1].metric("High Fit", scan["total_high_fit"])
@@ -820,9 +1063,10 @@ def _render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
         <div class="cb-sidebar-brand">
-          <div class="cb-sidebar-logo">CB</div>
-          <div class="cb-sidebar-title">TED F2 Intelligence</div>
-          <div class="cb-sidebar-subtitle">Internal cBrain opportunity review for official TED notices only.</div>
+          <div class="cb-sidebar-line">cBrain Signal Studio</div>
+          <div class="cb-sidebar-mark">F2</div>
+          <div class="cb-sidebar-title">TED Opportunity Intelligence</div>
+          <div class="cb-sidebar-subtitle">Creative internal review shell for official TED notices, F2-fit scoring, and qualification decisions.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -856,35 +1100,64 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
     elif notice.get("viable_timing"):
         top_line_badges.append(_render_pill("Timing viable", "good"))
     else:
-        top_line_badges.append(_render_pill("Timing review", "neutral"))
+        top_line_badges.append(_render_pill("Timing review", "watch"))
 
     buyer = notice.get("buyer") or "Unknown buyer"
     country = notice.get("buyer_country") or "N/A"
     publication = notice.get("publication_number") or "Unknown publication"
     deadline = format_datetime(notice.get("deadline"), settings.ui_timezone)
     publication_date = format_date(notice.get("publication_date"))
-    summary = notice.get("title") or "Untitled notice"
+    title = notice.get("title") or "Untitled notice"
     keyword_chips = "".join(_render_chip(label) for label in _notice_keyword_labels(notice))
     if not keyword_chips:
         keyword_chips = _render_chip("No keyword evidence captured yet")
+    narrative_parts = [
+        f"Buyer: {buyer}.",
+        f"Publication: {publication_date}.",
+        f"Deadline: {deadline}.",
+        f"Confidence: {confidence}.",
+    ]
+    if notice.get("hard_lock_detected"):
+        narrative_parts.append("Platform lock signals are present and should be qualified early.")
+    elif notice.get("viable_timing"):
+        narrative_parts.append("Timing posture currently looks workable for review.")
+    else:
+        narrative_parts.append("Timing posture needs analyst attention.")
 
     st.markdown(
         f"""
-        <div class="cb-result-card {card_class}">
-          <div class="cb-result-topline">
-            <div class="cb-result-topline-left">
-              {''.join(top_line_badges)}
+        <div class="cb-dossier {card_class}">
+          <div class="cb-dossier-grid">
+            <div class="cb-dossier-rail">
+              <div class="cb-dossier-score">{notice['score']}</div>
+              <div class="cb-dossier-score-label">Signal Score</div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Fit</div>
+                <div class="cb-dossier-rail-value">{html.escape(fit_label)}</div>
+              </div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Priority</div>
+                <div class="cb-dossier-rail-value">{html.escape(priority_bucket)}</div>
+              </div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Country</div>
+                <div class="cb-dossier-rail-value">{html.escape(country)}</div>
+              </div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Deadline</div>
+                <div class="cb-dossier-rail-value">{html.escape(deadline)}</div>
+              </div>
             </div>
-            <div class="cb-result-score">
-              <div class="cb-result-score-label">Score</div>
-              <div class="cb-result-score-value">{notice['score']}</div>
+            <div>
+              <div class="cb-dossier-topline">
+              {''.join(top_line_badges)}
+              </div>
+              <div class="cb-dossier-meta">{html.escape(publication)} | {html.escape(buyer)} | {html.escape(country)}</div>
+              <div class="cb-dossier-title">{html.escape(title)}</div>
+              <div class="cb-dossier-summary">{html.escape(" ".join(narrative_parts))}</div>
+              <div class="cb-chip-row">{keyword_chips}</div>
             </div>
           </div>
-          <div class="cb-result-title">{html.escape(summary)}</div>
-          <div class="cb-result-meta">{html.escape(publication)} | {html.escape(buyer)} | {html.escape(country)}</div>
-          <div class="cb-result-meta">Published {html.escape(publication_date)} | Deadline {html.escape(deadline)}</div>
-          <div class="cb-result-meta">Confidence {html.escape(confidence)}</div>
-          <div class="cb-chip-row">{keyword_chips}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -985,18 +1258,63 @@ def run_live_scan(
         session.close()
 
 
-def _render_banner() -> None:
+def _render_banner(current_view: str) -> None:
     storage_state = initialize_streamlit_storage()
     purged_demo_notices = storage_state.get("purged_demo_notices", 0)
+    view_copy = {
+        "Dashboard": {
+            "kicker": "Opportunity Briefing",
+            "title": "F2 signal desk for official TED market intelligence.",
+            "copy": "Track live procurement momentum, review scan freshness, and steer analysts toward the strongest public-sector process digitisation opportunities.",
+        },
+        "Live Scan": {
+            "kicker": "Acquisition Workspace",
+            "title": "Interrogate TED's public API with an F2-first lens.",
+            "copy": "Configure a precise search posture, respect TED request budgets, and feed scored notices into the review queue without touching unsupported scraping routes.",
+        },
+        "Results": {
+            "kicker": "Signal Board",
+            "title": "Read each notice as a dossier, not a spreadsheet row.",
+            "copy": "Surface timing, fit, platform risk, and keyword evidence together so cBrain teams can decide quickly where F2 deserves attention.",
+        },
+        "Notice Detail": {
+            "kicker": "Opportunity Dossier",
+            "title": "Open one tender and inspect the reasoning in depth.",
+            "copy": "Review fit logic, supporting evidence, qualification questions, checklist coverage, and official TED documents from one audit-ready workspace.",
+        },
+    }.get(
+        current_view,
+        {
+            "kicker": "cBrain Signal Studio",
+            "title": "Official TED-only tender intelligence for F2 teams.",
+            "copy": "Review live notices, fit signals, and qualification context inside a single internal workspace.",
+        },
+    )
     st.markdown(
-        """
-        <div class="cb-banner">
-          <div class="cb-kicker">cBrain Internal Service Shell</div>
-          <h1 class="cb-title">cBrain TED F2 Intelligence</h1>
-          <div class="cb-subtitle">
-            Official TED-only opportunity review for F2-fit assessment. FastAPI remains the canonical backend and live scans use TED's public API.
+        f"""
+        <section class="cb-shell-hero">
+          <div class="cb-shell-grid">
+            <div>
+              <div class="cb-shell-kicker">{html.escape(view_copy["kicker"])}</div>
+              <h1 class="cb-shell-title">{html.escape(view_copy["title"])}</h1>
+              <p class="cb-shell-copy">{html.escape(view_copy["copy"])}</p>
+            </div>
+            <div class="cb-shell-aside">
+              <div class="cb-shell-aside-item">
+                <div class="cb-shell-aside-label">Source posture</div>
+                <div class="cb-shell-aside-value">Official TED public API and official notice routes only</div>
+              </div>
+              <div class="cb-shell-aside-item">
+                <div class="cb-shell-aside-label">Scoring model</div>
+                <div class="cb-shell-aside-value">Deterministic F2-fit rules with audit trail support</div>
+              </div>
+              <div class="cb-shell-aside-item">
+                <div class="cb-shell-aside-label">Business timezone</div>
+                <div class="cb-shell-aside-value">{html.escape(settings.ui_timezone)}</div>
+              </div>
+            </div>
           </div>
-        </div>
+        </section>
         """,
         unsafe_allow_html=True,
     )
@@ -1009,9 +1327,10 @@ def _render_banner() -> None:
 def _render_live_scan() -> None:
     profiles = get_search_profiles_registry()
 
-    st.subheader("Live TED Scan", anchor=False)
-    st.caption(
-        "Run a live search against TED's public Search API. This populates the same database used by the rest of the app."
+    _render_section_header(
+        "Live TED Scan",
+        "Acquisition workspace",
+        "Configure a live TED search run, keep the request posture polite, and push fresh notices into the same scored datastore used by the rest of the shell.",
     )
 
     _render_stat_cards(
@@ -1039,6 +1358,16 @@ def _render_live_scan() -> None:
         ]
     )
 
+    st.markdown(
+        """
+        <div class="cb-note-card" style="margin: 1rem 0 1.1rem 0;">
+          <div class="cb-note-title">Scan posture</div>
+          <div class="cb-note-copy">Profiles broaden or narrow the acquisition logic, but the source of truth remains TED's official public search interface. Query parameters below let you steer the run without leaving the guarded ingestion path.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
     with st.form("live_ted_scan_form"):
         left, right = st.columns(2, gap="large")
         with left:
@@ -1063,8 +1392,12 @@ def _render_live_scan() -> None:
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
     if not submitted:
-        st.info("Run a scan to replace empty or demo-only views with real TED notices.")
-        st.markdown("#### Search Profiles")
+        st.info("Run a scan to populate the shell with live TED notices and retire empty or demo-only surfaces.")
+        _render_section_header(
+            "Configured Strategies",
+            "Search profiles",
+            "Each profile changes keyword groups, exclusions, and sensitivity so you can explore the market with different F2 hypotheses.",
+        )
         _render_profile_cards()
         return
 
@@ -1098,7 +1431,11 @@ def _render_live_scan() -> None:
     outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
     outcome_cols[3].metric("Conditional", outcome["total_conditional"])
 
-    st.markdown("#### Search Profiles")
+    _render_section_header(
+        "Configured Strategies",
+        "Search profiles",
+        "The live run has completed. You can immediately run another acquisition pass with a different profile or move to the signal board.",
+    )
     _render_profile_cards()
 
     st.session_state["active_view"] = "Results"
@@ -1111,7 +1448,11 @@ def _render_dashboard() -> None:
     recent_scans = payload["recent_scans"]
     top_notices = payload["top_notices"]
 
-    st.subheader("Dashboard", anchor=False)
+    _render_section_header(
+        "Command Overview",
+        "Dashboard",
+        "Read the current opportunity temperature, see whether acquisition is fresh enough, and jump straight into the queue that most deserves analyst time.",
+    )
     _render_stat_cards(
         [
             {
@@ -1149,21 +1490,31 @@ def _render_dashboard() -> None:
 
     left, right = st.columns([1.05, 0.95], gap="large")
     with left:
-        st.markdown("#### Recent Scan Runs")
+        _render_section_header(
+            "Acquisition Feed",
+            "Recent scan runs",
+            "These are the latest TED ingestion runs and their operational yield.",
+        )
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
         else:
             st.info("No scan history found.")
 
     with right:
-        st.markdown("#### Top Review Queue")
+        _render_section_header(
+            "Review Queue",
+            "Immediate attention set",
+            "The shortlist below is tuned to put the most actionable F2 signals in front of analysts first.",
+        )
         if top_notices:
             for notice in top_notices:
                 with st.container(border=True):
-                    st.markdown(f"**{notice['title']}**")
-                    st.caption(
-                        f"{notice['publication_number']} | {notice['buyer'] or 'Unknown buyer'} | "
-                        f"{notice['buyer_country'] or 'N/A'} | Source: {_notice_source_label(notice)}"
+                    st.markdown(
+                        f"""
+                        <div class="cb-note-title">{html.escape(notice['title'])}</div>
+                        <div class="cb-note-copy">{html.escape(notice['publication_number'])} | {html.escape(notice['buyer'] or 'Unknown buyer')} | {html.escape(notice['buyer_country'] or 'N/A')} | Source: {html.escape(_notice_source_label(notice))}</div>
+                        """,
+                        unsafe_allow_html=True,
                     )
                     action_cols = st.columns([1, 1, 1, 1])
                     action_cols[0].metric("Score", notice["score"])
@@ -1185,21 +1536,20 @@ def _render_dashboard() -> None:
 
 
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    st.sidebar.markdown("### Results Filters")
+    st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption(
-        "The review queue automatically hides expired notices. By default it requires at least 1 day remaining "
-        "and keeps the F2 relevance gate on, but you can relax or tighten that here."
+        "Expired notices stay hidden. Use the controls below to decide how broad or strict the active review surface should be."
     )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     search = st.sidebar.text_input("Search", "").strip() or None
 
-    st.sidebar.markdown("#### Qualification")
+    st.sidebar.markdown("#### Relevance Gate")
     relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=True)
     fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
     priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
     confidence_indicator = st.sidebar.selectbox("Confidence", ["Any", "HIGH", "MEDIUM", "LOW"], index=0)
 
-    st.sidebar.markdown("#### Score")
+    st.sidebar.markdown("#### Signal Strength")
     score_range = st.sidebar.slider("Score Range", min_value=0, max_value=100, value=(0, 100))
 
     st.sidebar.markdown("#### Publication Window")
@@ -1207,7 +1557,7 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     publication_date_to = st.sidebar.date_input("Published To", value=None)
     publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
 
-    st.sidebar.markdown("#### Deadline Window")
+    st.sidebar.markdown("#### Timing Window")
     min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=1, step=1)
     deadline_from = st.sidebar.date_input("Deadline From", value=None)
     deadline_to = st.sidebar.date_input("Deadline To", value=None)
@@ -1268,11 +1618,20 @@ def _render_results() -> list[dict[str, Any]]:
     notices, filter_state = _render_filters()
     _seed_selected_notice(notices)
 
-    st.subheader("Results", anchor=False)
+    _render_section_header(
+        "Signal Board",
+        "Results",
+        "Every opportunity below is presented as a briefing card so timing, fit, and platform risk can be read together instead of as isolated table columns.",
+    )
     total_matches = filter_state["total_matches"]
-    st.caption(
-        f"{total_matches} notices match the current filter set. "
-        f"{len(notices)} are currently loaded into the review surface."
+    st.markdown(
+        f"""
+        <div class="cb-note-card" style="margin-bottom: 1rem;">
+          <div class="cb-note-title">Current review surface</div>
+          <div class="cb-note-copy">{total_matches} notices match the active filter posture. {len(notices)} are loaded into the current signal board.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     if not notices:
@@ -1282,23 +1641,26 @@ def _render_results() -> list[dict[str, Any]]:
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:
         st.markdown(
-            "<div class='cb-chip-row'>" + "".join(_render_chip(chip) for chip in active_filter_chips) + "</div>",
+            "<div class='cb-note-card'><div class='cb-note-title'>Active filter posture</div><div class='cb-chip-row'>"
+            + "".join(_render_chip(chip) for chip in active_filter_chips)
+            + "</div></div>",
             unsafe_allow_html=True,
         )
 
     _render_stat_cards(_build_results_metrics(notices, total_matches=total_matches))
 
-    grid_cols = st.columns(2, gap="large")
     for index, notice in enumerate(notices):
-        with grid_cols[index % 2]:
-            _render_result_card(notice, card_index=index)
+        _render_result_card(notice, card_index=index)
 
     return notices
 
 
 def _render_download_controls(detail: dict[str, Any]) -> None:
-    st.markdown("#### Official TED Documents")
-    st.caption("Open the official TED notice page or fetch the official TED PDF.")
+    _render_section_header(
+        "Official Source Access",
+        "TED notice and document actions",
+        "Use the official TED notice route for live review, or fetch the official PDF directly into the dossier workspace.",
+    )
 
     if detail.get("is_demo_record"):
         st.info(
@@ -1355,10 +1717,10 @@ def get_tender_checklist_service() -> TenderChecklistService:
 
 
 def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
-    st.markdown("#### cBrain Tender Checklist")
-    st.caption(
-        "Cross-reference this opportunity against the cBrain East Africa tender checklist template. "
-        "Answers are marked as filled, inferred, or review."
+    _render_section_header(
+        "Tender Checklist",
+        "Checklist cross-reference",
+        "Cross-reference this opportunity against the cBrain East Africa tender checklist template. Answers are marked as filled, inferred, or review.",
     )
 
     state_key = f"show_checklist_{detail['id']}"
@@ -1393,8 +1755,11 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
 
 def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
     module = detail.get("keyword_evidence_module") or {}
-    st.markdown("#### Eligibility Keywords")
-    st.caption("Deterministic keyword evidence showing exactly why this opportunity was surfaced for F2 review.")
+    _render_section_header(
+        "Eligibility Evidence",
+        "Keyword evidence",
+        "Deterministic keyword evidence showing exactly why this opportunity was surfaced for F2 review.",
+    )
 
     st.info(module.get("statement") or "No keyword evidence module is available for this notice.")
 
@@ -1480,7 +1845,11 @@ def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
 
 
 def _render_notice_detail(notice_id: str | None) -> None:
-    st.subheader("Notice Detail", anchor=False)
+    _render_section_header(
+        "Opportunity Dossier",
+        "Notice detail",
+        "Inspect one opportunity in depth, including fit logic, qualification questions, evidence, checklist coverage, and official TED source access.",
+    )
     if not notice_id:
         st.info("Choose a tender from the Results view first.")
         return
@@ -1490,10 +1859,49 @@ def _render_notice_detail(notice_id: str | None) -> None:
         st.error("The selected notice could not be found.")
         return
 
-    st.markdown(f"### {detail['title']}")
-    st.caption(
-        f"{detail['publication_number']} | {detail['buyer'] or 'Unknown buyer'} | "
-        f"{detail['buyer_country'] or 'N/A'} | Source: {_notice_source_label(detail)}"
+    detail_badges = [
+        _render_pill(_notice_source_label(detail), "source"),
+        _render_pill(_display_value(detail["fit_label"]), "fit"),
+        _render_pill(_display_value(detail["priority_bucket"]), "priority"),
+    ]
+    detail_card_class = _card_tone_class(detail) or "cb-dossier-high"
+    if detail.get("hard_lock_detected"):
+        detail_badges.append(_render_pill("Hard lock", "alert"))
+    elif detail.get("viable_timing"):
+        detail_badges.append(_render_pill("Timing viable", "good"))
+    else:
+        detail_badges.append(_render_pill("Timing review", "watch"))
+
+    st.markdown(
+        f"""
+        <div class="cb-dossier {detail_card_class}" style="margin-top: 0.3rem;">
+          <div class="cb-dossier-grid">
+            <div class="cb-dossier-rail">
+              <div class="cb-dossier-score">{detail['score']}</div>
+              <div class="cb-dossier-score-label">Signal Score</div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Confidence</div>
+                <div class="cb-dossier-rail-value">{html.escape(_display_value(detail["confidence_indicator"]))}</div>
+              </div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Deadline</div>
+                <div class="cb-dossier-rail-value">{html.escape(format_datetime(detail["deadline"], settings.ui_timezone))}</div>
+              </div>
+              <div class="cb-dossier-rail-line">
+                <div class="cb-dossier-rail-key">Country</div>
+                <div class="cb-dossier-rail-value">{html.escape(detail['buyer_country'] or 'N/A')}</div>
+              </div>
+            </div>
+            <div>
+              <div class="cb-dossier-topline">{''.join(detail_badges)}</div>
+              <div class="cb-dossier-meta">{html.escape(detail['publication_number'])} | {html.escape(detail['buyer'] or 'Unknown buyer')} | {html.escape(detail['buyer_country'] or 'N/A')}</div>
+              <div class="cb-dossier-title">{html.escape(detail['title'])}</div>
+              <div class="cb-dossier-summary">{html.escape(detail['reasoning'] or detail['summary'] or 'No summary available.')}</div>
+            </div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
     _render_stat_cards(
@@ -1522,84 +1930,123 @@ def _render_notice_detail(notice_id: str | None) -> None:
     )
 
     _render_download_controls(detail)
-    _render_checklist_cross_reference(detail)
+    overview_tab, keywords_tab, checklist_tab, audit_tab, raw_tab = st.tabs(
+        ["Overview", "Eligibility Keywords", "Checklist", "Audit Trail", "Raw TED"]
+    )
 
-    meta_col, assessment_col = st.columns([0.42, 0.58], gap="large")
-    with meta_col:
-        with st.container(border=True):
-            st.markdown("#### Metadata")
-            st.markdown(
-                f"""
-                <div class="cb-detail-block">
-                  <div class="cb-detail-line"><strong>Notice Type:</strong> {html.escape(detail['notice_type'] or 'Unknown')}</div>
-                  <div class="cb-detail-line"><strong>Procedure Type:</strong> {html.escape(detail['procedure_type'] or 'Unknown')}</div>
-                  <div class="cb-detail-line"><strong>Publication Date:</strong> {html.escape(format_date(detail['publication_date']))}</div>
-                  <div class="cb-detail-line"><strong>Deadline:</strong> {html.escape(format_datetime(detail['deadline'], settings.ui_timezone))}</div>
-                  <div class="cb-detail-line"><strong>Contract Duration:</strong> {html.escape(detail['contract_duration'] or 'Unknown')}</div>
-                  <div class="cb-detail-line"><strong>Place of Performance:</strong> {html.escape(detail['place_of_performance'] or 'Unknown')}</div>
-                  <div class="cb-detail-line"><strong>CPV Codes:</strong> {html.escape(', '.join(detail['cpv_codes']) if detail['cpv_codes'] else 'None')}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-    with assessment_col:
-        with st.container(border=True):
-            st.markdown("#### Fit Assessment")
-            st.write(detail["reasoning"] or "No reasoning available.")
-            if detail["qualification_questions"]:
-                st.markdown("**Qualification Questions**")
-                for question in detail["qualification_questions"]:
-                    st.write(f"- {question}")
-
-    _render_keyword_evidence_module(detail)
-
-    breakdown_col, notes_col = st.columns([0.6, 0.4], gap="large")
-    with breakdown_col:
-        st.markdown("#### Score Breakdown")
-        for rule in detail["score_breakdown"]:
+    with overview_tab:
+        meta_col, assessment_col = st.columns([0.44, 0.56], gap="large")
+        with meta_col:
             with st.container(border=True):
-                rule_cols = st.columns([0.72, 0.28], gap="small")
-                rule_cols[0].markdown(f"**{rule['label']}**")
-                rule_cols[1].metric("Points", rule["points"])
-                st.caption(", ".join(rule["evidence"]) if rule["evidence"] else "No evidence attached.")
+                _render_section_header(
+                    "Notice Facts",
+                    "Operational metadata",
+                    "Core public tender facts normalised from TED for reviewer use.",
+                )
+                st.markdown(
+                    f"""
+                    <div class="cb-fact-list">
+                      <div class="cb-fact-item"><div class="cb-fact-label">Notice type</div><div class="cb-fact-value">{html.escape(detail['notice_type'] or 'Unknown')}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">Procedure type</div><div class="cb-fact-value">{html.escape(detail['procedure_type'] or 'Unknown')}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">Publication date</div><div class="cb-fact-value">{html.escape(format_date(detail['publication_date']))}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">Deadline</div><div class="cb-fact-value">{html.escape(format_datetime(detail['deadline'], settings.ui_timezone))}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">Contract duration</div><div class="cb-fact-value">{html.escape(detail['contract_duration'] or 'Unknown')}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">Place of performance</div><div class="cb-fact-value">{html.escape(detail['place_of_performance'] or 'Unknown')}</div></div>
+                      <div class="cb-fact-item"><div class="cb-fact-label">CPV codes</div><div class="cb-fact-value">{html.escape(', '.join(detail['cpv_codes']) if detail['cpv_codes'] else 'None')}</div></div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-    with notes_col:
-        st.markdown("#### Analyst Notes")
-        if detail["notes"]:
-            for note in detail["notes"]:
+        with assessment_col:
+            with st.container(border=True):
+                _render_section_header(
+                    "Assessment Readout",
+                    "Why this opportunity matters",
+                    "Use this narrative and the generated qualification prompts to decide whether the tender deserves cBrain pursuit.",
+                )
+                st.write(detail["reasoning"] or "No reasoning available.")
+                if detail["qualification_questions"]:
+                    st.markdown("**Qualification Questions**")
+                    for question in detail["qualification_questions"]:
+                        st.write(f"- {question}")
+                else:
+                    st.caption("No qualification questions were generated for this notice.")
+
+    with keywords_tab:
+        _render_keyword_evidence_module(detail)
+
+    with checklist_tab:
+        _render_checklist_cross_reference(detail)
+
+    with audit_tab:
+        breakdown_col, notes_col = st.columns([0.6, 0.4], gap="large")
+        with breakdown_col:
+            _render_section_header(
+                "Scoring Audit",
+                "Rule contributions",
+                "Every rule contribution is stored to keep the fit decision explainable and reproducible.",
+            )
+            for rule in detail["score_breakdown"]:
                 with st.container(border=True):
-                    st.write(note["note_text"])
-                    st.caption(
-                        f"{note['user_display_name']} | {format_datetime(note['created_at'], settings.ui_timezone)}"
-                    )
-        else:
-            st.info("No analyst notes stored for this notice yet.")
+                    rule_cols = st.columns([0.72, 0.28], gap="small")
+                    rule_cols[0].markdown(f"**{rule['label']}**")
+                    rule_cols[1].metric("Points", rule["points"])
+                    st.caption(", ".join(rule["evidence"]) if rule["evidence"] else "No evidence attached.")
+        with notes_col:
+            _render_section_header(
+                "Analyst Notes",
+                "Internal review notes",
+                "Only internal analyst notes are shown here; the tender data itself stays centred on public notice metadata.",
+            )
+            if detail["notes"]:
+                for note in detail["notes"]:
+                    with st.container(border=True):
+                        st.write(note["note_text"])
+                        st.caption(
+                            f"{note['user_display_name']} | {format_datetime(note['created_at'], settings.ui_timezone)}"
+                        )
+            else:
+                st.info("No analyst notes stored for this notice yet.")
 
-    with st.expander("Raw TED Payload"):
+    with raw_tab:
+        _render_section_header(
+            "Payload Trace",
+            "Raw TED payload",
+            "Raw payload inspection is available for analysts who need to verify a field, translation artifact, or normalisation choice.",
+        )
         st.json(detail["raw_payload_json"])
 
 
 def main() -> None:
     _apply_theme()
-    _render_banner()
 
     views = ["Dashboard", "Live Scan", "Results", "Notice Detail"]
+    view_labels = {
+        "Dashboard": "Briefing",
+        "Live Scan": "Acquisition",
+        "Results": "Signal Board",
+        "Notice Detail": "Dossier",
+    }
+    inverse_view_labels = {label: key for key, label in view_labels.items()}
     active_view = st.session_state.get("active_view", "Dashboard")
     if active_view not in views:
         active_view = "Dashboard"
 
     _render_sidebar_brand()
-    st.sidebar.markdown("## Navigation")
-    current_view = st.sidebar.radio(
-        "View",
-        options=views,
-        index=views.index(active_view),
+    st.sidebar.markdown("## Workspaces")
+    selected_label = st.sidebar.radio(
+        "Workspace",
+        options=[view_labels[view] for view in views],
+        index=[view_labels[view] for view in views].index(view_labels[active_view]),
+        label_visibility="collapsed",
     )
+    current_view = inverse_view_labels[selected_label]
     st.session_state["active_view"] = current_view
+    _render_banner(current_view)
     st.sidebar.markdown("---")
     st.sidebar.caption(
-        "Temporary Streamlit shell. FastAPI remains the canonical production backend, and live scans use TED's public API."
+        "Experimental Streamlit shell. FastAPI remains the canonical production backend, and live scans stay on TED's public API."
     )
 
     if current_view == "Dashboard":
