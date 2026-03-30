@@ -95,3 +95,43 @@ def test_demo_notice_disables_live_ted_redirect(db_session, seeded_notice: str) 
     redirect_response = client.get(f"/results/{seeded_notice}/open-ted", follow_redirects=False)
     assert redirect_response.status_code == 404
     assert "seeded demo data" in redirect_response.json()["detail"].lower()
+
+
+def test_api_notice_filters_support_score_and_date_windows(db_session, seeded_notice: str) -> None:
+    app = create_app()
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+
+    notice = NoticeRepository(db_session).get_by_id(seeded_notice)
+    assert notice is not None
+    assert notice.analysis is not None
+    assert notice.publication_date is not None
+    assert notice.deadline is not None
+
+    matching = client.get(
+        "/api/v1/notices",
+        params={
+            "min_score": notice.analysis.score,
+            "max_score": notice.analysis.score,
+            "confidence_indicator": notice.analysis.confidence_indicator.value,
+            "publication_date_from": notice.publication_date.isoformat(),
+            "publication_date_to": notice.publication_date.isoformat(),
+            "deadline_from": notice.deadline.date().isoformat(),
+            "deadline_to": notice.deadline.date().isoformat(),
+        },
+    )
+    assert matching.status_code == 200
+    assert len(matching.json()) == 1
+    assert matching.json()[0]["id"] == seeded_notice
+
+    too_strict = client.get("/api/v1/notices", params={"max_score": notice.analysis.score - 1})
+    assert too_strict.status_code == 200
+    assert too_strict.json() == []

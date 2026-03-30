@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import date
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -43,7 +45,13 @@ def list_notices(
     fit_label: str | None = None,
     priority_bucket: str | None = None,
     min_score: int | None = Query(default=None, ge=0, le=100),
+    max_score: int | None = Query(default=None, ge=0, le=100),
+    confidence_indicator: str | None = None,
     hard_lock_only: bool = False,
+    publication_date_from: date | None = None,
+    publication_date_to: date | None = None,
+    deadline_from: date | None = None,
+    deadline_to: date | None = None,
     deadline_window_days: int | None = Query(default=None, ge=1, le=365),
     include_dismissed: bool = False,
     saved_only: bool = False,
@@ -59,7 +67,13 @@ def list_notices(
             fit_label=fit_label,
             priority_bucket=priority_bucket,
             min_score=min_score,
+            max_score=max_score,
+            confidence_indicator=confidence_indicator,
             hard_lock_only=hard_lock_only,
+            publication_date_from=publication_date_from,
+            publication_date_to=publication_date_to,
+            deadline_from=deadline_from,
+            deadline_to=deadline_to,
             deadline_window_days=deadline_window_days,
             include_dismissed=include_dismissed,
             saved_only=saved_only,

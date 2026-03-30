@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import date
+from datetime import UTC, date, datetime, timedelta
 import html
 from typing import Any
 
@@ -428,13 +428,19 @@ def load_filtered_notices(
     fit_label: str | None,
     priority_bucket: str | None,
     min_score: int | None,
+    max_score: int | None,
+    confidence_indicator: str | None,
     hard_lock_only: bool,
+    publication_date_from: date | None,
+    publication_date_to: date | None,
+    deadline_from: date | None,
+    deadline_to: date | None,
     deadline_window_days: int | None,
     include_dismissed: bool,
     saved_only: bool,
     search: str | None,
     page_size: int,
-) -> list[dict[str, Any]]:
+) -> dict[str, Any]:
     session = get_session_factory()()
     try:
         filters = NoticeListFilters(
@@ -442,14 +448,23 @@ def load_filtered_notices(
             fit_label=fit_label,
             priority_bucket=priority_bucket,
             min_score=min_score,
+            max_score=max_score,
+            confidence_indicator=confidence_indicator,
             hard_lock_only=hard_lock_only,
+            publication_date_from=publication_date_from,
+            publication_date_to=publication_date_to,
+            deadline_from=deadline_from,
+            deadline_to=deadline_to,
             deadline_window_days=deadline_window_days,
             include_dismissed=include_dismissed,
             saved_only=saved_only,
             search=search,
         )
-        notices, _ = NoticeRepository(session).list(filters, page=1, page_size=page_size)
-        return [notice_to_summary_dict(notice) for notice in notices]
+        notices, total = NoticeRepository(session).list(filters, page=1, page_size=page_size)
+        return {
+            "items": [notice_to_summary_dict(notice) for notice in notices],
+            "total": total,
+        }
     finally:
         session.close()
 
@@ -576,6 +591,12 @@ def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
                 st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
 
 
+def _normalize_date_range(start: date | None, end: date | None) -> tuple[date | None, date | None]:
+    if start is not None and end is not None and start > end:
+        return end, start
+    return start, end
+
+
 def _render_checklist_table(items: list[dict[str, Any]]) -> None:
     if not items:
         st.info("No checklist items are available for this notice.")
@@ -626,6 +647,124 @@ def _status_tone(status: str) -> str:
     if normalized in {"inferred", "conditional", "watchlist"}:
         return "priority"
     return "neutral"
+
+
+def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
+    chips: list[str] = []
+    if filter_state.get("country"):
+        chips.append(f"Country: {filter_state['country']}")
+    if filter_state.get("fit_label"):
+        chips.append(f"Fit: {filter_state['fit_label']}")
+    if filter_state.get("priority_bucket"):
+        chips.append(f"Priority: {filter_state['priority_bucket']}")
+    if filter_state.get("confidence_indicator"):
+        chips.append(f"Confidence: {filter_state['confidence_indicator']}")
+    score_min = filter_state.get("score_min")
+    score_max = filter_state.get("score_max")
+    if score_min != 0 or score_max != 100:
+        chips.append(f"Score: {score_min}-{score_max}")
+    publication_date_from = filter_state.get("publication_date_from")
+    publication_date_to = filter_state.get("publication_date_to")
+    if publication_date_from or publication_date_to:
+        chips.append(
+            "Publication: "
+            f"{format_date(publication_date_from) if publication_date_from else 'Any'}"
+            " -> "
+            f"{format_date(publication_date_to) if publication_date_to else 'Any'}"
+        )
+    deadline_from = filter_state.get("deadline_from")
+    deadline_to = filter_state.get("deadline_to")
+    if deadline_from or deadline_to:
+        chips.append(
+            "Deadline: "
+            f"{format_date(deadline_from) if deadline_from else 'Any'}"
+            " -> "
+            f"{format_date(deadline_to) if deadline_to else 'Any'}"
+        )
+    if filter_state.get("deadline_window_days"):
+        chips.append(f"Deadline <= {filter_state['deadline_window_days']} days")
+    if filter_state.get("search"):
+        chips.append(f"Search: {filter_state['search']}")
+    if filter_state.get("hard_lock_only"):
+        chips.append("Hard Locks Only")
+    if filter_state.get("saved_only"):
+        chips.append("Saved Only")
+    if filter_state.get("include_dismissed"):
+        chips.append("Including Dismissed")
+    return chips
+
+
+def _build_results_metrics(notices: list[dict[str, Any]], *, total_matches: int) -> list[dict[str, str]]:
+    if not notices:
+        return [
+            {
+                "label": "Matching Results",
+                "value": str(total_matches),
+                "note": "No notices currently loaded for review.",
+            }
+        ]
+
+    now = datetime.now(tz=UTC)
+    today = now.date()
+    avg_score = sum(int(notice.get("score") or 0) for notice in notices) / len(notices)
+    high_fit = sum(1 for notice in notices if _display_value(notice.get("priority_bucket")).upper() == "HIGH")
+    good_fit = sum(1 for notice in notices if _display_value(notice.get("priority_bucket")).upper() == "GOOD")
+    expiring_soon = sum(
+        1
+        for notice in notices
+        if notice.get("deadline") is not None and now <= notice["deadline"] <= now + timedelta(days=7)
+    )
+    hard_locks = sum(1 for notice in notices if notice.get("hard_lock_detected"))
+    recent_publications = sum(
+        1
+        for notice in notices
+        if notice.get("publication_date") is not None and (today - notice["publication_date"]).days <= 30
+    )
+    live_notices = sum(1 for notice in notices if not notice.get("is_demo_record"))
+    highest_score = max(int(notice.get("score") or 0) for notice in notices)
+
+    return [
+        {
+            "label": "Matching Results",
+            "value": str(total_matches),
+            "note": f"{len(notices)} notices loaded into the current review surface.",
+        },
+        {
+            "label": "Average Score",
+            "value": f"{avg_score:.1f}",
+            "note": f"Highest current score: {highest_score}",
+        },
+        {
+            "label": "High Priority",
+            "value": str(high_fit),
+            "note": "Priority bucket HIGH in the current result set.",
+        },
+        {
+            "label": "Good Priority",
+            "value": str(good_fit),
+            "note": "Priority bucket GOOD in the current result set.",
+        },
+        {
+            "label": "Expiring Soon",
+            "value": str(expiring_soon),
+            "note": "Submission deadline within the next 7 days.",
+        },
+        {
+            "label": "Hard Locks",
+            "value": str(hard_locks),
+            "note": "Mandatory platform constraints flagged by scoring.",
+        },
+        {
+            "label": "Published 30d",
+            "value": str(recent_publications),
+            "note": "Notices published in the last 30 days.",
+        },
+        {
+            "label": "Live TED",
+            "value": str(live_notices),
+            "note": "Non-demo notices linked back to official TED records.",
+        },
+    ]
 
 
 def _render_sidebar_brand() -> None:
@@ -996,58 +1135,100 @@ def _render_dashboard() -> None:
             st.info("No stored notices available yet.")
 
 
-def _render_filters() -> list[dict[str, Any]]:
+def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Results Filters")
+    st.sidebar.caption("Filter the current review queue by fit, timing, score, and publication window.")
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
+    search = st.sidebar.text_input("Search", "").strip() or None
+
+    st.sidebar.markdown("#### Qualification")
     fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
     priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
-    min_score = st.sidebar.slider("Minimum Score", min_value=0, max_value=100, value=0)
-    deadline_window_days = st.sidebar.number_input("Deadline Window (Days)", min_value=0, max_value=365, value=0, step=7)
-    search = st.sidebar.text_input("Search", "").strip() or None
+    confidence_indicator = st.sidebar.selectbox("Confidence", ["Any", "HIGH", "MEDIUM", "LOW"], index=0)
+
+    st.sidebar.markdown("#### Score")
+    score_range = st.sidebar.slider("Score Range", min_value=0, max_value=100, value=(0, 100))
+
+    st.sidebar.markdown("#### Publication Window")
+    publication_date_from = st.sidebar.date_input("Published From", value=None)
+    publication_date_to = st.sidebar.date_input("Published To", value=None)
+    publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
+
+    st.sidebar.markdown("#### Deadline Window")
+    deadline_from = st.sidebar.date_input("Deadline From", value=None)
+    deadline_to = st.sidebar.date_input("Deadline To", value=None)
+    deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
+    deadline_window_days = st.sidebar.number_input("Deadline Within (Days)", min_value=0, max_value=365, value=0, step=7)
+
+    st.sidebar.markdown("#### Flags")
     hard_lock_only = st.sidebar.checkbox("Hard Lock Only", value=False)
     saved_only = st.sidebar.checkbox("Saved Only", value=False)
     include_dismissed = st.sidebar.checkbox("Include Dismissed", value=False)
-    page_size = st.sidebar.slider("Rows", min_value=10, max_value=100, value=25, step=5)
+    page_size = st.sidebar.slider("Cards to Load", min_value=10, max_value=100, value=25, step=5)
 
-    notices = load_filtered_notices(
+    payload = load_filtered_notices(
         country=country,
         fit_label=None if fit_label == "Any" else fit_label,
         priority_bucket=None if priority_bucket == "Any" else priority_bucket,
-        min_score=min_score if min_score > 0 else None,
+        min_score=score_range[0] if score_range[0] > 0 else None,
+        max_score=score_range[1] if score_range[1] < 100 else None,
+        confidence_indicator=None if confidence_indicator == "Any" else confidence_indicator,
         hard_lock_only=hard_lock_only,
+        publication_date_from=publication_date_from,
+        publication_date_to=publication_date_to,
+        deadline_from=deadline_from,
+        deadline_to=deadline_to,
         deadline_window_days=deadline_window_days if deadline_window_days > 0 else None,
         include_dismissed=include_dismissed,
         saved_only=saved_only,
         search=search,
         page_size=page_size,
     )
-    return notices
+    filter_state = {
+        "country": country,
+        "fit_label": None if fit_label == "Any" else fit_label,
+        "priority_bucket": None if priority_bucket == "Any" else priority_bucket,
+        "confidence_indicator": None if confidence_indicator == "Any" else confidence_indicator,
+        "score_min": score_range[0],
+        "score_max": score_range[1],
+        "publication_date_from": publication_date_from,
+        "publication_date_to": publication_date_to,
+        "deadline_from": deadline_from,
+        "deadline_to": deadline_to,
+        "deadline_window_days": deadline_window_days if deadline_window_days > 0 else None,
+        "search": search,
+        "hard_lock_only": hard_lock_only,
+        "saved_only": saved_only,
+        "include_dismissed": include_dismissed,
+        "page_size": page_size,
+        "total_matches": int(payload["total"]),
+    }
+    return payload["items"], filter_state
 
 
 def _render_results() -> list[dict[str, Any]]:
-    notices = _render_filters()
+    notices, filter_state = _render_filters()
     _seed_selected_notice(notices)
 
     st.subheader("Results", anchor=False)
-    st.caption(f"{len(notices)} notices match the current filter set.")
+    total_matches = filter_state["total_matches"]
+    st.caption(
+        f"{total_matches} notices match the current filter set. "
+        f"{len(notices)} are currently loaded into the review surface."
+    )
 
     if not notices:
         st.warning("No notices match the current filters.")
         return notices
 
-    high_fit = sum(1 for notice in notices if _display_value(notice.get("priority_bucket")) == "HIGH")
-    conditional = sum(1 for notice in notices if _display_value(notice.get("fit_label")) == "CONDITIONAL")
-    hard_locks = sum(1 for notice in notices if notice.get("hard_lock_detected"))
-    live_notices = sum(1 for notice in notices if not notice.get("is_demo_record"))
+    active_filter_chips = _summarize_results_filters(filter_state)
+    if active_filter_chips:
+        st.markdown(
+            "<div class='cb-chip-row'>" + "".join(_render_chip(chip) for chip in active_filter_chips) + "</div>",
+            unsafe_allow_html=True,
+        )
 
-    summary_cols = st.columns(4, gap="medium")
-    summary_cols[0].metric("Review Queue", len(notices))
-    summary_cols[1].metric("High Fit", high_fit)
-    summary_cols[2].metric("Conditional", conditional)
-    summary_cols[3].metric("Live TED Notices", live_notices)
-
-    if hard_locks:
-        st.caption(f"{hard_locks} notices in the current result set include a hard platform lock signal.")
+    _render_stat_cards(_build_results_metrics(notices, total_matches=total_matches))
 
     grid_cols = st.columns(2, gap="large")
     for index, notice in enumerate(notices):
@@ -1370,20 +1551,29 @@ def main() -> None:
     elif current_view == "Results":
         _render_results()
     else:
-        notices = _render_filters()
+        notices, _ = _render_filters()
         _seed_selected_notice(notices)
-        options = notices if notices else load_filtered_notices(
-            country=None,
-            fit_label=None,
-            priority_bucket=None,
-            min_score=None,
-            hard_lock_only=False,
-            deadline_window_days=None,
-            include_dismissed=False,
-            saved_only=False,
-            search=None,
-            page_size=100,
-        )
+        options = notices
+        if not options:
+            fallback_payload = load_filtered_notices(
+                country=None,
+                fit_label=None,
+                priority_bucket=None,
+                min_score=None,
+                max_score=None,
+                confidence_indicator=None,
+                hard_lock_only=False,
+                publication_date_from=None,
+                publication_date_to=None,
+                deadline_from=None,
+                deadline_to=None,
+                deadline_window_days=None,
+                include_dismissed=False,
+                saved_only=False,
+                search=None,
+                page_size=100,
+            )
+            options = fallback_payload["items"]
         if options:
             selected = st.selectbox(
                 "Choose a tender",
