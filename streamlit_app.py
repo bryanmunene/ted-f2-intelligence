@@ -291,7 +291,8 @@ def _render_live_scan() -> None:
         left, right = st.columns(2, gap="large")
         with left:
             profile_name = st.selectbox("Search Profile", options=profiles.names, index=0)
-            country = st.text_input("Buyer Country", value="", placeholder="DK")
+            country = st.text_input("Buyer Country", value="", placeholder="DK or DNK")
+            st.caption("The app accepts common 2-letter country codes like DK and converts them to TED's 3-letter format.")
             cpv = st.text_input("CPV Code", value="", placeholder="72260000")
             keyword_override = st.text_input(
                 "Keyword Override",
@@ -414,7 +415,7 @@ def _render_dashboard() -> None:
 
 def _render_filters() -> list[dict[str, Any]]:
     st.sidebar.markdown("### Results Filters")
-    country = st.sidebar.text_input("Country", "").strip() or None
+    country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
     priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
     min_score = st.sidebar.slider("Minimum Score", min_value=0, max_value=100, value=0)

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models import AnalystNote, Notice, NoticeAnalysis, ScanRun
 from app.models.enums import FitLabel, PriorityBucket
+from app.utils.countries import ted_country_code_variants
 
 
 @dataclass(slots=True)
@@ -142,7 +143,9 @@ class NoticeRepository:
 
     def _apply_filters(self, stmt: Select[tuple[Notice]], filters: NoticeListFilters) -> Select[tuple[Notice]]:
         if filters.country:
-            stmt = stmt.where(Notice.buyer_country == filters.country.upper())
+            country_variants = ted_country_code_variants(filters.country)
+            if country_variants:
+                stmt = stmt.where(Notice.buyer_country.in_(country_variants))
         if filters.fit_label:
             stmt = stmt.where(NoticeAnalysis.fit_label == FitLabel(filters.fit_label))
         if filters.priority_bucket:
@@ -166,4 +169,3 @@ class NoticeRepository:
                 | func.lower(func.coalesce(Notice.summary, "")).like(pattern)
             )
         return stmt
-

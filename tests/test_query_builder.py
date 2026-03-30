@@ -25,7 +25,7 @@ def test_query_builder_uses_ted_expert_search_syntax() -> None:
 
     assert 'FT~"case management"' in query
     assert 'FT~"workflow automation"' in query
-    assert "buyer-country=DK" in query
+    assert "buyer-country=DNK" in query
     assert "classification-cpv=72260000" in query
     assert "publication-date>=20260301" in query
     assert "publication-date<=20260331" in query

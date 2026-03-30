@@ -5,6 +5,8 @@ from typing import Any, Iterable
 from app.ingestion.models import NormalizedNotice
 from app.utils.time import parse_ted_date, parse_ted_datetime
 
+PREFERRED_LANGUAGE_KEYS = ("ENG", "eng", "EN", "en", "MUL", "mul")
+
 
 def normalize_notice(raw_notice: dict[str, Any], *, extraction_version: str) -> NormalizedNotice:
     publication_number = _first_string(
@@ -27,6 +29,7 @@ def normalize_notice(raw_notice: dict[str, Any], *, extraction_version: str) -> 
         "place-of-performance",
         "place_of_performance",
         "place-of-performance-country-proc",
+        "place-of-performance-other-proc",
     )
     notice_type = _first_string(raw_notice, "notice-type", "noticeType", "form-type")
     procedure_type = _first_string(raw_notice, "procedure-type", "procedureType")
@@ -49,6 +52,9 @@ def normalize_notice(raw_notice: dict[str, Any], *, extraction_version: str) -> 
             "deadline",
             "submission-deadline",
             "deadline-receipt-tender-date",
+            "deadline-receipt-request",
+            "deadline-receipt-tender-date-lot",
+            "deadline-date-lot",
             "receipt-expression-interest",
         )
     )
@@ -97,9 +103,13 @@ def _extract_links(raw_notice: dict[str, Any], publication_number: str) -> tuple
                 pdf_url = url
             elif format_value == "xml" and xml_url is None:
                 xml_url = url
+    elif isinstance(links, dict):
+        html_url = _pick_link_url(links.get("html")) or _pick_link_url(links.get("htmlDirect"))
+        pdf_url = _pick_link_url(links.get("pdf")) or _pick_link_url(links.get("pdfs"))
+        xml_url = _pick_link_url(links.get("xml"))
     base_url = f"https://ted.europa.eu/en/notice/{publication_number}"
     return (
-        html_url or f"{base_url}/html",
+        html_url or f"https://ted.europa.eu/en/notice/-/detail/{publication_number}",
         pdf_url or f"{base_url}/pdf",
         xml_url or f"{base_url}/xml",
     )
@@ -152,7 +162,8 @@ def _first_string(raw_notice: dict[str, Any], *keys: str) -> str | None:
             nested = value.get(field_name)
             if isinstance(nested, str) and nested.strip():
                 return nested.strip()
-    return None
+    values = _stringify_values(value)
+    return values[0] if values else None
 
 
 def _first_joined(raw_notice: dict[str, Any], *keys: str) -> str | None:
@@ -183,7 +194,17 @@ def _stringify_values(value: Any) -> list[str]:
             nested = value.get(field_name)
             if isinstance(nested, str) and nested.strip():
                 return [nested.strip()]
-        return []
+        preferred_values: list[str] = []
+        for key in PREFERRED_LANGUAGE_KEYS:
+            if key in value:
+                preferred_values.extend(_stringify_values(value[key]))
+        if preferred_values:
+            return preferred_values
+
+        flattened: list[str] = []
+        for nested in value.values():
+            flattened.extend(_stringify_values(nested))
+        return flattened
     if isinstance(value, Iterable) and not isinstance(value, (bytes, bytearray)):
         flattened: list[str] = []
         for item in value:
@@ -191,3 +212,22 @@ def _stringify_values(value: Any) -> list[str]:
         return flattened
     return []
 
+
+def _pick_link_url(value: Any) -> str | None:
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    if isinstance(value, dict):
+        for key in PREFERRED_LANGUAGE_KEYS:
+            candidate = value.get(key)
+            if isinstance(candidate, str) and candidate.strip():
+                return candidate.strip()
+        for candidate in value.values():
+            resolved = _pick_link_url(candidate)
+            if resolved:
+                return resolved
+    if isinstance(value, Iterable) and not isinstance(value, (bytes, bytearray, str)):
+        for candidate in value:
+            resolved = _pick_link_url(candidate)
+            if resolved:
+                return resolved
+    return None

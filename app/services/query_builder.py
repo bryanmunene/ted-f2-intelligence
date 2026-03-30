@@ -4,19 +4,22 @@ from datetime import date
 
 from app.api.schemas import ScanRequestPayload
 from app.config import SearchProfile
+from app.utils.countries import normalize_ted_country_code
 
 TED_CANONICAL_FIELDS = [
     "publication-number",
     "notice-title",
     "buyer-name",
     "buyer-country",
-    "place-of-performance",
+    "place-of-performance-country-proc",
+    "place-of-performance-other-proc",
     "notice-type",
     "procedure-type",
     "classification-cpv",
     "publication-date",
-    "deadline",
-    "contract-duration",
+    "deadline-receipt-request",
+    "deadline-receipt-tender-date-lot",
+    "contract-duration-period-lot",
     "additional-information",
 ]
 
@@ -52,7 +55,7 @@ class TedExpertQueryBuilder:
                 clauses.append("(" + " OR ".join(text_clauses) + ")")
 
         if payload.country:
-            clauses.append(f"buyer-country={payload.country.upper()}")
+            clauses.append(f"buyer-country={normalize_ted_country_code(payload.country)}")
 
         if payload.cpv:
             cpv = payload.cpv.strip()
