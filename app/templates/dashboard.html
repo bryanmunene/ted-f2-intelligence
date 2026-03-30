@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Dashboard | {{ app_name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Operational overview of scanned TED notices scored for cBrain F2 fit.</p>
+  </div>
+  <a href="/scan" class="button button-primary">Run Scan</a>
+</section>
+
+<section class="card-grid">
+  {% with label="Total Notices", value=metrics.total_notices, helper="All stored TED notices" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="High Fit", value=metrics.high_fit, helper="Immediate review candidates" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="Conditional", value=metrics.conditional, helper="Platform or qualification risk present" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="Expiring Soon", value=metrics.expiring_soon, helper="Deadlines within 7 days" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="Hard Locks", value=metrics.hard_lock, helper="Named platform constraints flagged" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="Scan Freshness", value=(metrics.scan_freshness | display_datetime) if metrics.scan_freshness else "No scans yet", helper="Latest completed scan" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+</section>
+
+<section class="split-layout">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Recent Scan Runs</h2>
+    </div>
+    {% if recent_scans %}
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Started</th>
+            <th>Profile</th>
+            <th>Status</th>
+            <th>Ingested</th>
+            <th>Requests</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for scan in recent_scans %}
+            <tr>
+              <td>{{ scan.started_at | display_datetime }}</td>
+              <td>{{ scan.profile_name }}</td>
+              <td><span class="badge">{{ scan.status.value }}</span></td>
+              <td>{{ scan.total_notices_ingested }}</td>
+              <td>{{ scan.request_count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty-state">No scan history yet.</p>
+    {% endif %}
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Top Review Queue</h2>
+      <a href="/results" class="text-link">Open results</a>
+    </div>
+    {% if top_notices %}
+      <div class="notice-list">
+        {% for notice in top_notices %}
+          <a class="notice-list-item" href="/results/{{ notice.id }}">
+            <div>
+              <div class="notice-list-title">{{ notice.title }}</div>
+              <div class="notice-list-meta">{{ notice.buyer or "Unknown buyer" }} · {{ notice.buyer_country or "N/A" }}</div>
+            </div>
+            <div class="notice-list-score">
+              <span class="score-pill">{{ notice.analysis.score if notice.analysis else 0 }}</span>
+              <span class="badge">{{ notice.analysis.priority_bucket.value if notice.analysis else "N/A" }}</span>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">Run a TED scan to populate the dashboard.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}
+

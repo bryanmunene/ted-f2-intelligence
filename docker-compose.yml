@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: ted_app
+      POSTGRES_USER: ted_app
+      POSTGRES_PASSWORD: ted_app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ted_app -d ted_app"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.example
+    environment:
+      APP_SECRET_KEY: development-secret-change-me
+      APP_DATABASE_URL: postgresql+psycopg://ted_app:ted_app@postgres:5432/ted_app
+      APP_SESSION_HTTPS_ONLY: "false"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+

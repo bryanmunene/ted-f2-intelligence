@@ -1,0 +1,56 @@
+{
+  "totalNoticeCount": 2,
+  "results": [
+    {
+      "notice-identifier": "TED-2026-0001",
+      "publication-number": "12345-2026",
+      "notice-title": "Case management and digital records platform for municipal citizen services",
+      "buyer-name": "City of Aarhus",
+      "buyer-country": "DK",
+      "place-of-performance": ["Aarhus", "DK"],
+      "notice-type": "Contract notice",
+      "procedure-type": "Open procedure",
+      "classification-cpv": ["72260000", "48311000"],
+      "publication-date": "2026-03-20",
+      "deadline": "2026-05-10T12:00:00Z",
+      "contract-duration": "48 MONTH",
+      "additional-information": "The contracting authority seeks a case management, workflow automation, correspondence management and records platform. Equivalent solutions accepted. Existing Microsoft environment. Integrations with registry and citizen service systems are required.",
+      "links": [
+        {
+          "format": "HTML",
+          "url": "https://ted.europa.eu/en/notice/12345-2026/html"
+        },
+        {
+          "format": "PDF",
+          "url": "https://ted.europa.eu/en/notice/12345-2026/pdf"
+        },
+        {
+          "format": "XML",
+          "url": "https://ted.europa.eu/en/notice/12345-2026/xml"
+        }
+      ]
+    },
+    {
+      "notice-identifier": "TED-2026-0002",
+      "publication-number": "67890-2026",
+      "notice-title": "Microsoft Power Platform implementation for permits workflow",
+      "buyer-name": "Regional Licensing Authority",
+      "buyer-country": "DE",
+      "place-of-performance": ["Berlin", "DE"],
+      "notice-type": "Contract notice",
+      "procedure-type": "Restricted procedure",
+      "classification-cpv": ["72262000"],
+      "publication-date": "2026-03-28",
+      "deadline": "2026-04-02T10:00:00Z",
+      "contract-duration": "24 MONTH",
+      "additional-information": "The solution must use Power Platform and SharePoint as the delivery platform. Existing Microsoft licenses already available.",
+      "links": [
+        {
+          "format": "HTML",
+          "url": "https://ted.europa.eu/en/notice/67890-2026/html"
+        }
+      ]
+    }
+  ]
+}
+

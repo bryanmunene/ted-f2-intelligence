@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Notice Detail | {{ app_name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>{{ notice.title }}</h1>
+    <p>{{ notice.publication_number }} - {{ notice.buyer or "Unknown buyer" }} - {{ notice.buyer_country or "N/A" }}</p>
+  </div>
+  <div class="score-stack">
+    <span class="score-pill large">{{ notice.score }}</span>
+    <span class="badge">{{ notice.fit_label }}</span>
+    <span class="badge subtle">{{ notice.priority_bucket }}</span>
+  </div>
+</section>
+
+<section class="panel">
+  <div class="inline-actions">
+    <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
+      Open Official TED Notice
+    </a>
+    {% if notice.pdf_url %}
+      <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary">
+        Download Notice PDF
+      </a>
+    {% endif %}
+    {% if notice.xml_url %}
+      <a href="/results/{{ notice.id }}/download/xml" class="button button-ghost">
+        Download Notice XML
+      </a>
+    {% endif %}
+  </div>
+</section>
+
+<section class="detail-grid">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Metadata</h2>
+    </div>
+    <dl class="detail-list">
+      <div><dt>Buyer</dt><dd>{{ notice.buyer or "Unknown" }}</dd></div>
+      <div><dt>Notice Type</dt><dd>{{ notice.notice_type or "Unknown" }}</dd></div>
+      <div><dt>Procedure Type</dt><dd>{{ notice.procedure_type or "Unknown" }}</dd></div>
+      <div><dt>Publication Date</dt><dd>{{ notice.publication_date | display_date }}</dd></div>
+      <div><dt>Deadline</dt><dd>{{ notice.deadline | display_datetime }}</dd></div>
+      <div><dt>Place of Performance</dt><dd>{{ notice.place_of_performance or "Unknown" }}</dd></div>
+      <div><dt>CPV Codes</dt><dd>{{ notice.cpv_codes | join(", ") if notice.cpv_codes else "None" }}</dd></div>
+    </dl>
+    <div class="official-links">
+      <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
+      {% if notice.pdf_url %}
+        <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
+      {% endif %}
+      {% if notice.xml_url %}
+        <a href="/results/{{ notice.id }}/download/xml">Official XML Download</a>
+      {% endif %}
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Fit Assessment</h2>
+    </div>
+    <p class="reasoning">{{ notice.reasoning }}</p>
+    {% if notice.keyword_hits %}
+      <div class="chip-row spaced">
+        {% for hit in notice.keyword_hits %}
+          <span class="chip">{{ hit.term }} - {{ hit.scope }}</span>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <div class="chip-row spaced">
+      {% for signal in notice.positive_signals %}
+        <span class="chip">{{ signal.label }} (+{{ signal.points }})</span>
+      {% endfor %}
+      {% for signal in notice.negative_signals %}
+        <span class="chip chip-muted">{{ signal.label }} ({{ signal.points }})</span>
+      {% endfor %}
+      {% for signal in notice.platform_lock_signals %}
+        <span class="chip {% if signal.severity == 'hard' %}chip-alert{% endif %}">
+          {{ signal.label }} ({{ signal.points }})
+        </span>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Qualification Questions</h2>
+    </div>
+    <ul class="plain-list">
+      {% for question in notice.qualification_questions %}
+        <li>{{ question }}</li>
+      {% endfor %}
+    </ul>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Score Breakdown</h2>
+    </div>
+    <table class="data-table compact">
+      <thead>
+        <tr>
+          <th>Rule</th>
+          <th>Points</th>
+          <th>Evidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in notice.score_breakdown %}
+          <tr>
+            <td>{{ rule.label }}</td>
+            <td>{{ rule.points }}</td>
+            <td>{{ rule.evidence | join(", ") }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Analyst Notes</h2>
+    </div>
+    <form method="post" action="/results/{{ notice.id }}/notes" class="note-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+      <input type="hidden" name="next_url" value="{{ request.url }}">
+      <textarea name="note_text" rows="4" placeholder="Add qualification notes, follow-ups, or commercial concerns."></textarea>
+      <div class="action-row">
+        <button type="submit" class="button button-primary">Save Note</button>
+      </div>
+    </form>
+    {% if notice.notes %}
+      <div class="note-list">
+        {% for note in notice.notes %}
+          <article class="note-card">
+            <div class="note-meta">{{ note.user_display_name }} - {{ note.created_at | display_datetime }}</div>
+            <div>{{ note.note_text }}</div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">No analyst notes yet.</p>
+    {% endif %}
+  </article>
+
+  <article class="panel full-span">
+    <div class="panel-header">
+      <h2>Raw TED Payload</h2>
+    </div>
+    <pre class="json-panel">{{ notice.raw_payload_json | tojson(indent=2) }}</pre>
+  </article>
+</section>
+{% endblock %}

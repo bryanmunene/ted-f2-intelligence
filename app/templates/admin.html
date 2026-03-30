@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Admin | {{ app_name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Config / Admin</h1>
+    <p>Runtime visibility for scoring profiles, rate-limit posture, and deployment settings.</p>
+  </div>
+</section>
+
+<section class="card-grid">
+  {% with label="Environment", value=runtime_settings.env, helper="Runtime environment" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="UI Timezone", value=runtime_settings.ui_timezone, helper="Business-facing display timezone" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="TED RPM", value=runtime_settings.ted_requests_per_minute, helper="Client-side request budget" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+  {% with label="Cache TTL", value=runtime_settings.ted_cache_ttl_seconds, helper="Seconds for identical query reuse" %}
+    {% include "partials/summary_card.html" %}
+  {% endwith %}
+</section>
+
+<section class="split-layout">
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Search Profiles</h2>
+    </div>
+    <div class="profile-grid">
+      {% for profile in profiles %}
+        <article class="profile-card">
+          <h3>{{ profile.name }}</h3>
+          <p>{{ profile.description }}</p>
+          <div class="chip-row">
+            {% for term in profile.search_terms[:5] %}
+              <span class="chip">{{ term }}</span>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel">
+    <div class="panel-header">
+      <h2>Database Settings</h2>
+    </div>
+    {% if app_settings %}
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Key</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for setting in app_settings %}
+            <tr>
+              <td>{{ setting.key }}</td>
+              <td>{{ setting.description or "No description" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty-state">No app settings have been persisted yet.</p>
+    {% endif %}
+  </article>
+</section>
+{% endblock %}
+

@@ -1,0 +1,458 @@
+version: "2026.03.2"
+timing:
+  min_days_to_deadline: 7
+  exclude_after_days_since_publication: 90
+  expiring_soon_days: 7
+  missing_deadline_penalty: 18
+  missing_publication_date_penalty: 10
+  stale_publication_penalty: 20
+  short_deadline_penalty: 22
+  viable_timing_bonus: 6
+
+positive_groups:
+  - id: document_management
+    name: EDMS / DMS / ECM
+    weight: 16
+    extra_match_weight: 4
+    max_score: 28
+    title_match_bonus: 5
+    terms:
+      - document management system
+      - enterprise content management
+      - electronic document and records management system
+      - text: dms
+        match_mode: acronym
+      - text: edms
+        match_mode: acronym
+      - text: ecm
+        match_mode: acronym
+      - text: edrms
+        match_mode: acronym
+      - content services platform
+      - document tracking
+      - file tracking system
+      - electronic archiving
+  - id: records_management
+    name: Records Management / Archives
+    weight: 18
+    extra_match_weight: 4
+    max_score: 30
+    title_match_bonus: 6
+    terms:
+      - records management
+      - electronic records management
+      - records and information management
+      - archive and records management
+      - archives management
+      - archival management system
+      - file plan
+      - file plans
+      - retention schedule
+      - retention management
+      - records retention
+      - records information management
+      - registry management
+  - id: case_management
+    name: Case Management / Case Handling
+    weight: 18
+    extra_match_weight: 5
+    max_score: 32
+    title_match_bonus: 6
+    terms:
+      - case management
+      - case handling
+      - case handling system
+      - casework management
+      - case processing system
+      - case tracking system
+      - matter management system
+      - matter tracking system
+      - grievance redress system
+      - complaint management system
+      - matter tracking
+      - complaints handling
+  - id: workflow_bpm
+    name: Workflow / BPM / Process Automation
+    weight: 18
+    extra_match_weight: 4
+    max_score: 30
+    title_match_bonus: 5
+    terms:
+      - workflow system
+      - workflow automation
+      - workflow management system
+      - workflow and case management
+      - business process automation
+      - process management platform
+      - text: bpm
+        match_mode: acronym
+      - business process management
+      - process automation system
+      - approvals workflow
+      - process orchestration
+  - id: correspondence_registry
+    name: Correspondence / Registry
+    weight: 16
+    extra_match_weight: 4
+    max_score: 28
+    title_match_bonus: 5
+    terms:
+      - correspondence management
+      - file registry system
+      - docket management
+      - registry and archive
+      - journal system
+      - records registry
+      - document registry
+      - text: registry
+        requires_all:
+          - document
+      - file tracking
+  - id: digital_services
+    name: E-filing / Digital Services / Forms
+    weight: 17
+    extra_match_weight: 4
+    max_score: 29
+    title_match_bonus: 5
+    terms:
+      - e-filing system
+      - digital filing system
+      - forms management system
+      - forms platform
+      - service request system
+      - application processing system
+      - self-service portal
+      - e-services platform
+      - application portal
+      - permit management system
+      - licensing system
+      - public service portal
+  - id: egov
+    name: E-government / Citizen Services
+    weight: 18
+    extra_match_weight: 5
+    max_score: 30
+    title_match_bonus: 5
+    terms:
+      - e-government platform
+      - digital government platform
+      - digital service delivery
+      - citizen services portal
+      - citizen self-service
+      - government service portal
+      - municipal digital services
+      - institutional process digitization
+      - public administration digitization
+  - id: compliance_audit
+    name: Audit / Compliance / Retention
+    weight: 14
+    extra_match_weight: 3
+    max_score: 24
+    terms:
+      - audit trail
+      - compliance workflow
+      - retention
+      - retention policy
+      - records compliance
+      - procurement records system
+  - id: digitisation_platform
+    name: Scanning / Archiving with Platform Need
+    weight: 10
+    extra_match_weight: 3
+    max_score: 18
+    terms:
+      - scanning and archiving
+      - digitization of records
+      - document imaging
+      - scanning workflow
+      - archiving platform
+  - id: interoperability
+    name: Integration / Interoperability / Data Exchange
+    weight: 12
+    extra_match_weight: 3
+    max_score: 22
+    title_match_bonus: 4
+    terms:
+      - integration platform
+      - interoperability
+      - data exchange
+      - api integration
+      - system integration
+      - interoperability platform
+      - service bus
+      - workflow integration
+      - platform orchestration
+
+negative_groups:
+  - id: hardware_supply
+    name: Pure Hardware Supply
+    penalty: 18
+    extra_match_penalty: 4
+    max_penalty: 30
+    title_match_bonus: 4
+    terms:
+      - laptop
+      - desktop computer
+      - monitor
+      - printer
+      - server hardware
+      - storage array
+      - networking gear
+      - switch
+      - router
+  - id: security_only
+    name: Security-only Procurement
+    penalty: 18
+    extra_match_penalty: 4
+    max_penalty: 30
+    title_match_bonus: 4
+    terms:
+      - antivirus
+      - firewall
+      - email security
+      - endpoint protection
+      - siem
+      - soc services
+      - security operations center
+  - id: website_only
+    name: Website-only Redesign
+    penalty: 14
+    extra_match_penalty: 3
+    max_penalty: 24
+    title_match_bonus: 4
+    terms:
+      - website redesign
+      - website development
+      - cms redesign
+      - web portal design only
+      - ux redesign
+  - id: mobile_only
+    name: Pure Mobile App Delivery
+    penalty: 16
+    extra_match_penalty: 3
+    max_penalty: 25
+    title_match_bonus: 4
+    terms:
+      - mobile application development
+      - ios app
+      - android app
+      - mobile app only
+  - id: construction
+    name: Construction / Civil Works
+    penalty: 24
+    extra_match_penalty: 3
+    max_penalty: 32
+    title_match_bonus: 6
+    terms:
+      - construction works
+      - civil engineering works
+      - building works
+      - road works
+      - renovation works
+  - id: vehicles_logistics
+    name: Vehicles / Logistics / Fuel
+    penalty: 20
+    extra_match_penalty: 3
+    max_penalty: 28
+    title_match_bonus: 4
+    terms:
+      - vehicles
+      - fleet management
+      - fuel supply
+      - logistics services
+      - transport services
+  - id: staffing_only
+    name: Staffing-only Procurement
+    penalty: 18
+    extra_match_penalty: 4
+    max_penalty: 28
+    title_match_bonus: 4
+    terms:
+      - staff augmentation
+      - temporary staffing
+      - consultancy resources only
+      - team leasing
+  - id: hosting_only
+    name: Hosting-only Procurement
+    penalty: 14
+    extra_match_penalty: 3
+    max_penalty: 24
+    title_match_bonus: 4
+    terms:
+      - hosting services
+      - cloud hosting only
+      - infrastructure hosting
+      - managed hosting
+  - id: isolated_ocr
+    name: Isolated OCR / Digitisation
+    penalty: 12
+    extra_match_penalty: 2
+    max_penalty: 18
+    title_match_bonus: 3
+    terms:
+      - ocr digitization
+      - scanning services only
+      - digitisation services only
+  - id: erp_only
+    name: ERP-only Domain
+    penalty: 16
+    extra_match_penalty: 3
+    max_penalty: 24
+    title_match_bonus: 5
+    terms:
+      - text: erp
+        match_mode: acronym
+      - sap finance
+      - payroll system
+      - accounting system
+      - enterprise resource planning
+
+combo_rules:
+  - id: case_workflow_pattern
+    name: Case and workflow pattern
+    group_ids:
+      - case_management
+      - workflow_bpm
+    bonus: 8
+  - id: records_governance_pattern
+    name: Records and correspondence pattern
+    group_ids:
+      - records_management
+      - correspondence_registry
+    bonus: 7
+  - id: egov_service_pattern
+    name: E-government service pattern
+    group_ids:
+      - digital_services
+      - egov
+    bonus: 8
+  - id: orchestrated_platform_pattern
+    name: Workflow and interoperability pattern
+    group_ids:
+      - workflow_bpm
+      - interoperability
+    bonus: 5
+  - id: records_compliance_pattern
+    name: Records and compliance pattern
+    group_ids:
+      - document_management
+      - records_management
+      - compliance_audit
+    bonus: 6
+
+platform_signals:
+  hard_lock:
+    - id: power_platform_required
+      name: Microsoft Power Platform mandatory
+      penalty: 24
+      severe: true
+      terms:
+        - mandatory power platform
+        - must use power platform
+        - microsoft power platform only
+        - power platform mandatory
+        - delivered on power platform
+    - id: sharepoint_required
+      name: SharePoint delivery mandated
+      penalty: 22
+      severe: true
+      terms:
+        - must use sharepoint
+        - sharepoint platform required
+        - implemented on sharepoint
+        - sharepoint only
+        - sharepoint based solution
+    - id: named_platform_required
+      name: Named platform implementation only
+      penalty: 20
+      severe: true
+      terms:
+        - servicenow implementation
+        - salesforce implementation
+        - sap platform required
+        - oracle platform required
+        - named platform mandatory
+  soft_lock:
+    - id: microsoft_environment
+      name: Existing Microsoft environment
+      penalty: 8
+      terms:
+        - existing microsoft environment
+        - microsoft licenses already available
+        - incumbent sharepoint
+        - microsoft stack preferred
+        - preferred power platform
+    - id: incumbent_platform
+      name: Incumbent platform referenced
+      penalty: 7
+      terms:
+        - incumbent solution
+        - current sharepoint solution
+        - current servicenow environment
+        - existing salesforce environment
+  openness:
+    - id: equivalent_solutions
+      name: Equivalent solutions accepted
+      bonus: 10
+      terms:
+        - equivalent solutions accepted
+        - or equivalent
+        - functionally equivalent
+        - outcome based specification
+        - no mandatory platform
+    - id: replacement_openness
+      name: Platform replacement appears possible
+      bonus: 8
+      terms:
+        - migration from existing platform
+        - replacement of current system
+        - bidders may propose alternative platform
+
+qualification_questions:
+  default:
+    - Is the platform fixed, or are equivalent solutions acceptable?
+    - How many end users are expected?
+    - What integrations are required?
+    - Is hosting included?
+    - What is the budget range?
+    - Is there openness to replacing Microsoft or SharePoint if lower total cost and stronger fit can be demonstrated?
+  missing_deadline:
+    - Can the buyer confirm the final submission deadline and clarification window?
+  hard_lock:
+    - Is the named platform truly mandatory, or can equivalent platforms be proposed?
+    - Is the requirement for Microsoft, SharePoint, ServiceNow, Salesforce, SAP, or Oracle driven by policy, integration, or incumbent constraints?
+  soft_lock:
+    - Are existing licenses a preference only, or a mandatory delivery constraint?
+  integration:
+    - Which core systems must the solution integrate with?
+  timing:
+    - Is there any flexibility in the procurement timetable?
+
+strategic_weighting:
+  preferred_countries:
+    "DK": 8
+    "DE": 5
+    "SE": 4
+    "NO": 4
+    "FI": 4
+    "NL": 3
+  preferred_buyer_keywords:
+    ministry: 4
+    municipality: 3
+    agency: 3
+    government: 4
+    court: 3
+    tax: 3
+  preferred_sector_keywords:
+    justice: 4
+    citizen: 4
+    permits: 3
+    licensing: 3
+    registry: 4
+    social services: 2
+  deprioritized_cpv_prefixes:
+    - "30"
+    - "32"
+    - "34"
+    - "48"
+  deprioritization_penalty: 6

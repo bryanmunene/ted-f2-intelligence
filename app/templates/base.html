@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="{{ url_for('static', path='favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+  <script defer src="{{ url_for('static', path='js/app.js') }}"></script>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">cB</div>
+        <div>
+          <div class="brand-title">TED F2 Intelligence</div>
+          <div class="brand-subtitle">Official TED-only opportunity review</div>
+        </div>
+      </div>
+      <nav class="nav">
+        <a href="/" class="{% if active_path == '/' %}is-active{% endif %}">Dashboard</a>
+        <a href="/scan" class="{% if active_path == '/scan' %}is-active{% endif %}">Scan</a>
+        <a href="/results" class="{% if active_path.startswith('/results') %}is-active{% endif %}">Results</a>
+        <a href="/admin" class="{% if active_path == '/admin' %}is-active{% endif %}">Admin</a>
+      </nav>
+    </header>
+
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</body>
+</html>
+

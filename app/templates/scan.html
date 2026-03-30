@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Scan | {{ app_name }}{% endblock %}
+{% block content %}
+<section class="page-header">
+  <div>
+    <h1>Search / Scan</h1>
+    <p>Manual TED Search API scan with profile-driven F2 fit evaluation and request budgeting.</p>
+  </div>
+</section>
+
+<form method="post" action="/scan/run" class="panel form-panel">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+  <div class="form-grid">
+    <label>
+      <span>Search Profile</span>
+      <select name="profile_name">
+        {% for profile in profiles %}
+          <option value="{{ profile.name }}" {% if payload.profile_name == profile.name %}selected{% endif %}>
+            {{ profile.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      <span>Country Filter</span>
+      <input type="text" name="country" placeholder="DK" value="{{ payload.country or '' }}">
+    </label>
+    <label>
+      <span>CPV Filter</span>
+      <input type="text" name="cpv" placeholder="72260000" value="{{ payload.cpv or '' }}">
+    </label>
+    <label>
+      <span>Keyword Override</span>
+      <input type="text" name="keyword_override" placeholder="case management, records management" value="{{ payload.keyword_override or '' }}">
+    </label>
+    <label>
+      <span>Publication Date From</span>
+      <input type="date" name="date_from" value="{{ payload.date_from or '' }}">
+    </label>
+    <label>
+      <span>Publication Date To</span>
+      <input type="date" name="date_to" value="{{ payload.date_to or '' }}">
+    </label>
+    <label>
+      <span>Page Size</span>
+      <input type="number" name="page_size" min="1" max="250" value="{{ payload.page_size }}">
+    </label>
+    <label>
+      <span>Max Pages</span>
+      <input type="number" name="max_pages" min="1" max="20" value="{{ payload.max_pages }}">
+    </label>
+  </div>
+
+  <div class="toggle-row">
+    <label class="toggle">
+      <input type="checkbox" name="include_conditional" {% if payload.include_conditional %}checked{% endif %}>
+      <span>Include conditional opportunities</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" name="exclude_old" {% if payload.exclude_old %}checked{% endif %}>
+      <span>Exclude notices older than 3 months</span>
+    </label>
+    <label class="toggle">
+      <input type="checkbox" name="include_soft_locks" {% if payload.include_soft_locks %}checked{% endif %}>
+      <span>Include soft platform lock penalties</span>
+    </label>
+  </div>
+
+  <div class="budget-box">
+    <div class="budget-label">Request Budget Preview</div>
+    <div class="budget-value">{{ payload.request_budget_preview }} Search API requests maximum</div>
+    <div class="budget-helper">The app uses throttling, retries, and short-lived caching to stay within TED fair-usage expectations.</div>
+  </div>
+
+  <div class="action-row">
+    <button type="submit" class="button button-primary">Run Manual Scan</button>
+  </div>
+</form>
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>Profile Summary</h2>
+  </div>
+  <div class="profile-grid">
+    {% for profile in profiles %}
+      <article class="profile-card">
+        <h3>{{ profile.name }}</h3>
+        <p>{{ profile.description }}</p>
+        <div class="chip-row">
+          {% for term in profile.search_terms[:4] %}
+            <span class="chip">{{ term }}</span>
+          {% endfor %}
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+
