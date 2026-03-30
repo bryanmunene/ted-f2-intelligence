@@ -42,6 +42,9 @@ streamlit = [
 
 [tool.poetry]
 package-mode = false
+packages = [
+  { include = "app" },
+]
 
 [tool.setuptools.packages.find]
 include = ["app*"]
