@@ -23,11 +23,6 @@
         Download Notice PDF
       </a>
     {% endif %}
-    {% if notice.xml_url %}
-      <a href="/results/{{ notice.id }}/download/xml" class="button button-ghost">
-        Download Notice XML
-      </a>
-    {% endif %}
   </div>
 </section>
 
@@ -49,9 +44,6 @@
       <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
       {% if notice.pdf_url %}
         <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
-      {% endif %}
-      {% if notice.xml_url %}
-        <a href="/results/{{ notice.id }}/download/xml">Official XML Download</a>
       {% endif %}
     </div>
   </article>

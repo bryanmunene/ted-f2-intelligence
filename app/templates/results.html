@@ -135,11 +135,6 @@
                     Download PDF
                   </a>
                 {% endif %}
-                {% if notice.xml_url %}
-                  <a href="/results/{{ notice.id }}/download/xml" class="button button-ghost small">
-                    Download XML
-                  </a>
-                {% endif %}
                 <form method="post" action="/results/{{ notice.id }}/save">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
                   <input type="hidden" name="next_url" value="{{ request.url }}">

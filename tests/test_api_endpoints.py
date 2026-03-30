@@ -51,7 +51,7 @@ def test_official_ted_actions(db_session, seeded_notice: str) -> None:
 
     redirect_response = client.get(f"/results/{seeded_notice}/open-ted", follow_redirects=False)
     assert redirect_response.status_code == 307
-    assert redirect_response.headers["location"].endswith("/12345-2026/html")
+    assert redirect_response.headers["location"].endswith("/notice/-/detail/12345-2026")
 
     respx.get("https://ted.europa.eu/en/notice/12345-2026/pdf").mock(
         return_value=httpx.Response(

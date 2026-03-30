@@ -21,10 +21,12 @@ class TedDocumentService:
         self.settings = settings
 
     def resolve_notice_page_url(self, notice: Notice) -> str:
-        for candidate in (notice.html_url, notice.source_url, notice.pdf_url, notice.xml_url):
+        if notice.publication_number:
+            return f"https://ted.europa.eu/en/notice/-/detail/{notice.publication_number}"
+        for candidate in (notice.source_url, notice.html_url, notice.pdf_url, notice.xml_url):
             if candidate:
                 return candidate
-        raise ValueError("No official TED page URL is available for this notice.")
+        raise ValueError("No official TED notice URL is available for this notice.")
 
     def resolve_download(self, notice: Notice, *, artifact: str) -> DocumentSpec:
         normalized_artifact = artifact.lower()
@@ -54,4 +56,3 @@ class TedDocumentService:
             response.raise_for_status()
             media_type = response.headers.get("content-type", spec.media_type).split(";")[0].strip() or spec.media_type
             return response.content, media_type
-

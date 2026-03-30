@@ -160,12 +160,10 @@ def _go_to_view(view_name: str) -> None:
 
 
 def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
-    return (
-        notice.get("html_url")
-        or notice.get("source_url")
-        or notice.get("pdf_url")
-        or notice.get("xml_url")
-    )
+    publication_number = notice.get("publication_number")
+    if publication_number:
+        return f"https://ted.europa.eu/en/notice/-/detail/{publication_number}"
+    return notice.get("source_url") or notice.get("html_url") or notice.get("pdf_url")
 
 
 def _render_banner() -> None:
@@ -338,51 +336,48 @@ def _render_results() -> list[dict[str, Any]]:
 
 def _render_download_controls(detail: dict[str, Any]) -> None:
     st.markdown("#### Official TED Documents")
-    st.caption("Documents are fetched directly from the official TED URLs and prepared for download here.")
+    st.caption("Open the official TED notice page or fetch the official TED PDF.")
 
-    document_cols = st.columns(3)
+    document_cols = st.columns(2)
     official_notice_url = _resolve_official_notice_url(detail)
     if official_notice_url:
         document_cols[0].link_button("Open Official TED Notice", official_notice_url, width="stretch")
     else:
         document_cols[0].caption("No official TED notice URL available")
 
-    for artifact, label, column, media_type in [
-        ("pdf", "PDF", document_cols[1], "application/pdf"),
-        ("xml", "XML", document_cols[2], "application/xml"),
-    ]:
-        url = detail.get(f"{artifact}_url")
-        if not url:
-            column.caption(f"No official {label} available")
-            continue
+    pdf_url = detail.get("pdf_url")
+    pdf_column = document_cols[1]
+    if not pdf_url:
+        pdf_column.caption("No official PDF available")
+        return
 
-        prep_key = f"prepare_{artifact}_{detail['id']}"
-        state_key = f"prepared_{artifact}_{detail['id']}"
-        if column.button(f"Prepare {label}", key=prep_key, width="stretch"):
-            with st.spinner(f"Fetching official TED {label} document..."):
-                try:
-                    st.session_state[state_key] = fetch_official_document(
-                        url=url,
-                        filename=f"{detail['publication_number']}.{artifact}",
-                        media_type=media_type,
-                    )
-                except Exception as exc:
-                    st.session_state.pop(state_key, None)
-                    st.error(f"Could not fetch the official TED {label} document: {exc}")
+    prep_key = f"prepare_pdf_{detail['id']}"
+    state_key = f"prepared_pdf_{detail['id']}"
+    if pdf_column.button("Prepare PDF", key=prep_key, width="stretch"):
+        with st.spinner("Fetching official TED PDF document..."):
+            try:
+                st.session_state[state_key] = fetch_official_document(
+                    url=pdf_url,
+                    filename=f"{detail['publication_number']}.pdf",
+                    media_type="application/pdf",
+                )
+            except Exception as exc:
+                st.session_state.pop(state_key, None)
+                st.error(f"Could not fetch the official TED PDF document: {exc}")
 
-        prepared = st.session_state.get(state_key)
-        if prepared:
-            payload, filename, resolved_media_type = prepared
-            column.download_button(
-                f"Download {label}",
-                data=payload,
-                file_name=filename,
-                mime=resolved_media_type,
-                key=f"download_{artifact}_{detail['id']}",
-                width="stretch",
-            )
-        else:
-            column.link_button(f"Open Official {label}", url, width="stretch")
+    prepared = st.session_state.get(state_key)
+    if prepared:
+        payload, filename, resolved_media_type = prepared
+        pdf_column.download_button(
+            "Download PDF",
+            data=payload,
+            file_name=filename,
+            mime=resolved_media_type,
+            key=f"download_pdf_{detail['id']}",
+            width="stretch",
+        )
+    else:
+        pdf_column.link_button("Open Official PDF", pdf_url, width="stretch")
 
 
 def _render_notice_detail(notice_id: str | None) -> None:
