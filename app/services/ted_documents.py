@@ -20,7 +20,13 @@ class TedDocumentService:
     def __init__(self, *, settings: Settings) -> None:
         self.settings = settings
 
+    def is_demo_notice(self, notice: Notice) -> bool:
+        payload = notice.raw_payload_json or {}
+        return bool(payload.get("_seed_fixture"))
+
     def resolve_notice_page_url(self, notice: Notice) -> str:
+        if self.is_demo_notice(notice):
+            raise ValueError("This is seeded demo data and does not have a corresponding live TED notice.")
         if notice.publication_number:
             return f"https://ted.europa.eu/en/notice/-/detail/{notice.publication_number}"
         for candidate in (notice.source_url, notice.html_url, notice.pdf_url, notice.xml_url):
@@ -29,6 +35,8 @@ class TedDocumentService:
         raise ValueError("No official TED notice URL is available for this notice.")
 
     def resolve_download(self, notice: Notice, *, artifact: str) -> DocumentSpec:
+        if self.is_demo_notice(notice):
+            raise ValueError("This is seeded demo data and does not have corresponding live TED documents.")
         normalized_artifact = artifact.lower()
         if normalized_artifact == "pdf" and notice.pdf_url:
             return DocumentSpec(

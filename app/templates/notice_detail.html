@@ -15,13 +15,17 @@
 
 <section class="panel">
   <div class="inline-actions">
-    <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
-      Open Official TED Notice
-    </a>
-    {% if notice.pdf_url %}
-      <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary">
-        Download Notice PDF
+    {% if notice.is_demo_record %}
+      <span class="empty-state">This is seeded demo data, so no live TED notice or PDF is available.</span>
+    {% else %}
+      <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
+        Open Official TED Notice
       </a>
+      {% if notice.pdf_url %}
+        <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary">
+          Download Notice PDF
+        </a>
+      {% endif %}
     {% endif %}
   </div>
 </section>
@@ -41,9 +45,13 @@
       <div><dt>CPV Codes</dt><dd>{{ notice.cpv_codes | join(", ") if notice.cpv_codes else "None" }}</dd></div>
     </dl>
     <div class="official-links">
-      <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
-      {% if notice.pdf_url %}
-        <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
+      {% if notice.is_demo_record %}
+        <span>Demo notice only. Live TED links are disabled.</span>
+      {% else %}
+        <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
+        {% if notice.pdf_url %}
+          <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
+        {% endif %}
       {% endif %}
     </div>
   </article>

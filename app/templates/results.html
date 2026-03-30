@@ -127,13 +127,17 @@
             </td>
             <td>
               <div class="inline-actions">
-                <a href="/results/{{ notice.id }}/open-ted" class="button button-secondary small" target="_blank" rel="noreferrer">
-                  Open TED
-                </a>
-                {% if notice.pdf_url %}
-                  <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary small">
-                    Download PDF
+                {% if notice.raw_payload_json.get("_seed_fixture") %}
+                  <span class="table-subtext">Demo notice only</span>
+                {% else %}
+                  <a href="/results/{{ notice.id }}/open-ted" class="button button-secondary small" target="_blank" rel="noreferrer">
+                    Open TED
                   </a>
+                  {% if notice.pdf_url %}
+                    <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary small">
+                      Download PDF
+                    </a>
+                  {% endif %}
                 {% endif %}
                 <form method="post" action="/results/{{ notice.id }}/save">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">

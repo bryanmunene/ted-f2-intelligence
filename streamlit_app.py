@@ -161,6 +161,8 @@ def _go_to_view(view_name: str) -> None:
 
 
 def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
+    if notice.get("is_demo_record"):
+        return None
     publication_number = notice.get("publication_number")
     if publication_number:
         return f"https://ted.europa.eu/en/notice/-/detail/{publication_number}"
@@ -326,7 +328,10 @@ def _render_results() -> list[dict[str, Any]]:
     if selected_notice_url:
         action_cols[0].link_button("Open selected tender on TED", selected_notice_url, width="stretch")
     else:
-        action_cols[0].caption("No official TED URL stored for this tender")
+        if selected_notice.get("is_demo_record"):
+            action_cols[0].caption("This is seeded demo data, so no live TED notice is available.")
+        else:
+            action_cols[0].caption("No official TED URL stored for this tender")
 
     if action_cols[1].button("Open selected tender detail", key="open_selected_detail", width="stretch"):
         _go_to_view("Notice Detail")
@@ -338,6 +343,13 @@ def _render_results() -> list[dict[str, Any]]:
 def _render_download_controls(detail: dict[str, Any]) -> None:
     st.markdown("#### Official TED Documents")
     st.caption("Open the official TED notice page or fetch the official TED PDF.")
+
+    if detail.get("is_demo_record"):
+        st.info(
+            "This notice comes from seeded demo data. Live TED notice and document links are disabled "
+            "because the sample publication number does not correspond to a real TED notice."
+        )
+        return
 
     document_cols = st.columns(2)
     official_notice_url = _resolve_official_notice_url(detail)

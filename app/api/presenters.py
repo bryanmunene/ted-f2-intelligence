@@ -11,6 +11,7 @@ def _analysis_or_default(notice: Notice) -> NoticeAnalysis | None:
 
 def notice_to_summary_dict(notice: Notice) -> dict[str, Any]:
     analysis = _analysis_or_default(notice)
+    raw_payload = notice.raw_payload_json or {}
     return {
         "id": notice.id,
         "publication_number": notice.publication_number,
@@ -32,6 +33,7 @@ def notice_to_summary_dict(notice: Notice) -> dict[str, Any]:
         "keyword_hits": analysis.keyword_hits if analysis else [],
         "saved": notice.saved,
         "dismissed": notice.dismissed,
+        "is_demo_record": bool(raw_payload.get("_seed_fixture")),
     }
 
 

@@ -40,6 +40,8 @@ def main() -> None:
         notice_repo = NoticeRepository(session)
 
         for raw_notice in payload["results"]:
+            raw_notice = dict(raw_notice)
+            raw_notice["_seed_fixture"] = True
             normalized = normalize_notice(raw_notice, extraction_version=settings.analysis_extraction_version)
             score = scorer.score(normalized, profile=profile, evaluated_at=utcnow())
             notice_repo.upsert_notice(
@@ -63,4 +65,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
