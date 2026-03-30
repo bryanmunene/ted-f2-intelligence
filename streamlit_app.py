@@ -159,6 +159,15 @@ def _go_to_view(view_name: str) -> None:
     st.session_state["active_view"] = view_name
 
 
+def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
+    return (
+        notice.get("html_url")
+        or notice.get("source_url")
+        or notice.get("pdf_url")
+        or notice.get("xml_url")
+    )
+
+
 def _render_banner() -> None:
     st.markdown(
         """
@@ -228,6 +237,14 @@ def _render_dashboard() -> None:
                         st.session_state["selected_notice_id"] = notice["id"]
                         _go_to_view("Notice Detail")
                         st.rerun()
+                    official_url = _resolve_official_notice_url(notice)
+                    if official_url:
+                        st.link_button(
+                            "Open live TED notice",
+                            official_url,
+                            width="stretch",
+                            key=f"dashboard_ted_link_{notice['id']}",
+                        )
         else:
             st.info("No stored notices available yet.")
 
@@ -306,7 +323,14 @@ def _render_results() -> list[dict[str, Any]]:
     )
     st.session_state["selected_notice_id"] = selected_notice["id"]
 
-    if st.button("Open selected tender detail", key="open_selected_detail"):
+    action_cols = st.columns(2)
+    selected_notice_url = _resolve_official_notice_url(selected_notice)
+    if selected_notice_url:
+        action_cols[0].link_button("Open selected tender on TED", selected_notice_url, width="stretch")
+    else:
+        action_cols[0].caption("No official TED URL stored for this tender")
+
+    if action_cols[1].button("Open selected tender detail", key="open_selected_detail", width="stretch"):
         _go_to_view("Notice Detail")
         st.rerun()
 
@@ -318,8 +342,11 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
     st.caption("Documents are fetched directly from the official TED URLs and prepared for download here.")
 
     document_cols = st.columns(3)
-    if detail.get("html_url"):
-        document_cols[0].link_button("Open Official TED Notice", detail["html_url"], width="stretch")
+    official_notice_url = _resolve_official_notice_url(detail)
+    if official_notice_url:
+        document_cols[0].link_button("Open Official TED Notice", official_notice_url, width="stretch")
+    else:
+        document_cols[0].caption("No official TED notice URL available")
 
     for artifact, label, column, media_type in [
         ("pdf", "PDF", document_cols[1], "application/pdf"),

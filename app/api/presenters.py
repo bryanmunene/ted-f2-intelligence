@@ -19,6 +19,10 @@ def notice_to_summary_dict(notice: Notice) -> dict[str, Any]:
         "buyer_country": notice.buyer_country,
         "publication_date": notice.publication_date,
         "deadline": notice.deadline,
+        "source_url": notice.source_url,
+        "html_url": notice.html_url,
+        "pdf_url": notice.pdf_url,
+        "xml_url": notice.xml_url,
         "score": analysis.score if analysis else 0,
         "fit_label": analysis.fit_label if analysis else None,
         "priority_bucket": analysis.priority_bucket if analysis else None,
@@ -84,4 +88,3 @@ def scan_run_to_dict(scan_run: ScanRun) -> dict[str, Any]:
         "rate_limit_events": scan_run.rate_limit_events,
         "error_count": scan_run.error_count,
     }
-
