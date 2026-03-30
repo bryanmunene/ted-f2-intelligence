@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date
+import html
 from typing import Any
 
 import streamlit as st
@@ -89,6 +90,113 @@ def _apply_theme() -> None:
             color: #5d6b7c;
             font-size: 0.92rem;
         }
+        .cb-card-grid {
+            margin-top: 0.5rem;
+        }
+        .cb-result-card {
+            background: linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(238, 244, 252, 0.98) 100%);
+            border: 1px solid rgba(191, 206, 224, 0.9);
+            border-radius: 18px;
+            padding: 1rem 1rem 0.9rem 1rem;
+            box-shadow: 0 10px 30px rgba(11, 36, 71, 0.08);
+            margin-bottom: 0.75rem;
+        }
+        .cb-result-topline {
+            display: flex;
+            justify-content: space-between;
+            gap: 0.75rem;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+        .cb-result-topline-left {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+        .cb-result-score {
+            text-align: right;
+        }
+        .cb-result-score-label {
+            color: #687789;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .cb-result-score-value {
+            color: #17304d;
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .cb-result-title {
+            color: #17212d;
+            font-size: 1.08rem;
+            font-weight: 700;
+            line-height: 1.35;
+            margin-bottom: 0.55rem;
+        }
+        .cb-result-meta {
+            color: #5c6b7c;
+            font-size: 0.92rem;
+            margin-bottom: 0.3rem;
+        }
+        .cb-result-summary {
+            color: #243648;
+            font-size: 0.92rem;
+            line-height: 1.45;
+            margin-top: 0.65rem;
+        }
+        .cb-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.26rem 0.58rem;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: 0.01em;
+        }
+        .cb-pill-source {
+            background: #d9e7fb;
+            color: #25508d;
+        }
+        .cb-pill-fit {
+            background: #dfeff4;
+            color: #255e73;
+        }
+        .cb-pill-priority {
+            background: #e7eef8;
+            color: #365a86;
+        }
+        .cb-pill-alert {
+            background: #fde6e2;
+            color: #b14a3a;
+        }
+        .cb-pill-good {
+            background: #e1f1e8;
+            color: #2e6c52;
+        }
+        .cb-pill-neutral {
+            background: #edf1f5;
+            color: #526273;
+        }
+        .cb-chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.38rem;
+            margin-top: 0.8rem;
+        }
+        .cb-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.24rem 0.5rem;
+            border-radius: 999px;
+            background: #dce9fb;
+            color: #335d96;
+            font-size: 0.74rem;
+            font-weight: 600;
+            line-height: 1;
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -176,6 +284,99 @@ def _notice_option_label(item: dict[str, Any]) -> str:
 
 def _notice_source_label(item: dict[str, Any]) -> str:
     return "DEMO" if item.get("is_demo_record") else "LIVE"
+
+
+def _display_value(value: Any) -> str:
+    if value is None:
+        return "N/A"
+    raw = getattr(value, "value", value)
+    if raw is None:
+        return "N/A"
+    return str(raw)
+
+
+def _render_pill(label: str, tone: str) -> str:
+    safe_label = html.escape(label)
+    return f"<span class='cb-pill cb-pill-{tone}'>{safe_label}</span>"
+
+
+def _render_chip(label: str) -> str:
+    return f"<span class='cb-chip'>{html.escape(label)}</span>"
+
+
+def _notice_keyword_labels(notice: dict[str, Any], *, limit: int = 4) -> list[str]:
+    labels: list[str] = []
+    for hit in notice.get("keyword_hits", [])[:limit]:
+        term = hit.get("term")
+        scope = hit.get("scope")
+        if term and scope:
+            labels.append(f"{term} [{scope}]")
+        elif term:
+            labels.append(str(term))
+    return labels
+
+
+def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
+    fit_label = _display_value(notice.get("fit_label"))
+    priority_bucket = _display_value(notice.get("priority_bucket"))
+    confidence = _display_value(notice.get("confidence_indicator"))
+    top_line_badges = [
+        _render_pill(_notice_source_label(notice), "source"),
+        _render_pill(fit_label, "fit"),
+        _render_pill(priority_bucket, "priority"),
+    ]
+    if notice.get("hard_lock_detected"):
+        top_line_badges.append(_render_pill("Hard lock", "alert"))
+    elif notice.get("viable_timing"):
+        top_line_badges.append(_render_pill("Timing viable", "good"))
+    else:
+        top_line_badges.append(_render_pill("Timing review", "neutral"))
+
+    buyer = notice.get("buyer") or "Unknown buyer"
+    country = notice.get("buyer_country") or "N/A"
+    publication = notice.get("publication_number") or "Unknown publication"
+    deadline = format_datetime(notice.get("deadline"), settings.ui_timezone)
+    publication_date = format_date(notice.get("publication_date"))
+    summary = notice.get("title") or "Untitled notice"
+    keyword_chips = "".join(_render_chip(label) for label in _notice_keyword_labels(notice))
+    if not keyword_chips:
+        keyword_chips = _render_chip("No keyword evidence captured yet")
+
+    st.markdown(
+        f"""
+        <div class="cb-result-card">
+          <div class="cb-result-topline">
+            <div class="cb-result-topline-left">
+              {''.join(top_line_badges)}
+            </div>
+            <div class="cb-result-score">
+              <div class="cb-result-score-label">Score</div>
+              <div class="cb-result-score-value">{notice['score']}</div>
+            </div>
+          </div>
+          <div class="cb-result-title">{html.escape(summary)}</div>
+          <div class="cb-result-meta">{html.escape(publication)} | {html.escape(buyer)} | {html.escape(country)}</div>
+          <div class="cb-result-meta">Published {html.escape(publication_date)} | Deadline {html.escape(deadline)}</div>
+          <div class="cb-result-meta">Confidence {html.escape(confidence)}</div>
+          <div class="cb-chip-row">{keyword_chips}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    action_cols = st.columns([1, 1], gap="small")
+    official_url = _resolve_official_notice_url(notice)
+    if official_url:
+        action_cols[0].link_button("Open TED notice", official_url, width="stretch")
+    elif notice.get("is_demo_record"):
+        action_cols[0].caption("Demo-only notice")
+    else:
+        action_cols[0].caption("No official TED URL")
+
+    if action_cols[1].button("Review notice", key=f"review_notice_{card_index}_{notice['id']}", width="stretch"):
+        st.session_state["selected_notice_id"] = notice["id"]
+        _go_to_view("Notice Detail")
+        st.rerun()
 
 
 def _seed_selected_notice(notices: list[dict[str, Any]]) -> None:
@@ -452,55 +653,24 @@ def _render_results() -> list[dict[str, Any]]:
         st.warning("No notices match the current filters.")
         return notices
 
-    st.dataframe(
-        [
-            {
-                "Source": _notice_source_label(notice),
-                "Score": notice["score"],
-                "Fit": notice["fit_label"] or "N/A",
-                "Priority": notice["priority_bucket"] or "N/A",
-                "Publication": notice["publication_number"],
-                "Title": notice["title"],
-                "Buyer": notice["buyer"] or "Unknown buyer",
-                "Country": notice["buyer_country"] or "N/A",
-                "Deadline": format_datetime(notice["deadline"], settings.ui_timezone),
-                "Hard Lock": "Yes" if notice["hard_lock_detected"] else "No",
-            }
-            for notice in notices
-        ],
-        width="stretch",
-        hide_index=True,
-    )
+    high_fit = sum(1 for notice in notices if _display_value(notice.get("priority_bucket")) == "HIGH")
+    conditional = sum(1 for notice in notices if _display_value(notice.get("fit_label")) == "CONDITIONAL")
+    hard_locks = sum(1 for notice in notices if notice.get("hard_lock_detected"))
+    live_notices = sum(1 for notice in notices if not notice.get("is_demo_record"))
 
-    selected_notice = st.selectbox(
-        "Inspect a tender",
-        options=notices,
-        format_func=_notice_option_label,
-        index=next(
-            (
-                idx
-                for idx, notice in enumerate(notices)
-                if notice["id"] == st.session_state.get("selected_notice_id")
-            ),
-            0,
-        ),
-        key="results_notice_picker",
-    )
-    st.session_state["selected_notice_id"] = selected_notice["id"]
+    summary_cols = st.columns(4, gap="medium")
+    summary_cols[0].metric("Review Queue", len(notices))
+    summary_cols[1].metric("High Fit", high_fit)
+    summary_cols[2].metric("Conditional", conditional)
+    summary_cols[3].metric("Live TED Notices", live_notices)
 
-    action_cols = st.columns(2)
-    selected_notice_url = _resolve_official_notice_url(selected_notice)
-    if selected_notice_url:
-        action_cols[0].link_button("Open selected tender on TED", selected_notice_url, width="stretch")
-    else:
-        if selected_notice.get("is_demo_record"):
-            action_cols[0].caption("This is seeded demo data, so no live TED notice is available.")
-        else:
-            action_cols[0].caption("No official TED URL stored for this tender")
+    if hard_locks:
+        st.caption(f"{hard_locks} notices in the current result set include a hard platform lock signal.")
 
-    if action_cols[1].button("Open selected tender detail", key="open_selected_detail", width="stretch"):
-        _go_to_view("Notice Detail")
-        st.rerun()
+    grid_cols = st.columns(2, gap="large")
+    for index, notice in enumerate(notices):
+        with grid_cols[index % 2]:
+            _render_result_card(notice, card_index=index)
 
     return notices
 
