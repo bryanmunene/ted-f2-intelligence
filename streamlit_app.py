@@ -57,7 +57,98 @@ def _apply_theme() -> None:
     st.markdown(
         """
         <style>
-        .main .block-container { padding-top: 1.5rem; padding-bottom: 2rem; }
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        [data-testid="stAppViewContainer"] > .main,
+        [data-testid="stMain"] {
+            background: linear-gradient(180deg, #f5f8fc 0%, #eef3f8 100%);
+            color: #17212d;
+        }
+        [data-testid="stHeader"] {
+            background: rgba(245, 248, 252, 0.92);
+            border-bottom: 1px solid #dfe7f0;
+        }
+        [data-testid="stSidebar"] {
+            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 100%);
+            border-right: 1px solid #dfe7f0;
+        }
+        [data-testid="stSidebar"] * {
+            color: #203248;
+        }
+        .main .block-container {
+            padding-top: 1.5rem;
+            padding-bottom: 2rem;
+        }
+        h1, h2, h3, h4, h5, h6, p, li, label, span, div {
+            color: inherit;
+        }
+        div[data-testid="stMetric"] {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #dbe4ee;
+            border-radius: 18px;
+            padding: 0.9rem 1rem;
+            box-shadow: 0 12px 30px rgba(13, 35, 64, 0.06);
+        }
+        div[data-testid="stMetricLabel"] p {
+            color: #677688;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        div[data-testid="stMetricValue"] {
+            color: #17212d;
+        }
+        div[data-testid="stForm"] {
+            background: rgba(255, 255, 255, 0.97);
+            border: 1px solid #dbe4ee;
+            border-radius: 22px;
+            padding: 0.9rem 1rem 1rem;
+            box-shadow: 0 18px 40px rgba(13, 35, 64, 0.06);
+        }
+        div[data-baseweb="input"] > div,
+        div[data-baseweb="select"] > div,
+        div[data-baseweb="textarea"] > div {
+            background: #ffffff;
+            border: 1px solid #d6e0ea;
+            border-radius: 14px;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #dbe4ee;
+            border-radius: 20px;
+            box-shadow: 0 16px 36px rgba(13, 35, 64, 0.06);
+        }
+        .stButton > button,
+        .stDownloadButton > button {
+            background: linear-gradient(180deg, #3f74be 0%, #2d5ea6 100%);
+            color: #ffffff;
+            border: 1px solid #2d5ea6;
+            border-radius: 12px;
+            min-height: 2.8rem;
+            font-weight: 600;
+        }
+        .stButton > button:hover,
+        .stDownloadButton > button:hover {
+            border-color: #274f8a;
+            background: linear-gradient(180deg, #3669ae 0%, #264f8c 100%);
+            color: #ffffff;
+        }
+        .stLinkButton a {
+            background: #ffffff;
+            color: #25508d;
+            border: 1px solid #ccdaea;
+            border-radius: 12px;
+            min-height: 2.8rem;
+            font-weight: 600;
+        }
+        .stLinkButton a:hover {
+            background: #eff5fc;
+            border-color: #b9cde3;
+            color: #1d467d;
+        }
+        .stAlert {
+            border-radius: 16px;
+        }
         .cb-banner {
             background: linear-gradient(135deg, #f8fbff 0%, #e8f1fb 100%);
             border: 1px solid #d7e2ef;
@@ -90,8 +181,71 @@ def _apply_theme() -> None:
             color: #5d6b7c;
             font-size: 0.92rem;
         }
-        .cb-card-grid {
-            margin-top: 0.5rem;
+        .cb-stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.85rem;
+            margin: 0.3rem 0 1rem 0;
+        }
+        .cb-stat-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #dbe4ee;
+            border-radius: 18px;
+            padding: 1rem 1.05rem;
+            box-shadow: 0 14px 32px rgba(13, 35, 64, 0.06);
+        }
+        .cb-stat-label {
+            color: #6a7888;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.35rem;
+        }
+        .cb-stat-value {
+            color: #17212d;
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.15;
+            margin-bottom: 0.22rem;
+        }
+        .cb-stat-note {
+            color: #607084;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+        .cb-profile-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+            margin-top: 0.85rem;
+        }
+        .cb-profile-card,
+        .cb-list-card {
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #dbe4ee;
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 14px 32px rgba(13, 35, 64, 0.06);
+        }
+        .cb-list-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 0.55rem;
+        }
+        .cb-profile-title,
+        .cb-list-title {
+            color: #17212d;
+            font-size: 1.02rem;
+            font-weight: 700;
+            margin-bottom: 0.35rem;
+        }
+        .cb-profile-text,
+        .cb-list-text {
+            color: #566678;
+            font-size: 0.92rem;
+            line-height: 1.42;
+            margin-bottom: 0.55rem;
         }
         .cb-result-card {
             background: linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(238, 244, 252, 0.98) 100%);
@@ -196,6 +350,31 @@ def _apply_theme() -> None:
             font-size: 0.74rem;
             font-weight: 600;
             line-height: 1;
+        }
+        .cb-detail-block {
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+        }
+        .cb-detail-line {
+            color: #23384d;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+        .cb-detail-line strong {
+            color: #17212d;
+        }
+        @media (max-width: 1200px) {
+            .cb-stat-grid,
+            .cb-profile-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 780px) {
+            .cb-stat-grid,
+            .cb-profile-grid {
+                grid-template-columns: 1fr;
+            }
         }
         </style>
         """,
@@ -302,6 +481,65 @@ def _render_pill(label: str, tone: str) -> str:
 
 def _render_chip(label: str) -> str:
     return f"<span class='cb-chip'>{html.escape(label)}</span>"
+
+
+def _render_stat_cards(cards: list[dict[str, str]]) -> None:
+    markup = "".join(
+        f"""
+        <div class="cb-stat-card">
+          <div class="cb-stat-label">{html.escape(card['label'])}</div>
+          <div class="cb-stat-value">{html.escape(card['value'])}</div>
+          <div class="cb-stat-note">{html.escape(card['note'])}</div>
+        </div>
+        """
+        for card in cards
+    )
+    st.markdown(f"<div class='cb-stat-grid'>{markup}</div>", unsafe_allow_html=True)
+
+
+def _render_profile_cards() -> None:
+    profiles = get_search_profiles_registry().profiles
+    markup = "".join(
+        f"""
+        <div class="cb-profile-card">
+          <div class="cb-profile-title">{html.escape(profile.name)}</div>
+          <div class="cb-profile-text">{html.escape(profile.description)}</div>
+          <div class="cb-chip-row">
+            {''.join(_render_chip(term) for term in profile.search_terms[:4])}
+          </div>
+        </div>
+        """
+        for profile in profiles
+    )
+    st.markdown(f"<div class='cb-profile-grid'>{markup}</div>", unsafe_allow_html=True)
+
+
+def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
+    markup = "".join(
+        f"""
+        <div class="cb-list-card">
+          <div class="cb-list-title">{html.escape(scan['status'])}</div>
+          <div class="cb-list-text">
+            Started {html.escape(format_datetime(scan['started_at'], settings.ui_timezone))}<br>
+            Ingested {scan['total_notices_ingested']} notices | High fit {scan['total_high_fit']}<br>
+            Requests {scan['request_count']} | Rate-limit events {scan['rate_limit_events']}
+          </div>
+        </div>
+        """
+        for scan in recent_scans
+    )
+    st.markdown(f"<div class='cb-list-stack'>{markup}</div>", unsafe_allow_html=True)
+
+
+def _status_tone(status: str) -> str:
+    normalized = status.strip().lower()
+    if normalized in {"filled", "high", "yes"}:
+        return "good"
+    if normalized in {"review", "no"}:
+        return "alert"
+    if normalized in {"inferred", "conditional", "watchlist"}:
+        return "priority"
+    return "neutral"
 
 
 def _notice_keyword_labels(notice: dict[str, Any], *, limit: int = 4) -> list[str]:
@@ -488,6 +726,31 @@ def _render_live_scan() -> None:
         "Run a live search against TED's public Search API. This populates the same database used by the rest of the app."
     )
 
+    _render_stat_cards(
+        [
+            {
+                "label": "Search Profiles",
+                "value": str(len(profiles.names)),
+                "note": "Configured TED scan strategies",
+            },
+            {
+                "label": "TED RPM",
+                "value": str(settings.ted_requests_per_minute),
+                "note": "Polite request budget per minute",
+            },
+            {
+                "label": "Max Pages",
+                "value": str(settings.ted_max_pages_per_scan),
+                "note": "Live scan page cap per run",
+            },
+            {
+                "label": "UI Timezone",
+                "value": settings.ui_timezone,
+                "note": "Business-facing date display",
+            },
+        ]
+    )
+
     with st.form("live_ted_scan_form"):
         left, right = st.columns(2, gap="large")
         with left:
@@ -513,6 +776,8 @@ def _render_live_scan() -> None:
 
     if not submitted:
         st.info("Run a scan to replace empty or demo-only views with real TED notices.")
+        st.markdown("#### Search Profiles")
+        _render_profile_cards()
         return
 
     with st.spinner("Querying TED public API and scoring notices..."):
@@ -545,6 +810,9 @@ def _render_live_scan() -> None:
     outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
     outcome_cols[3].metric("Conditional", outcome["total_conditional"])
 
+    st.markdown("#### Search Profiles")
+    _render_profile_cards()
+
     st.session_state["active_view"] = "Results"
     st.rerun()
 
@@ -556,32 +824,46 @@ def _render_dashboard() -> None:
     top_notices = payload["top_notices"]
 
     st.subheader("Dashboard", anchor=False)
-    metric_cols = st.columns(6)
-    metric_cols[0].metric("Total Notices", metrics["total_notices"])
-    metric_cols[1].metric("High Fit", metrics["high_fit"])
-    metric_cols[2].metric("Conditional", metrics["conditional"])
-    metric_cols[3].metric("Expiring Soon", metrics["expiring_soon"])
-    metric_cols[4].metric("Hard Locks", metrics["hard_lock"])
-    metric_cols[5].metric("Scan Freshness", format_datetime(metrics["scan_freshness"], settings.ui_timezone))
+    _render_stat_cards(
+        [
+            {
+                "label": "Total Notices",
+                "value": str(metrics["total_notices"]),
+                "note": "Current stored review queue",
+            },
+            {
+                "label": "High Fit",
+                "value": str(metrics["high_fit"]),
+                "note": "Immediate follow-up candidates",
+            },
+            {
+                "label": "Conditional",
+                "value": str(metrics["conditional"]),
+                "note": "Relevant with qualification risk",
+            },
+            {
+                "label": "Expiring Soon",
+                "value": str(metrics["expiring_soon"]),
+                "note": "Deadlines within seven days",
+            },
+            {
+                "label": "Hard Locks",
+                "value": str(metrics["hard_lock"]),
+                "note": "Named platform delivery constraints",
+            },
+            {
+                "label": "Scan Freshness",
+                "value": format_datetime(metrics["scan_freshness"], settings.ui_timezone),
+                "note": "Latest completed scan",
+            },
+        ]
+    )
 
     left, right = st.columns([1.05, 0.95], gap="large")
     with left:
         st.markdown("#### Recent Scan Runs")
         if recent_scans:
-            st.dataframe(
-                [
-                    {
-                        "Started": format_datetime(scan["started_at"], settings.ui_timezone),
-                        "Status": scan["status"],
-                        "Ingested": scan["total_notices_ingested"],
-                        "High Fit": scan["total_high_fit"],
-                        "Requests": scan["request_count"],
-                    }
-                    for scan in recent_scans
-                ],
-                width="stretch",
-                hide_index=True,
-            )
+            _render_recent_scan_cards(recent_scans)
         else:
             st.info("No scan history found.")
 
@@ -597,8 +879,8 @@ def _render_dashboard() -> None:
                     )
                     action_cols = st.columns([1, 1, 1, 1])
                     action_cols[0].metric("Score", notice["score"])
-                    action_cols[1].metric("Fit", notice["fit_label"] or "N/A")
-                    action_cols[2].metric("Priority", notice["priority_bucket"] or "N/A")
+                    action_cols[1].metric("Fit", _display_value(notice["fit_label"]))
+                    action_cols[2].metric("Priority", _display_value(notice["priority_bucket"]))
                     if action_cols[3].button("Inspect", key=f"inspect_top_{notice['id']}"):
                         st.session_state["selected_notice_id"] = notice["id"]
                         _go_to_view("Notice Detail")
@@ -766,19 +1048,16 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
         width="stretch",
     )
 
-    st.dataframe(
-        [
-            {
-                "Checklist Element": item["label"],
-                "Status": item["status"].upper(),
-                "Answer": item["answer"],
-                "Basis": item["basis"],
-            }
-            for item in report["items"]
-        ],
-        width="stretch",
-        hide_index=True,
-    )
+    for item in report["items"]:
+        with st.container(border=True):
+            header_cols = st.columns([0.72, 0.28], gap="small")
+            header_cols[0].markdown(f"**{item['label']}**")
+            header_cols[1].markdown(
+                _render_pill(item["status"].upper(), _status_tone(item["status"])),
+                unsafe_allow_html=True,
+            )
+            st.write(item["answer"])
+            st.caption(item["basis"])
 
 
 def _render_notice_detail(notice_id: str | None) -> None:
@@ -792,60 +1071,88 @@ def _render_notice_detail(notice_id: str | None) -> None:
         st.error("The selected notice could not be found.")
         return
 
-    title_col, score_col = st.columns([0.78, 0.22])
-    with title_col:
-        st.markdown(f"### {detail['title']}")
-        st.caption(
-            f"{detail['publication_number']} | {detail['buyer'] or 'Unknown buyer'} | "
-            f"{detail['buyer_country'] or 'N/A'} | Source: {_notice_source_label(detail)}"
-        )
-    with score_col:
-        st.metric("Score", detail["score"])
-        st.caption(f"{detail['fit_label']} | {detail['priority_bucket']}")
+    st.markdown(f"### {detail['title']}")
+    st.caption(
+        f"{detail['publication_number']} | {detail['buyer'] or 'Unknown buyer'} | "
+        f"{detail['buyer_country'] or 'N/A'} | Source: {_notice_source_label(detail)}"
+    )
+
+    _render_stat_cards(
+        [
+            {
+                "label": "Score",
+                "value": str(detail["score"]),
+                "note": "Deterministic F2-fit score",
+            },
+            {
+                "label": "Fit",
+                "value": _display_value(detail["fit_label"]),
+                "note": "Overall fit classification",
+            },
+            {
+                "label": "Priority",
+                "value": _display_value(detail["priority_bucket"]),
+                "note": "Recommended review urgency",
+            },
+            {
+                "label": "Confidence",
+                "value": _display_value(detail["confidence_indicator"]),
+                "note": "Signal quality from extracted evidence",
+            },
+        ]
+    )
 
     _render_download_controls(detail)
     _render_checklist_cross_reference(detail)
 
     meta_col, assessment_col = st.columns([0.42, 0.58], gap="large")
     with meta_col:
-        st.markdown("#### Metadata")
-        st.write(f"**Notice Type:** {detail['notice_type'] or 'Unknown'}")
-        st.write(f"**Procedure Type:** {detail['procedure_type'] or 'Unknown'}")
-        st.write(f"**Publication Date:** {format_date(detail['publication_date'])}")
-        st.write(f"**Deadline:** {format_datetime(detail['deadline'], settings.ui_timezone)}")
-        st.write(f"**Contract Duration:** {detail['contract_duration'] or 'Unknown'}")
-        st.write(f"**Place of Performance:** {detail['place_of_performance'] or 'Unknown'}")
-        st.write(f"**CPV Codes:** {', '.join(detail['cpv_codes']) if detail['cpv_codes'] else 'None'}")
-        st.write(f"**Confidence:** {detail['confidence_indicator'] or 'N/A'}")
+        with st.container(border=True):
+            st.markdown("#### Metadata")
+            st.markdown(
+                f"""
+                <div class="cb-detail-block">
+                  <div class="cb-detail-line"><strong>Notice Type:</strong> {html.escape(detail['notice_type'] or 'Unknown')}</div>
+                  <div class="cb-detail-line"><strong>Procedure Type:</strong> {html.escape(detail['procedure_type'] or 'Unknown')}</div>
+                  <div class="cb-detail-line"><strong>Publication Date:</strong> {html.escape(format_date(detail['publication_date']))}</div>
+                  <div class="cb-detail-line"><strong>Deadline:</strong> {html.escape(format_datetime(detail['deadline'], settings.ui_timezone))}</div>
+                  <div class="cb-detail-line"><strong>Contract Duration:</strong> {html.escape(detail['contract_duration'] or 'Unknown')}</div>
+                  <div class="cb-detail-line"><strong>Place of Performance:</strong> {html.escape(detail['place_of_performance'] or 'Unknown')}</div>
+                  <div class="cb-detail-line"><strong>CPV Codes:</strong> {html.escape(', '.join(detail['cpv_codes']) if detail['cpv_codes'] else 'None')}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     with assessment_col:
-        st.markdown("#### Fit Assessment")
-        st.write(detail["reasoning"] or "No reasoning available.")
-        if detail["keyword_hits"]:
-            st.markdown("**Keyword Evidence**")
-            st.write(
-                ", ".join(f"{hit['term']} [{hit['scope']}]" for hit in detail["keyword_hits"])
-            )
-        if detail["qualification_questions"]:
-            st.markdown("**Qualification Questions**")
-            for question in detail["qualification_questions"]:
-                st.write(f"- {question}")
+        with st.container(border=True):
+            st.markdown("#### Fit Assessment")
+            st.write(detail["reasoning"] or "No reasoning available.")
+            if detail["keyword_hits"]:
+                st.markdown("**Keyword Evidence**")
+                st.markdown(
+                    "<div class='cb-chip-row'>"
+                    + "".join(
+                        _render_chip(f"{hit['term']} [{hit['scope']}]")
+                        for hit in detail["keyword_hits"]
+                    )
+                    + "</div>",
+                    unsafe_allow_html=True,
+                )
+            if detail["qualification_questions"]:
+                st.markdown("**Qualification Questions**")
+                for question in detail["qualification_questions"]:
+                    st.write(f"- {question}")
 
     breakdown_col, notes_col = st.columns([0.6, 0.4], gap="large")
     with breakdown_col:
         st.markdown("#### Score Breakdown")
-        st.dataframe(
-            [
-                {
-                    "Rule": rule["label"],
-                    "Points": rule["points"],
-                    "Evidence": ", ".join(rule["evidence"]),
-                }
-                for rule in detail["score_breakdown"]
-            ],
-            width="stretch",
-            hide_index=True,
-        )
+        for rule in detail["score_breakdown"]:
+            with st.container(border=True):
+                rule_cols = st.columns([0.72, 0.28], gap="small")
+                rule_cols[0].markdown(f"**{rule['label']}**")
+                rule_cols[1].metric("Points", rule["points"])
+                st.caption(", ".join(rule["evidence"]) if rule["evidence"] else "No evidence attached.")
 
     with notes_col:
         st.markdown("#### Analyst Notes")
