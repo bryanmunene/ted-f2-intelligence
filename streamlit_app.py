@@ -61,200 +61,173 @@ def _apply_theme() -> None:
         [data-testid="stAppViewContainer"],
         [data-testid="stAppViewContainer"] > .main,
         [data-testid="stMain"] {
-            background: linear-gradient(180deg, #f5f8fc 0%, #eef3f8 100%);
-            color: #17212d;
+            background: #f3f5f8;
+            color: #162434;
         }
         [data-testid="stHeader"] {
-            background: rgba(245, 248, 252, 0.92);
-            border-bottom: 1px solid #dfe7f0;
+            background: rgba(255, 255, 255, 0.96);
+            border-bottom: 1px solid #d9e1ea;
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #f8fbff 0%, #f2f6fb 100%);
-            border-right: 1px solid #dfe7f0;
+            background: linear-gradient(180deg, #17324d 0%, #12283f 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }
         [data-testid="stSidebar"] * {
-            color: #203248;
+            color: #eef4fb;
         }
         .main .block-container {
-            padding-top: 1.5rem;
+            padding-top: 1.35rem;
             padding-bottom: 2rem;
+            max-width: 1320px;
         }
         h1, h2, h3, h4, h5, h6, p, li, label, span, div {
             color: inherit;
         }
         div[data-testid="stMetric"] {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #dbe4ee;
-            border-radius: 18px;
-            padding: 0.9rem 1rem;
-            box-shadow: 0 12px 30px rgba(13, 35, 64, 0.06);
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            box-shadow: 0 4px 14px rgba(15, 33, 56, 0.04);
         }
         div[data-testid="stMetricLabel"] p {
-            color: #677688;
+            color: #6c7b8b;
             font-size: 0.82rem;
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
         div[data-testid="stMetricValue"] {
-            color: #17212d;
+            color: #162434;
         }
         div[data-testid="stForm"] {
-            background: rgba(255, 255, 255, 0.97);
-            border: 1px solid #dbe4ee;
-            border-radius: 22px;
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-radius: 12px;
             padding: 0.9rem 1rem 1rem;
-            box-shadow: 0 18px 40px rgba(13, 35, 64, 0.06);
+            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
         }
         div[data-baseweb="input"] > div,
         div[data-baseweb="select"] > div,
         div[data-baseweb="textarea"] > div {
             background: #ffffff;
-            border: 1px solid #d6e0ea;
-            border-radius: 14px;
+            border: 1px solid #cfd8e3;
+            border-radius: 8px;
         }
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid #dbe4ee;
-            border-radius: 20px;
-            box-shadow: 0 16px 36px rgba(13, 35, 64, 0.06);
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-radius: 12px;
+            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
         }
         .stButton > button,
         .stDownloadButton > button {
-            background: linear-gradient(180deg, #3f74be 0%, #2d5ea6 100%);
+            background: #1f5aa6;
             color: #ffffff;
-            border: 1px solid #2d5ea6;
-            border-radius: 12px;
-            min-height: 2.8rem;
+            border: 1px solid #1f5aa6;
+            border-radius: 8px;
+            min-height: 2.7rem;
             font-weight: 600;
+            box-shadow: none;
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover {
-            border-color: #274f8a;
-            background: linear-gradient(180deg, #3669ae 0%, #264f8c 100%);
+            border-color: #184a88;
+            background: #184a88;
             color: #ffffff;
         }
         .stLinkButton a {
             background: #ffffff;
-            color: #25508d;
-            border: 1px solid #ccdaea;
-            border-radius: 12px;
-            min-height: 2.8rem;
+            color: #1f5aa6;
+            border: 1px solid #cfd8e3;
+            border-radius: 8px;
+            min-height: 2.7rem;
             font-weight: 600;
         }
         .stLinkButton a:hover {
-            background: #eff5fc;
-            border-color: #b9cde3;
-            color: #1d467d;
+            background: #f6f9fc;
+            border-color: #bcc9d7;
+            color: #173f74;
         }
         .stAlert {
-            border-radius: 16px;
+            border-radius: 10px;
         }
         .cb-banner {
-            background: linear-gradient(135deg, #f8fbff 0%, #e8f1fb 100%);
-            border: 1px solid #d7e2ef;
-            border-radius: 14px;
-            padding: 1rem 1.2rem;
-            margin-bottom: 1rem;
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-left: 5px solid #1f5aa6;
+            border-radius: 10px;
+            padding: 0.95rem 1.1rem;
+            margin-bottom: 1.1rem;
+            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
         }
         .cb-kicker {
-            color: #4f637a;
-            font-size: 0.9rem;
+            color: #5d6c7c;
+            font-size: 0.78rem;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 0.35rem;
+            letter-spacing: 0.08em;
+            margin-bottom: 0.25rem;
         }
         .cb-title {
-            color: #17212d;
-            font-size: 2rem;
+            color: #162434;
+            font-size: 1.85rem;
             font-weight: 700;
             margin: 0;
         }
         .cb-subtitle {
-            color: #556577;
-            margin-top: 0.35rem;
+            color: #607084;
+            margin-top: 0.3rem;
         }
         .cb-section-title {
             margin-top: 0;
             margin-bottom: 0.3rem;
         }
         .cb-muted {
-            color: #5d6b7c;
+            color: #667585;
             font-size: 0.92rem;
         }
-        .cb-stat-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 0.85rem;
-            margin: 0.3rem 0 1rem 0;
+        .cb-sidebar-brand {
+            padding: 0.35rem 0 1rem 0;
+            margin-bottom: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
-        .cb-stat-card {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid #dbe4ee;
-            border-radius: 18px;
-            padding: 1rem 1.05rem;
-            box-shadow: 0 14px 32px rgba(13, 35, 64, 0.06);
-        }
-        .cb-stat-label {
-            color: #6a7888;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            margin-bottom: 0.35rem;
-        }
-        .cb-stat-value {
-            color: #17212d;
-            font-size: 1.6rem;
+        .cb-sidebar-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 2rem;
+            height: 2rem;
+            border-radius: 6px;
+            background: #2b67b7;
+            color: #ffffff;
             font-weight: 700;
-            line-height: 1.15;
-            margin-bottom: 0.22rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.6rem;
         }
-        .cb-stat-note {
-            color: #607084;
-            font-size: 0.88rem;
-            line-height: 1.35;
-        }
-        .cb-profile-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 0.9rem;
-            margin-top: 0.85rem;
-        }
-        .cb-profile-card,
-        .cb-list-card {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1px solid #dbe4ee;
-            border-radius: 18px;
-            padding: 1rem;
-            box-shadow: 0 14px 32px rgba(13, 35, 64, 0.06);
-        }
-        .cb-list-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            margin-top: 0.55rem;
-        }
-        .cb-profile-title,
-        .cb-list-title {
-            color: #17212d;
-            font-size: 1.02rem;
+        .cb-sidebar-title {
+            color: #f4f8fc;
+            font-size: 1rem;
             font-weight: 700;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.2rem;
         }
-        .cb-profile-text,
-        .cb-list-text {
-            color: #566678;
-            font-size: 0.92rem;
-            line-height: 1.42;
-            margin-bottom: 0.55rem;
+        .cb-sidebar-subtitle {
+            color: #a9bdd3;
+            font-size: 0.84rem;
+            line-height: 1.45;
         }
         .cb-result-card {
-            background: linear-gradient(180deg, rgba(248, 251, 255, 0.98) 0%, rgba(238, 244, 252, 0.98) 100%);
-            border: 1px solid rgba(191, 206, 224, 0.9);
-            border-radius: 18px;
+            background: #ffffff;
+            border: 1px solid #d9e1ea;
+            border-left: 4px solid #b8c7d8;
+            border-radius: 10px;
             padding: 1rem 1rem 0.9rem 1rem;
-            box-shadow: 0 10px 30px rgba(11, 36, 71, 0.08);
+            box-shadow: 0 6px 18px rgba(15, 33, 56, 0.04);
             margin-bottom: 0.75rem;
         }
+        .cb-result-card-high { border-left-color: #1f5aa6; }
+        .cb-result-card-good { border-left-color: #2d7c64; }
+        .cb-result-card-watch { border-left-color: #9b6b18; }
+        .cb-result-card-ignore { border-left-color: #8a97a8; }
+        .cb-result-card-conditional { border-left-color: #b85b3d; }
         .cb-result-topline {
             display: flex;
             justify-content: space-between;
@@ -271,68 +244,72 @@ def _apply_theme() -> None:
             text-align: right;
         }
         .cb-result-score-label {
-            color: #687789;
+            color: #6b7a8a;
             font-size: 0.78rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         .cb-result-score-value {
-            color: #17304d;
-            font-size: 1.6rem;
+            color: #162434;
+            font-size: 1.45rem;
             font-weight: 700;
             line-height: 1.1;
         }
         .cb-result-title {
-            color: #17212d;
-            font-size: 1.08rem;
+            color: #162434;
+            font-size: 1.04rem;
             font-weight: 700;
             line-height: 1.35;
             margin-bottom: 0.55rem;
         }
         .cb-result-meta {
-            color: #5c6b7c;
-            font-size: 0.92rem;
+            color: #657587;
+            font-size: 0.9rem;
             margin-bottom: 0.3rem;
-        }
-        .cb-result-summary {
-            color: #243648;
-            font-size: 0.92rem;
-            line-height: 1.45;
-            margin-top: 0.65rem;
         }
         .cb-pill {
             display: inline-flex;
             align-items: center;
-            padding: 0.26rem 0.58rem;
-            border-radius: 999px;
-            font-size: 0.76rem;
+            padding: 0.22rem 0.46rem;
+            border-radius: 6px;
+            border: 1px solid #d6dee8;
+            font-size: 0.73rem;
             font-weight: 600;
             line-height: 1;
-            letter-spacing: 0.01em;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            background: #f7f9fb;
+            color: #44586d;
         }
         .cb-pill-source {
-            background: #d9e7fb;
-            color: #25508d;
+            background: #edf3fb;
+            border-color: #c8d8ee;
+            color: #1f5aa6;
         }
         .cb-pill-fit {
-            background: #dfeff4;
-            color: #255e73;
+            background: #eef2f5;
+            border-color: #d2dbe4;
+            color: #3a536b;
         }
         .cb-pill-priority {
-            background: #e7eef8;
-            color: #365a86;
+            background: #eef3fb;
+            border-color: #cad8ea;
+            color: #355784;
         }
         .cb-pill-alert {
-            background: #fde6e2;
-            color: #b14a3a;
+            background: #fbefeb;
+            border-color: #efd0c6;
+            color: #a14e38;
         }
         .cb-pill-good {
-            background: #e1f1e8;
-            color: #2e6c52;
+            background: #edf5f1;
+            border-color: #cce0d6;
+            color: #2f6c54;
         }
         .cb-pill-neutral {
-            background: #edf1f5;
-            color: #526273;
+            background: #f2f4f7;
+            border-color: #d7dee6;
+            color: #596a7c;
         }
         .cb-chip-row {
             display: flex;
@@ -343,10 +320,11 @@ def _apply_theme() -> None:
         .cb-chip {
             display: inline-flex;
             align-items: center;
-            padding: 0.24rem 0.5rem;
-            border-radius: 999px;
-            background: #dce9fb;
-            color: #335d96;
+            padding: 0.22rem 0.46rem;
+            border-radius: 6px;
+            border: 1px solid #d4dde7;
+            background: #f7f9fb;
+            color: #4b6074;
             font-size: 0.74rem;
             font-weight: 600;
             line-height: 1;
@@ -358,23 +336,11 @@ def _apply_theme() -> None:
         }
         .cb-detail-line {
             color: #23384d;
-            font-size: 0.95rem;
+            font-size: 0.93rem;
             line-height: 1.45;
         }
         .cb-detail-line strong {
-            color: #17212d;
-        }
-        @media (max-width: 1200px) {
-            .cb-stat-grid,
-            .cb-profile-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-        @media (max-width: 780px) {
-            .cb-stat-grid,
-            .cb-profile-grid {
-                grid-template-columns: 1fr;
-            }
+            color: #162434;
         }
         </style>
         """,
@@ -483,6 +449,22 @@ def _render_chip(label: str) -> str:
     return f"<span class='cb-chip'>{html.escape(label)}</span>"
 
 
+def _card_tone_class(notice: dict[str, Any]) -> str:
+    priority = _display_value(notice.get("priority_bucket")).upper()
+    fit = _display_value(notice.get("fit_label")).upper()
+    if fit == "CONDITIONAL" or notice.get("hard_lock_detected"):
+        return "cb-result-card-conditional"
+    if priority == "HIGH":
+        return "cb-result-card-high"
+    if priority == "GOOD":
+        return "cb-result-card-good"
+    if priority == "WATCHLIST":
+        return "cb-result-card-watch"
+    if priority == "IGNORE":
+        return "cb-result-card-ignore"
+    return ""
+
+
 def _render_stat_cards(cards: list[dict[str, str]]) -> None:
     if not cards:
         return
@@ -546,6 +528,19 @@ def _status_tone(status: str) -> str:
     return "neutral"
 
 
+def _render_sidebar_brand() -> None:
+    st.sidebar.markdown(
+        """
+        <div class="cb-sidebar-brand">
+          <div class="cb-sidebar-logo">CB</div>
+          <div class="cb-sidebar-title">TED F2 Intelligence</div>
+          <div class="cb-sidebar-subtitle">Internal cBrain opportunity review for official TED notices only.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def _notice_keyword_labels(notice: dict[str, Any], *, limit: int = 4) -> list[str]:
     labels: list[str] = []
     for hit in notice.get("keyword_hits", [])[:limit]:
@@ -562,6 +557,7 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
     fit_label = _display_value(notice.get("fit_label"))
     priority_bucket = _display_value(notice.get("priority_bucket"))
     confidence = _display_value(notice.get("confidence_indicator"))
+    card_class = _card_tone_class(notice)
     top_line_badges = [
         _render_pill(_notice_source_label(notice), "source"),
         _render_pill(fit_label, "fit"),
@@ -586,7 +582,7 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
 
     st.markdown(
         f"""
-        <div class="cb-result-card">
+        <div class="cb-result-card {card_class}">
           <div class="cb-result-topline">
             <div class="cb-result-topline-left">
               {''.join(top_line_badges)}
@@ -707,10 +703,10 @@ def _render_banner() -> None:
     st.markdown(
         """
         <div class="cb-banner">
-          <div class="cb-kicker">Temporary Streamlit Shell</div>
+          <div class="cb-kicker">cBrain Internal Service Shell</div>
           <h1 class="cb-title">cBrain TED F2 Intelligence</h1>
           <div class="cb-subtitle">
-            Streamlit interface over the existing database. FastAPI remains the canonical backend and live scans use TED's public API.
+            Official TED-only opportunity review for F2-fit assessment. FastAPI remains the canonical backend and live scans use TED's public API.
           </div>
         </div>
         """,
@@ -1183,6 +1179,7 @@ def main() -> None:
     if active_view not in views:
         active_view = "Dashboard"
 
+    _render_sidebar_brand()
     st.sidebar.markdown("## Navigation")
     current_view = st.sidebar.radio(
         "View",
@@ -1192,8 +1189,7 @@ def main() -> None:
     st.session_state["active_view"] = current_view
     st.sidebar.markdown("---")
     st.sidebar.caption(
-        "This Streamlit shell is intentionally temporary. FastAPI remains the canonical "
-        "production-oriented app, and live scans use TED's public API."
+        "Temporary Streamlit shell. FastAPI remains the canonical production backend, and live scans use TED's public API."
     )
 
     if current_view == "Dashboard":
