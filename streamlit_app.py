@@ -155,6 +155,10 @@ def _seed_selected_notice(notices: list[dict[str, Any]]) -> None:
         st.session_state["selected_notice_id"] = notices[0]["id"]
 
 
+def _go_to_view(view_name: str) -> None:
+    st.session_state["active_view"] = view_name
+
+
 def _render_banner() -> None:
     st.markdown(
         """
@@ -200,7 +204,7 @@ def _render_dashboard() -> None:
                     }
                     for scan in recent_scans
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
         else:
@@ -222,7 +226,7 @@ def _render_dashboard() -> None:
                     action_cols[2].metric("Priority", notice["priority_bucket"] or "N/A")
                     if action_cols[3].button("Inspect", key=f"inspect_top_{notice['id']}"):
                         st.session_state["selected_notice_id"] = notice["id"]
-                        st.session_state["current_view"] = "Notice Detail"
+                        _go_to_view("Notice Detail")
                         st.rerun()
         else:
             st.info("No stored notices available yet.")
@@ -282,7 +286,7 @@ def _render_results() -> list[dict[str, Any]]:
             }
             for notice in notices
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
     )
 
@@ -303,7 +307,7 @@ def _render_results() -> list[dict[str, Any]]:
     st.session_state["selected_notice_id"] = selected_notice["id"]
 
     if st.button("Open selected tender detail", key="open_selected_detail"):
-        st.session_state["current_view"] = "Notice Detail"
+        _go_to_view("Notice Detail")
         st.rerun()
 
     return notices
@@ -315,7 +319,7 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
 
     document_cols = st.columns(3)
     if detail.get("html_url"):
-        document_cols[0].link_button("Open Official TED Notice", detail["html_url"], use_container_width=True)
+        document_cols[0].link_button("Open Official TED Notice", detail["html_url"], width="stretch")
 
     for artifact, label, column, media_type in [
         ("pdf", "PDF", document_cols[1], "application/pdf"),
@@ -328,7 +332,7 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
 
         prep_key = f"prepare_{artifact}_{detail['id']}"
         state_key = f"prepared_{artifact}_{detail['id']}"
-        if column.button(f"Prepare {label}", key=prep_key, use_container_width=True):
+        if column.button(f"Prepare {label}", key=prep_key, width="stretch"):
             with st.spinner(f"Fetching official TED {label} document..."):
                 try:
                     st.session_state[state_key] = fetch_official_document(
@@ -349,10 +353,10 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
                 file_name=filename,
                 mime=resolved_media_type,
                 key=f"download_{artifact}_{detail['id']}",
-                use_container_width=True,
+                width="stretch",
             )
         else:
-            column.link_button(f"Open Official {label}", url, use_container_width=True)
+            column.link_button(f"Open Official {label}", url, width="stretch")
 
 
 def _render_notice_detail(notice_id: str | None) -> None:
@@ -415,7 +419,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
                 }
                 for rule in detail["score_breakdown"]
             ],
-            use_container_width=True,
+            width="stretch",
             hide_index=True,
         )
 
@@ -439,12 +443,18 @@ def main() -> None:
     _apply_theme()
     _render_banner()
 
+    views = ["Dashboard", "Results", "Notice Detail"]
+    active_view = st.session_state.get("active_view", "Dashboard")
+    if active_view not in views:
+        active_view = "Dashboard"
+
     st.sidebar.markdown("## Navigation")
     current_view = st.sidebar.radio(
         "View",
-        options=["Dashboard", "Results", "Notice Detail"],
-        key="current_view",
+        options=views,
+        index=views.index(active_view),
     )
+    st.session_state["active_view"] = current_view
     st.sidebar.markdown("---")
     st.sidebar.caption(
         "This Streamlit shell is intentionally temporary and read-only. "
