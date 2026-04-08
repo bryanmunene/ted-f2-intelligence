@@ -52,7 +52,6 @@ class Notice(IdMixin, TimestampMixin, Base):
         "AnalystNote",
         back_populates="notice",
         cascade="all, delete-orphan",
-        order_by="desc(AnalystNote.created_at)",
     )
 
 
