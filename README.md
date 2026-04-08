@@ -88,16 +88,16 @@ uvicorn app.main:app --reload
 python scripts/seed_sample_data.py
 ```
 
-## Temporary Streamlit UI
+## Streamlit UI
 
-If you want a temporary read-only Streamlit shell while keeping FastAPI as the canonical backend design:
+If you want to run the Streamlit interface alongside the FastAPI service:
 
 ```bash
 pip install -e .[streamlit]
 streamlit run streamlit_app.py
 ```
 
-The Streamlit UI reads the same database-backed notices, scores, and scan history. It is intentionally temporary and should not replace the FastAPI app for production hosting.
+The Streamlit UI reads the same database-backed notices, scores, and scan history as the rest of the application.
 
 ## Development Commands
 

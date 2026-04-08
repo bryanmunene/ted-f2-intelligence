@@ -1066,7 +1066,7 @@ def _render_sidebar_brand() -> None:
           <div class="cb-sidebar-line">cBrain Signal Studio</div>
           <div class="cb-sidebar-mark">F2</div>
           <div class="cb-sidebar-title">TED Opportunity Intelligence</div>
-          <div class="cb-sidebar-subtitle">Creative internal review shell for official TED notices, F2-fit scoring, and qualification decisions.</div>
+          <div class="cb-sidebar-subtitle">Internal TED opportunity workspace for F2-fit scoring, qualification decisions, and official notice review.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1168,7 +1168,7 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
     if official_url:
         action_cols[0].link_button("Open TED notice", official_url, width="stretch")
     elif notice.get("is_demo_record"):
-        action_cols[0].caption("Demo-only notice")
+        action_cols[0].caption("No live TED link")
     else:
         action_cols[0].caption("No official TED URL")
 
@@ -1319,9 +1319,7 @@ def _render_banner(current_view: str) -> None:
         unsafe_allow_html=True,
     )
     if purged_demo_notices:
-        st.info(
-            f"Removed {purged_demo_notices} seeded demo notices from the local store so the app can focus on live TED data."
-        )
+        st.info(f"Removed {purged_demo_notices} local sample records from storage.")
 
 
 def _render_live_scan() -> None:
@@ -1330,7 +1328,7 @@ def _render_live_scan() -> None:
     _render_section_header(
         "Live TED Scan",
         "Acquisition workspace",
-        "Configure a live TED search run, keep the request posture polite, and push fresh notices into the same scored datastore used by the rest of the shell.",
+        "Configure a live TED search run, keep request usage controlled, and load fresh notices into the shared review datastore.",
     )
 
     _render_stat_cards(
@@ -1362,7 +1360,7 @@ def _render_live_scan() -> None:
         """
         <div class="cb-note-card" style="margin: 1rem 0 1.1rem 0;">
           <div class="cb-note-title">Scan posture</div>
-          <div class="cb-note-copy">Profiles broaden or narrow the acquisition logic, but the source of truth remains TED's official public search interface. Query parameters below let you steer the run without leaving the guarded ingestion path.</div>
+          <div class="cb-note-copy">Profiles adjust acquisition breadth while keeping TED's official public interfaces as the source of truth. Use the parameters below to steer the run.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1392,7 +1390,7 @@ def _render_live_scan() -> None:
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
     if not submitted:
-        st.info("Run a scan to populate the shell with live TED notices and retire empty or demo-only surfaces.")
+        st.info("Run a scan to load live TED notices into the review queue.")
         _render_section_header(
             "Configured Strategies",
             "Search profiles",
@@ -1538,7 +1536,7 @@ def _render_dashboard() -> None:
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption(
-        "By default the board is now broader: expired notices stay hidden, but borderline fit cases and notices with unknown deadlines can still surface for analyst review."
+        "Expired notices stay hidden. Use these controls to tighten or broaden the active review set."
     )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     search = st.sidebar.text_input("Search", "").strip() or None
@@ -1664,8 +1662,7 @@ def _render_download_controls(detail: dict[str, Any]) -> None:
 
     if detail.get("is_demo_record"):
         st.info(
-            "This notice comes from seeded demo data. Live TED notice and document links are disabled "
-            "because the sample publication number does not correspond to a real TED notice."
+            "This record is not linked to a live TED notice, so official notice and document actions are unavailable."
         )
         return
 
@@ -1729,7 +1726,7 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
         st.session_state[state_key] = True
 
     if not st.session_state.get(state_key):
-        button_cols[1].caption("Run the checklist when you want a structured cross-reference for this tender.")
+        button_cols[1].caption("Generate a structured checklist cross-reference for this tender.")
         return
 
     service = get_tender_checklist_service()
@@ -1749,7 +1746,7 @@ def _render_checklist_cross_reference(detail: dict[str, Any]) -> None:
         width="stretch",
     )
 
-    st.caption("Reference table for analyst review and handoff.")
+    st.caption("Reference table for structured tender review.")
     _render_checklist_table(report["items"])
 
 
@@ -2046,7 +2043,7 @@ def main() -> None:
     _render_banner(current_view)
     st.sidebar.markdown("---")
     st.sidebar.caption(
-        "Experimental Streamlit shell. FastAPI remains the canonical production backend, and live scans stay on TED's public API."
+        "Official TED opportunity workspace with live scans through TED's public API."
     )
 
     if current_view == "Dashboard":

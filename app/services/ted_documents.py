@@ -26,7 +26,7 @@ class TedDocumentService:
 
     def resolve_notice_page_url(self, notice: Notice) -> str:
         if self.is_demo_notice(notice):
-            raise ValueError("This is seeded demo data and does not have a corresponding live TED notice.")
+            raise ValueError("This record is not linked to a corresponding live TED notice.")
         if notice.publication_number:
             return f"https://ted.europa.eu/en/notice/-/detail/{notice.publication_number}"
         for candidate in (notice.source_url, notice.html_url, notice.pdf_url, notice.xml_url):
@@ -36,7 +36,7 @@ class TedDocumentService:
 
     def resolve_download(self, notice: Notice, *, artifact: str) -> DocumentSpec:
         if self.is_demo_notice(notice):
-            raise ValueError("This is seeded demo data and does not have corresponding live TED documents.")
+            raise ValueError("This record is not linked to corresponding live TED documents.")
         normalized_artifact = artifact.lower()
         if normalized_artifact == "pdf" and notice.pdf_url:
             return DocumentSpec(

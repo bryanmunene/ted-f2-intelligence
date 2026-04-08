@@ -16,7 +16,7 @@
 <section class="panel">
   <div class="inline-actions">
     {% if notice.is_demo_record %}
-      <span class="empty-state">This is seeded demo data, so no live TED notice or PDF is available.</span>
+      <span class="empty-state">No live TED notice or PDF is available for this record.</span>
     {% else %}
       <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
         Open Official TED Notice
@@ -46,7 +46,7 @@
     </dl>
     <div class="official-links">
       {% if notice.is_demo_record %}
-        <span>Demo notice only. Live TED links are disabled.</span>
+        <span>Live TED links are unavailable for this record.</span>
       {% else %}
         <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
         {% if notice.pdf_url %}
