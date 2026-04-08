@@ -32,7 +32,7 @@ def test_scoring_engine_penalizes_hard_lock_and_timing(ted_fixture_payload: dict
     keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
     profiles = load_search_profiles(settings.resolved_search_profiles_path)
     payload = dict(ted_fixture_payload["results"][1])
-    payload["deadline"] = "2026-03-30T12:00:00Z"
+    payload["deadline"] = "2026-03-29T12:00:00Z"
     notice = normalize_notice(payload, extraction_version="test-version")
     score = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version).score(
         notice,

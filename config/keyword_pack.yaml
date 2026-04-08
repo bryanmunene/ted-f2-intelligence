@@ -1,13 +1,13 @@
-version: "2026.03.2"
+version: "2026.04.1"
 timing:
-  min_days_to_deadline: 1
+  min_days_to_deadline: 0
   exclude_after_days_since_publication: 90
   expiring_soon_days: 7
-  missing_deadline_penalty: 18
+  missing_deadline_penalty: 14
   missing_publication_date_penalty: 10
-  stale_publication_penalty: 20
-  short_deadline_penalty: 22
-  viable_timing_bonus: 6
+  stale_publication_penalty: 14
+  short_deadline_penalty: 12
+  viable_timing_bonus: 8
 
 positive_groups:
   - id: document_management

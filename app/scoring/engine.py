@@ -460,27 +460,27 @@ class ScoringEngine:
         return ConfidenceIndicator.LOW
 
     def _determine_fit_label(self, result: ScoreResult) -> FitLabel:
-        if result.hard_lock_detected and result.score < 70:
+        if result.hard_lock_detected and result.score < 60:
             return FitLabel.NO
-        if result.hard_lock_detected and result.score >= 70:
+        if result.hard_lock_detected and result.score >= 60:
             return FitLabel.CONDITIONAL
-        if not result.viable_timing and result.score < 60:
+        if not result.viable_timing and result.score < 50:
             return FitLabel.NO
-        if result.score >= 60:
+        if result.score >= 52:
             return FitLabel.YES
-        if result.score >= 35:
+        if result.score >= 24:
             return FitLabel.CONDITIONAL
         return FitLabel.NO
 
     def _determine_priority(self, result: ScoreResult) -> PriorityBucket:
         if result.fit_label == FitLabel.YES:
-            if result.score >= 75 and result.viable_timing and not result.hard_lock_detected:
+            if result.score >= 70 and result.viable_timing and not result.hard_lock_detected:
                 return PriorityBucket.HIGH
             return PriorityBucket.GOOD
         if result.fit_label == FitLabel.CONDITIONAL:
-            if result.score >= 70 and result.viable_timing and not result.hard_lock_detected:
+            if result.score >= 62 and result.viable_timing and not result.hard_lock_detected:
                 return PriorityBucket.GOOD
-            if result.score >= 35:
+            if result.score >= 24:
                 return PriorityBucket.WATCHLIST
         return PriorityBucket.IGNORE
 

@@ -12,14 +12,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 class TimingConfig(BaseModel):
-    min_days_to_deadline: int = 1
+    min_days_to_deadline: int = 0
     exclude_after_days_since_publication: int = 90
     expiring_soon_days: int = 7
-    missing_deadline_penalty: int = 18
+    missing_deadline_penalty: int = 14
     missing_publication_date_penalty: int = 10
-    stale_publication_penalty: int = 20
-    short_deadline_penalty: int = 22
-    viable_timing_bonus: int = 6
+    stale_publication_penalty: int = 14
+    short_deadline_penalty: int = 12
+    viable_timing_bonus: int = 8
 
 
 class KeywordTerm(BaseModel):
@@ -196,7 +196,7 @@ class Settings(BaseSettings):
     keyword_pack_path: Path = Path("config/keyword_pack.yaml")
     search_profiles_path: Path = Path("config/search_profiles.yaml")
     tender_checklist_template_path: Path = Path("config/tender_checklist.yaml")
-    scoring_version: str = "2026.03.2"
+    scoring_version: str = "2026.04.1"
     analysis_extraction_version: str = "2026.03.2"
 
     @property

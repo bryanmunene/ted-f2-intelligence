@@ -55,7 +55,7 @@ def test_notice_repository_country_filter_accepts_iso2_or_ted_code(db_session, s
     assert notices_alpha3[0].id == seeded_notice
 
 
-def test_notice_repository_default_review_queue_excludes_soon_and_irrelevant_notices(
+def test_notice_repository_default_review_queue_is_broader_but_can_be_narrowed(
     db_session,
     seeded_notice: str,
 ) -> None:
@@ -87,13 +87,21 @@ def test_notice_repository_default_review_queue_excludes_soon_and_irrelevant_not
         },
     )
 
-    notices, total = repository.list(NoticeListFilters(), page=1, page_size=25)
-    returned_ids = {notice.id for notice in notices}
+    broad_notices, broad_total = repository.list(NoticeListFilters(), page=1, page_size=25)
+    broad_ids = {notice.id for notice in broad_notices}
 
-    assert total == 1
-    assert returned_ids == {seeded_notice}
-    assert soon_notice_id not in returned_ids
-    assert irrelevant_notice_id not in returned_ids
+    assert broad_total == 3
+    assert broad_ids == {seeded_notice, soon_notice_id, irrelevant_notice_id}
+
+    strict_notices, strict_total = repository.list(
+        NoticeListFilters(relevant_only=True, min_days_remaining=1),
+        page=1,
+        page_size=25,
+    )
+    strict_ids = {notice.id for notice in strict_notices}
+
+    assert strict_total == 1
+    assert strict_ids == {seeded_notice}
 
 
 def test_notice_repository_supports_score_confidence_and_date_filters(db_session, seeded_notice: str) -> None:

@@ -1538,13 +1538,13 @@ def _render_dashboard() -> None:
 def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption(
-        "Expired notices stay hidden. Use the controls below to decide how broad or strict the active review surface should be."
+        "By default the board is now broader: expired notices stay hidden, but borderline fit cases and notices with unknown deadlines can still surface for analyst review."
     )
     country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
     search = st.sidebar.text_input("Search", "").strip() or None
 
     st.sidebar.markdown("#### Relevance Gate")
-    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=True)
+    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=False)
     fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
     priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
     confidence_indicator = st.sidebar.selectbox("Confidence", ["Any", "HIGH", "MEDIUM", "LOW"], index=0)
@@ -1558,7 +1558,7 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
     publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
 
     st.sidebar.markdown("#### Timing Window")
-    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=1, step=1)
+    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=0, step=1)
     deadline_from = st.sidebar.date_input("Deadline From", value=None)
     deadline_to = st.sidebar.date_input("Deadline To", value=None)
     deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
@@ -2067,8 +2067,8 @@ def main() -> None:
                 min_score=None,
                 max_score=None,
                 confidence_indicator=None,
-                relevant_only=True,
-                min_days_remaining=1,
+                relevant_only=False,
+                min_days_remaining=0,
                 hard_lock_only=False,
                 publication_date_from=None,
                 publication_date_to=None,
