@@ -11,6 +11,7 @@ from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
 
 class Notice(IdMixin, TimestampMixin, Base):
     __tablename__ = "notices"
+    __table_args__ = {"extend_existing": True}
 
     ted_notice_id: Mapped[str | None] = mapped_column(String(255), index=True, nullable=True)
     publication_number: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
@@ -57,6 +58,7 @@ class Notice(IdMixin, TimestampMixin, Base):
 
 class NoticeAnalysis(IdMixin, TimestampMixin, Base):
     __tablename__ = "notice_analysis"
+    __table_args__ = {"extend_existing": True}
 
     notice_id: Mapped[str] = mapped_column(
         String(36),
@@ -101,4 +103,3 @@ class NoticeAnalysis(IdMixin, TimestampMixin, Base):
     viable_timing: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
 
     notice = relationship("Notice", back_populates="analysis")
-

@@ -11,6 +11,7 @@ from app.models.enums import ScanStatus
 
 class ScanRun(IdMixin, Base):
     __tablename__ = "scan_runs"
+    __table_args__ = {"extend_existing": True}
 
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -32,4 +33,3 @@ class ScanRun(IdMixin, Base):
     request_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     rate_limit_events: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     error_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
-

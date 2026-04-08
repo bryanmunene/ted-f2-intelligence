@@ -9,6 +9,7 @@ from app.models.enums import AuditEventType
 
 class AuditEvent(IdMixin, TimestampMixin, Base):
     __tablename__ = "audit_events"
+    __table_args__ = {"extend_existing": True}
 
     event_type: Mapped[AuditEventType] = mapped_column(
         Enum(AuditEventType, native_enum=False),
@@ -27,4 +28,3 @@ class AuditEvent(IdMixin, TimestampMixin, Base):
     payload_json: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
 
     actor_user = relationship("User", back_populates="audit_events")
-

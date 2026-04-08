@@ -8,6 +8,7 @@ from app.models.base import Base, IdMixin, TimestampMixin
 
 class User(IdMixin, TimestampMixin, Base):
     __tablename__ = "users"
+    __table_args__ = {"extend_existing": True}
 
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True, nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
@@ -17,4 +18,3 @@ class User(IdMixin, TimestampMixin, Base):
     saved_searches = relationship("SavedSearch", back_populates="created_by")
     analyst_notes = relationship("AnalystNote", back_populates="user")
     audit_events = relationship("AuditEvent", back_populates="actor_user")
-
