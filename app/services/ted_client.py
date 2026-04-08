@@ -6,12 +6,14 @@ import logging
 import threading
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 from typing import Any
 
 import httpx
 from cachetools import TTLCache
 from pydantic import BaseModel, Field
-from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import Retrying, RetryCallState, retry_if_exception_type, stop_after_attempt
 
 from app.config import Settings
 from app.services.query_builder import TED_CANONICAL_FIELDS
@@ -21,6 +23,14 @@ logger = logging.getLogger(__name__)
 
 class TedApiError(RuntimeError):
     """Raised when the TED Search API returns an unexpected result."""
+
+
+class TedRateLimitError(TedApiError):
+    """Raised when the TED Search API is throttling requests."""
+
+    def __init__(self, message: str, *, retry_after_seconds: float | None = None) -> None:
+        super().__init__(message)
+        self.retry_after_seconds = retry_after_seconds
 
 
 class TedSearchRequest(BaseModel):
@@ -122,7 +132,7 @@ class TedApiClient:
     def _retrying_post(self, payload: dict[str, Any]) -> TedSearchResponse:
         retryer = Retrying(
             stop=stop_after_attempt(self.settings.ted_retry_attempts),
-            wait=wait_exponential(multiplier=1, min=1, max=8),
+            wait=self._retry_wait_seconds,
             retry=retry_if_exception_type((httpx.HTTPError, TedApiError)),
             reraise=True,
         )
@@ -134,7 +144,25 @@ class TedApiClient:
     def _post_search(self, payload: dict[str, Any]) -> TedSearchResponse:
         self._metrics.request_count += 1
         response = self._client.post(self.settings.ted_search_path, json=payload)
-        if response.status_code >= 500 or response.status_code == 429:
+        if response.status_code == 429:
+            self._rate_limiter.rate_limit_events += 1
+            retry_after_seconds = self._extract_retry_after_seconds(response)
+            detail = response.text.strip()
+            if len(detail) > 300:
+                detail = detail[:300] + "..."
+            wait_note = (
+                f" Retry after about {retry_after_seconds:.0f} seconds."
+                if retry_after_seconds is not None
+                else ""
+            )
+            detail_note = f" Response: {detail}" if detail else ""
+            raise TedRateLimitError(
+                "TED Search API rate limit reached (429). Narrow the scan or retry shortly."
+                + wait_note
+                + detail_note,
+                retry_after_seconds=retry_after_seconds,
+            )
+        if response.status_code >= 500:
             raise TedApiError(f"TED Search API transient failure: {response.status_code}")
         if response.status_code >= 400:
             detail = response.text.strip()
@@ -169,6 +197,28 @@ class TedApiClient:
             next_token=next_token,
             raw_payload=payload,
         )
+
+    def _retry_wait_seconds(self, retry_state: RetryCallState) -> float:
+        exception = retry_state.outcome.exception() if retry_state.outcome else None
+        if isinstance(exception, TedRateLimitError) and exception.retry_after_seconds is not None:
+            return max(0.0, min(exception.retry_after_seconds, 60.0))
+        return min(float(2 ** (retry_state.attempt_number - 1)), 20.0)
+
+    def _extract_retry_after_seconds(self, response: httpx.Response) -> float | None:
+        raw = response.headers.get("Retry-After")
+        if not raw:
+            return None
+        try:
+            return max(float(raw), 0.0)
+        except ValueError:
+            pass
+        try:
+            retry_at = parsedate_to_datetime(raw)
+        except (TypeError, ValueError):
+            return None
+        if retry_at.tzinfo is None:
+            retry_at = retry_at.replace(tzinfo=UTC)
+        return max((retry_at - datetime.now(tz=UTC)).total_seconds(), 0.0)
 
     def _cache_key(self, request: TedSearchRequest) -> str:
         raw = json.dumps(request.api_payload(), sort_keys=True, separators=(",", ":"))

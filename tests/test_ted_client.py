@@ -30,3 +30,26 @@ def test_ted_client_maps_response_and_caches(ted_fixture_payload: dict) -> None:
     assert route.call_count == 1
     assert client.metrics().cache_hits == 1
 
+
+@respx.mock
+def test_ted_client_retries_on_rate_limit(ted_fixture_payload: dict) -> None:
+    route = respx.post("https://api.ted.europa.eu/v3/notices/search").mock(
+        side_effect=[
+            httpx.Response(429, headers={"Retry-After": "0"}, text="Too many requests"),
+            httpx.Response(200, json=ted_fixture_payload),
+        ]
+    )
+    settings = Settings(
+        database_url="sqlite+pysqlite:///ignored.db",
+        ted_api_base_url="https://api.ted.europa.eu",
+        ted_search_path="/v3/notices/search",
+        ted_retry_attempts=2,
+    )
+    client = TedApiClient(settings=settings)
+    request = TedSearchRequest(query="\"case management\"", limit=10)
+
+    response = client.search(request)
+
+    assert response.total_count == 2
+    assert route.call_count == 2
+    assert client.metrics().rate_limit_events == 1

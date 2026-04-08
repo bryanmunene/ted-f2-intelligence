@@ -8,6 +8,7 @@ from app.models.base import Base, IdMixin, TimestampMixin
 
 class AnalystNote(IdMixin, TimestampMixin, Base):
     __tablename__ = "analyst_notes"
+    __table_args__ = {"extend_existing": True}
 
     notice_id: Mapped[str] = mapped_column(
         String(36),
@@ -25,4 +26,3 @@ class AnalystNote(IdMixin, TimestampMixin, Base):
 
     notice = relationship("Notice", back_populates="notes")
     user = relationship("User", back_populates="analyst_notes")
-
