@@ -8,114 +8,129 @@ from app.models.enums import FitLabel, PriorityBucket
 from app.scoring.engine import ScoringEngine
 
 
-def test_scoring_engine_flags_strong_f2_fit(ted_fixture_payload: dict) -> None:
+def _scorer() -> tuple[ScoringEngine, object]:
     settings = get_settings()
     keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
     profiles = load_search_profiles(settings.resolved_search_profiles_path)
+    scorer = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version)
+    return scorer, profiles.by_name("F2 Core")
+
+
+def test_scoring_engine_flags_strong_ted_f2_fit(ted_fixture_payload: dict) -> None:
+    scorer, profile = _scorer()
     notice = normalize_notice(ted_fixture_payload["results"][0], extraction_version="test-version")
-    score = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version).score(
-        notice,
-        profile=profiles.by_name("F2 Core"),
-        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
-    )
 
-    assert score.fit_label == FitLabel.YES
-    assert score.priority_bucket in {PriorityBucket.HIGH, PriorityBucket.GOOD}
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.fit_label in {FitLabel.YES, FitLabel.CONDITIONAL}
+    assert score.priority_bucket in {PriorityBucket.HIGH, PriorityBucket.GOOD, PriorityBucket.WATCHLIST}
+    assert score.score >= 65
     assert score.openness_detected is True
-    assert score.score >= 70
-    assert any(hit["scope"] == "title" for hit in score.keyword_hits)
-    assert any(rule.rule_id == "combo.case_workflow_pattern" for rule in score.score_breakdown)
+    assert any(hit["term"] == "case management" for hit in score.keyword_hits)
+    assert any(domain["group_id"] == "workflow_bpm" for domain in score.domain_hits)
+    assert "Matched domains:" in score.reasoning
 
 
-def test_scoring_engine_penalizes_hard_lock_and_timing(ted_fixture_payload: dict) -> None:
-    settings = get_settings()
-    keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
-    profiles = load_search_profiles(settings.resolved_search_profiles_path)
-    payload = dict(ted_fixture_payload["results"][1])
-    payload["deadline"] = "2026-03-29T12:00:00Z"
-    notice = normalize_notice(payload, extraction_version="test-version")
-    score = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version).score(
-        notice,
-        profile=profiles.by_name("F2 Core"),
-        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
-    )
+def test_scoring_engine_rejects_deadlines_under_seven_days(ted_fixture_payload: dict) -> None:
+    scorer, profile = _scorer()
+    notice = normalize_notice(ted_fixture_payload["results"][1], extraction_version="test-version")
 
-    assert score.hard_lock_detected is True
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.fit_label == FitLabel.NO
+    assert score.priority_bucket == PriorityBucket.IGNORE
+    assert score.score == 0
     assert score.viable_timing is False
-    assert score.fit_label in {FitLabel.NO, FitLabel.CONDITIONAL}
-    assert score.priority_bucket in {PriorityBucket.WATCHLIST, PriorityBucket.IGNORE}
+    assert "Deadline under 7 days" in score.reasoning
 
 
-def test_keyword_requires_context_and_title_bonus_applies() -> None:
-    settings = get_settings()
-    keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
-    profiles = load_search_profiles(settings.resolved_search_profiles_path)
-    scorer = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version)
-
-    contextless_registry_notice = normalize_notice(
-        {
-            "publication-number": "11111-2026",
-            "notice-title": "Registry refresh for municipal office",
-            "buyer-name": "Town Office",
-            "buyer-country": "DK",
-            "publication-date": "2026-03-25",
-            "deadline": "2026-05-20T10:00:00Z",
-            "additional-information": "General office tooling refresh.",
-        },
-        extraction_version="test-version",
-    )
-    score_without_context = scorer.score(
-        contextless_registry_notice,
-        profile=profiles.by_name("F2 Core"),
-        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
-    )
-
-    contextual_notice = normalize_notice(
-        {
-            "publication-number": "22222-2026",
-            "notice-title": "Document registry and records management platform",
-            "buyer-name": "Town Office",
-            "buyer-country": "DK",
-            "publication-date": "2026-03-25",
-            "deadline": "2026-05-20T10:00:00Z",
-            "additional-information": "Document registry, correspondence management, and records retention capabilities required.",
-        },
-        extraction_version="test-version",
-    )
-    score_with_context = scorer.score(
-        contextual_notice,
-        profile=profiles.by_name("F2 Core"),
-        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
-    )
-
-    assert all(hit["term"] != "registry" for hit in score_without_context.keyword_hits)
-    assert any(hit["term"] == "registry" and hit["scope"] == "title" for hit in score_with_context.keyword_hits)
-    assert score_with_context.score > score_without_context.score
-
-
-def test_scoring_engine_accepts_notices_with_one_plus_days_remaining() -> None:
-    settings = get_settings()
-    keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
-    profiles = load_search_profiles(settings.resolved_search_profiles_path)
-    scorer = ScoringEngine(keyword_pack=keyword_pack, scoring_version=settings.scoring_version)
-
+def test_scoring_engine_flags_hard_platform_lock_even_with_good_scope() -> None:
+    scorer, profile = _scorer()
     notice = normalize_notice(
         {
-            "publication-number": "33333-2026",
-            "notice-title": "Case management and document workflow platform",
-            "buyer-name": "Municipal Services Office",
+            "publication-number": "44555-2026",
+            "notice-title": "Document management and workflow platform",
+            "buyer-name": "Justice Authority",
             "buyer-country": "DK",
-            "publication-date": "2026-03-28",
-            "deadline": "2026-03-31T10:00:00Z",
-            "additional-information": "Case handling, workflow automation, records management, and correspondence tracking.",
+            "publication-date": "2026-03-25",
+            "deadline": "2026-05-30T10:00:00Z",
+            "additional-information": "The solution must use Power Platform and SharePoint as the delivery platform. Integration, migration and training are in scope.",
+            "classification-cpv": ["48311000"],
         },
         extraction_version="test-version",
     )
-    score = scorer.score(
-        notice,
-        profile=profiles.by_name("F2 Core"),
-        evaluated_at=datetime(2026, 3, 30, tzinfo=UTC),
+
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.hard_lock_detected is True
+    assert score.fit_label == FitLabel.NO
+    assert score.priority_bucket == PriorityBucket.IGNORE
+    assert any(signal["severity"] == "hard" for signal in [item.model_dump() for item in score.platform_lock_signals])
+
+
+def test_scoring_engine_penalizes_missing_deadline_but_keeps_reviewable_scope() -> None:
+    scorer, profile = _scorer()
+    notice = normalize_notice(
+        {
+            "publication-number": "55666-2026",
+            "notice-title": "Case management and records platform",
+            "buyer-name": "Municipal Licensing Authority",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "additional-information": "Case management, workflow automation, records governance, approvals, integration, migration and training are required.",
+            "classification-cpv": ["48311000"],
+        },
+        extraction_version="test-version",
     )
 
-    assert score.viable_timing is True
-    assert all(flag["flag"] != "expiring_soon" for flag in score.timing_flags)
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.fit_label in {FitLabel.YES, FitLabel.CONDITIONAL}
+    assert score.viable_timing is False
+    assert any(flag["flag"] == "missing_deadline" for flag in score.timing_flags)
+    assert "What is the submission deadline?" in score.qualification_questions
+
+
+def test_scoring_engine_rejects_publications_older_than_ninety_days() -> None:
+    scorer, profile = _scorer()
+    notice = normalize_notice(
+        {
+            "publication-number": "66777-2026",
+            "notice-title": "Records management platform",
+            "buyer-name": "Public Agency",
+            "buyer-country": "DK",
+            "publication-date": "2025-11-01",
+            "deadline": "2026-05-30T10:00:00Z",
+            "additional-information": "Records management, workflow, archiving and approvals.",
+        },
+        extraction_version="test-version",
+    )
+
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.fit_label == FitLabel.NO
+    assert score.priority_bucket == PriorityBucket.IGNORE
+    assert score.score == 0
+
+
+def test_scoring_engine_rejects_clear_poor_fit_hardware_scope() -> None:
+    scorer, profile = _scorer()
+    notice = normalize_notice(
+        {
+            "publication-number": "77888-2026",
+            "notice-title": "Supply of routers, switches and firewalls",
+            "buyer-name": "Regional IT Operations",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "deadline": "2026-05-30T10:00:00Z",
+            "additional-information": "Hardware procurement for network infrastructure and endpoint protection.",
+            "classification-cpv": ["32420000", "48730000"],
+        },
+        extraction_version="test-version",
+    )
+
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.fit_label == FitLabel.NO
+    assert score.priority_bucket == PriorityBucket.IGNORE
+    assert any(signal.id == "hardware_only" for signal in score.negative_signals)

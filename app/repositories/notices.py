@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, case, func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models import AnalystNote, Notice, NoticeAnalysis, ScanRun
@@ -72,11 +72,30 @@ class NoticeRepository:
         return notice
 
     def list(self, filters: NoticeListFilters, *, page: int = 1, page_size: int = 25) -> tuple[list[Notice], int]:
+        priority_rank = case(
+            (NoticeAnalysis.priority_bucket == PriorityBucket.HIGH, 0),
+            (NoticeAnalysis.priority_bucket == PriorityBucket.GOOD, 1),
+            (NoticeAnalysis.priority_bucket == PriorityBucket.WATCHLIST, 2),
+            (NoticeAnalysis.priority_bucket == PriorityBucket.IGNORE, 3),
+            else_=4,
+        )
+        fit_rank = case(
+            (NoticeAnalysis.fit_label == FitLabel.YES, 0),
+            (NoticeAnalysis.fit_label == FitLabel.CONDITIONAL, 1),
+            (NoticeAnalysis.fit_label == FitLabel.NO, 2),
+            else_=3,
+        )
         stmt = (
             select(Notice)
             .join(Notice.analysis)
             .options(joinedload(Notice.analysis), joinedload(Notice.notes))
-            .order_by(NoticeAnalysis.score.desc(), Notice.deadline.asc().nullslast(), Notice.updated_at.desc())
+            .order_by(
+                priority_rank,
+                fit_rank,
+                NoticeAnalysis.score.desc(),
+                Notice.deadline.asc().nullslast(),
+                Notice.updated_at.desc(),
+            )
         )
         stmt = self._apply_filters(stmt, filters)
 

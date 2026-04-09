@@ -150,3 +150,49 @@ def test_notice_repository_supports_score_confidence_and_date_filters(db_session
     )
     assert deadline_miss_total == 0
     assert deadline_miss_notices == []
+
+
+def test_notice_repository_orders_by_priority_fit_score_then_deadline(db_session) -> None:
+    high_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "90101-2026",
+            "notice-title": "Case management workflow and document management platform",
+            "buyer-name": "Justice Authority",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "deadline": "2026-06-20T10:00:00Z",
+            "additional-information": "Document management, workflow automation, approvals, records governance, migration, integration, training, citizen services and audit trail.",
+            "classification-cpv": ["48311000"],
+        },
+    )
+    conditional_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "90102-2026",
+            "notice-title": "Document management platform for permits",
+            "buyer-name": "Licensing Authority",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "deadline": "2026-06-18T10:00:00Z",
+            "additional-information": "Document management and permits workflow. Existing Microsoft licenses already available.",
+            "classification-cpv": ["48311000"],
+        },
+    )
+    ignore_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "90103-2026",
+            "notice-title": "Supply of vehicles",
+            "buyer-name": "Municipal Fleet Unit",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "deadline": "2026-06-10T10:00:00Z",
+            "additional-information": "Vehicle procurement only.",
+        },
+    )
+
+    notices, total = NoticeRepository(db_session).list(NoticeListFilters(), page=1, page_size=10)
+
+    assert total == 3
+    assert [notice.id for notice in notices] == [high_id, conditional_id, ignore_id]
