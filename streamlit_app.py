@@ -57,7 +57,7 @@ def _apply_theme() -> None:
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
         :root {
             --cb-bg: #f4f7fb;
             --cb-bg-soft: #edf3f9;
@@ -94,6 +94,8 @@ def _apply_theme() -> None:
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #0f1b2d 0%, #14233a 100%);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
+            min-width: 250px !important;
+            max-width: 250px !important;
         }
         [data-testid="stSidebar"] * {
             color: #edf4ff;
@@ -119,14 +121,14 @@ def _apply_theme() -> None:
             display: none;
         }
         .main .block-container {
-            max-width: 1280px;
+            max-width: 1120px;
             padding-top: 1rem;
             padding-bottom: 2.2rem;
         }
         h1, h2, h3, h4, h5, h6 {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            letter-spacing: -0.03em;
+            font-family: "IBM Plex Sans", sans-serif;
+            letter-spacing: -0.02em;
         }
         p, li, label, span, div {
             color: inherit;
@@ -266,12 +268,12 @@ def _apply_theme() -> None:
             margin-bottom: 0;
         }
         .cb-panel-head {
-            margin-bottom: 0.55rem;
+            margin-bottom: 0.45rem;
         }
         .cb-panel-title {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 1.1rem;
+            font-family: "IBM Plex Sans", sans-serif;
+            font-size: 1.02rem;
             line-height: 1.14;
             margin: 0;
         }
@@ -327,15 +329,15 @@ def _apply_theme() -> None:
         }
         .cb-sidebar-title {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 1rem;
+            font-family: "IBM Plex Sans", sans-serif;
+            font-size: 0.95rem;
             line-height: 1.08;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0;
         }
         .cb-sidebar-subtitle {
             color: var(--cb-text-soft);
-            font-size: 0.8rem;
-            line-height: 1.45;
+            font-size: 0.78rem;
+            line-height: 1.35;
         }
         .cb-badge {
             display: inline-flex;
@@ -410,7 +412,7 @@ def _apply_theme() -> None:
         }
         .cb-dossier-score {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-family: "IBM Plex Sans", sans-serif;
             font-size: 2.2rem;
             line-height: 0.95;
             font-weight: 700;
@@ -591,7 +593,7 @@ def _apply_theme() -> None:
         }
         .cb-result-score {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-family: "IBM Plex Sans", sans-serif;
             font-size: 1.8rem;
             font-weight: 700;
             line-height: 1;
@@ -608,8 +610,8 @@ def _apply_theme() -> None:
         }
         .cb-result-title {
             color: var(--cb-text);
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 1.22rem;
+            font-family: "IBM Plex Sans", sans-serif;
+            font-size: 1.08rem;
             line-height: 1.28;
             margin: 0.35rem 0 0.35rem 0;
         }
@@ -827,11 +829,12 @@ def _card_tone_class(notice: dict[str, Any]) -> str:
 
 
 def _render_section_header(kicker: str, title: str, copy: str | None = None) -> None:
+    kicker_html = f"<div class='cb-panel-kicker'>{html.escape(kicker)}</div>" if kicker else ""
     body = f"<p class='cb-panel-copy'>{html.escape(copy)}</p>" if copy else ""
     st.markdown(
         f"""
         <div class="cb-panel-head">
-          <div class="cb-panel-kicker">{html.escape(kicker)}</div>
+          {kicker_html}
           <h2 class="cb-panel-title">{html.escape(title)}</h2>
           {body}
         </div>
@@ -1093,7 +1096,6 @@ def _render_sidebar_brand() -> None:
           <div class="cb-sidebar-line">cBrain</div>
           <div class="cb-sidebar-mark">F2</div>
           <div class="cb-sidebar-title">TED F2 Intelligence</div>
-          <div class="cb-sidebar-subtitle">Official TED review workspace.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1373,40 +1375,47 @@ def _render_live_scan() -> None:
     profiles = get_search_profiles_registry()
 
     _render_section_header(
+        "",
         "Live TED Scan",
-        "Acquisition workspace",
-    )
-    st.caption(
-        f"{len(profiles.names)} profiles configured. TED budget {settings.ted_requests_per_minute} req/min. "
-        f"Maximum {settings.ted_max_pages_per_scan} pages per run."
+        "Run an official TED search to refresh the review queue.",
     )
 
     with st.form("live_ted_scan_form"):
-        left, right = st.columns(2, gap="large")
-        with left:
-            profile_name = st.selectbox("Search Profile", options=profiles.names, index=0)
+        profile_name = st.selectbox("Search Profile", options=profiles.names, index=0)
+        selected_profile = next((profile for profile in profiles.profiles if profile.name == profile_name), None)
+        if selected_profile:
+            st.caption(selected_profile.description)
+
+        primary_left, primary_right = st.columns(2, gap="medium")
+        with primary_left:
             country = st.text_input("Buyer Country", value="", placeholder="DK or DNK")
-            st.caption("The app accepts common 2-letter country codes like DK and converts them to TED's 3-letter format.")
             cpv = st.text_input("CPV Code", value="", placeholder="72260000")
+        with primary_right:
             keyword_override = st.text_input(
                 "Keyword Override",
                 value="",
                 placeholder="case management, workflow automation",
             )
-            date_from = st.date_input("Publication Date From", value=None)
-            date_to = st.date_input("Publication Date To", value=None)
-        with right:
-            page_size = st.slider("Page Size", min_value=10, max_value=100, value=25, step=5)
-            max_pages = st.slider("Max Pages", min_value=1, max_value=settings.ted_max_pages_per_scan, value=1)
-            include_conditional = st.checkbox("Include Conditional", value=True)
-            exclude_old = st.checkbox("Exclude Older Notices", value=True)
-            include_soft_locks = st.checkbox("Include Soft Locks", value=True)
+
+        with st.expander("Advanced options", expanded=False):
+            dates_left, dates_right = st.columns(2, gap="medium")
+            with dates_left:
+                date_from = st.date_input("Publication Date From", value=None)
+                page_size = st.select_slider("Page Size", options=[10, 25, 50, 100], value=25)
+                include_conditional = st.checkbox("Include conditional", value=True)
+            with dates_right:
+                date_to = st.date_input("Publication Date To", value=None)
+                max_pages = st.select_slider(
+                    "Max Pages",
+                    options=list(range(1, settings.ted_max_pages_per_scan + 1)),
+                    value=1,
+                )
+                exclude_old = st.checkbox("Exclude older notices", value=True)
+                include_soft_locks = st.checkbox("Include soft locks", value=True)
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
     if not submitted:
-        with st.expander("Search profiles", expanded=False):
-            _render_profile_cards()
         return
 
     with st.spinner("Querying TED public API and scoring notices..."):
@@ -1450,7 +1459,7 @@ def _render_dashboard() -> None:
     top_notices = payload["top_notices"]
 
     _render_section_header(
-        "Command Overview",
+        "",
         "Dashboard",
     )
     _render_stat_cards(
@@ -1621,9 +1630,8 @@ def _render_results() -> list[dict[str, Any]]:
     _seed_selected_notice(notices)
 
     _render_section_header(
-        "Signal Board",
+        "",
         "Results",
-        "Review the current shortlist with a lighter card surface and an on-demand filter rail.",
     )
     total_matches = filter_state["total_matches"]
 
@@ -1841,9 +1849,8 @@ def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
 
 def _render_notice_detail(notice_id: str | None) -> None:
     _render_section_header(
-        "Opportunity Dossier",
+        "",
         "Notice detail",
-        "Inspect one opportunity in depth, including fit logic, qualification questions, evidence, checklist coverage, and official TED source access.",
     )
     if not notice_id:
         st.info("Choose a tender from the Results view first.")
@@ -2018,10 +2025,10 @@ def main() -> None:
 
     views = ["Dashboard", "Live Scan", "Results", "Notice Detail"]
     view_labels = {
-        "Dashboard": "Briefing",
-        "Live Scan": "Acquisition",
-        "Results": "Signal Board",
-        "Notice Detail": "Dossier",
+        "Dashboard": "Dashboard",
+        "Live Scan": "Scan",
+        "Results": "Results",
+        "Notice Detail": "Detail",
     }
     inverse_view_labels = {label: key for key, label in view_labels.items()}
     active_view = st.session_state.get("active_view", "Dashboard")
@@ -2038,9 +2045,6 @@ def main() -> None:
     )
     current_view = inverse_view_labels[selected_label]
     st.session_state["active_view"] = current_view
-    if current_view in {"Dashboard", "Live Scan"}:
-        _render_banner(current_view)
-
     if current_view == "Dashboard":
         _render_dashboard()
     elif current_view == "Live Scan":
