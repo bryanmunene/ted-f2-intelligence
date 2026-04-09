@@ -7,7 +7,7 @@ from app.services.keyword_evidence import build_keyword_evidence_module
 
 
 def _analysis_or_default(notice: Notice) -> NoticeAnalysis | None:
-    return notice.analysis
+    return notice.__dict__.get("analysis")
 
 
 def notice_to_summary_dict(notice: Notice) -> dict[str, Any]:
@@ -41,7 +41,7 @@ def notice_to_summary_dict(notice: Notice) -> dict[str, Any]:
 def notice_to_detail_dict(notice: Notice) -> dict[str, Any]:
     analysis = _analysis_or_default(notice)
     payload = notice_to_summary_dict(notice)
-    ordered_notes = sorted(notice.notes, key=lambda note: note.created_at, reverse=True)
+    ordered_notes = sorted(notice.__dict__.get("notes", []), key=lambda note: note.created_at, reverse=True)
     payload.update(
         {
             "ted_notice_id": notice.ted_notice_id,

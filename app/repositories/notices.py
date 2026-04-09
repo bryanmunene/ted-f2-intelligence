@@ -5,7 +5,7 @@ from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
 from sqlalchemy import Select, case, func, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, contains_eager, selectinload
 
 from app.models import AnalystNote, Notice, NoticeAnalysis, ScanRun
 from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
@@ -47,7 +47,7 @@ class NoticeRepository:
         publication_number = normalized_notice["publication_number"]
         notice = self.session.scalar(
             select(Notice)
-            .options(joinedload(Notice.analysis))
+            .options(selectinload(Notice.analysis))
             .where(Notice.publication_number == publication_number)
         )
         if notice is None:
@@ -88,7 +88,7 @@ class NoticeRepository:
         stmt = (
             select(Notice)
             .join(Notice.analysis)
-            .options(joinedload(Notice.analysis), joinedload(Notice.notes))
+            .options(contains_eager(Notice.analysis), selectinload(Notice.notes))
             .order_by(
                 priority_rank,
                 fit_rank,
@@ -106,7 +106,11 @@ class NoticeRepository:
     def get_by_id(self, notice_id: str) -> Notice | None:
         stmt = (
             select(Notice)
-            .options(joinedload(Notice.analysis), joinedload(Notice.notes).joinedload(AnalystNote.user))
+            .outerjoin(Notice.analysis)
+            .options(
+                contains_eager(Notice.analysis),
+                selectinload(Notice.notes).selectinload(AnalystNote.user),
+            )
             .where(Notice.id == notice_id)
         )
         return self.session.scalar(stmt)
