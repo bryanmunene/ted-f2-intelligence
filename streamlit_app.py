@@ -106,8 +106,8 @@ def _apply_theme() -> None:
         }
         .main .block-container {
             max-width: 1410px;
-            padding-top: 1.05rem;
-            padding-bottom: 3rem;
+            padding-top: 0.8rem;
+            padding-bottom: 2rem;
         }
         h1, h2, h3, h4, h5, h6 {
             color: var(--cb-text);
@@ -124,9 +124,9 @@ def _apply_theme() -> None:
         div[data-testid="stMetric"] {
             background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
             border: 1px solid var(--cb-line);
-            border-radius: 22px;
-            padding: 1rem 1.05rem;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
+            border-radius: 18px;
+            padding: 0.85rem 0.95rem;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
         div[data-testid="stMetricLabel"] p {
             color: var(--cb-text-dim);
@@ -141,11 +141,11 @@ def _apply_theme() -> None:
         div[data-testid="stVerticalBlockBorderWrapper"] {
             background: linear-gradient(180deg, rgba(16, 30, 48, 0.94) 0%, rgba(11, 22, 37, 0.98) 100%);
             border: 1px solid var(--cb-line);
-            border-radius: 24px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
+            border-radius: 18px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
         div[data-testid="stForm"] {
-            padding: 1.1rem 1.15rem 1.15rem;
+            padding: 0.95rem 1rem 1rem;
         }
         div[data-baseweb="input"] > div,
         div[data-baseweb="select"] > div,
@@ -217,30 +217,14 @@ def _apply_theme() -> None:
             border-radius: 20px;
         }
         .cb-shell-hero {
-            position: relative;
-            overflow: hidden;
             border: 1px solid rgba(132, 166, 214, 0.18);
-            border-radius: 30px;
-            padding: 1.5rem 1.55rem;
-            margin-bottom: 1.2rem;
-            background: linear-gradient(135deg, rgba(16, 29, 47, 0.98) 0%, rgba(9, 18, 31, 0.94) 44%, rgba(11, 26, 43, 0.98) 100%);
-            box-shadow: var(--cb-glow);
-        }
-        .cb-shell-hero::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(110deg, rgba(75, 142, 244, 0.12) 0%, transparent 34%),
-                repeating-linear-gradient(90deg, rgba(132, 166, 214, 0.05) 0 1px, transparent 1px 76px);
-            pointer-events: none;
+            border-radius: 18px;
+            padding: 0.95rem 1.05rem;
+            margin-bottom: 0.9rem;
+            background: rgba(12, 22, 37, 0.84);
         }
         .cb-shell-grid {
-            position: relative;
-            display: grid;
-            grid-template-columns: minmax(0, 1.8fr) minmax(280px, 0.95fr);
-            gap: 1.2rem;
-            align-items: end;
+            display: block;
         }
         .cb-shell-kicker,
         .cb-panel-kicker,
@@ -254,63 +238,36 @@ def _apply_theme() -> None:
         }
         .cb-shell-title {
             margin: 0;
-            font-size: clamp(2rem, 2.5vw, 3rem);
-            line-height: 1.04;
-            max-width: 9.5em;
+            font-size: clamp(1.45rem, 2vw, 2.05rem);
+            line-height: 1.12;
+            max-width: none;
         }
         .cb-shell-copy,
         .cb-panel-copy {
             color: var(--cb-text-soft);
-            line-height: 1.6;
-            font-size: 0.98rem;
+            line-height: 1.5;
+            font-size: 0.92rem;
             max-width: 60rem;
-            margin-top: 0.75rem;
+            margin-top: 0.35rem;
             margin-bottom: 0;
         }
-        .cb-shell-aside {
-            position: relative;
-            border: 1px solid rgba(132, 166, 214, 0.14);
-            border-radius: 24px;
-            padding: 1rem 1.05rem;
-            background: rgba(8, 17, 29, 0.68);
-            backdrop-filter: blur(10px);
-        }
-        .cb-shell-aside-item {
-            padding: 0.48rem 0;
-            border-bottom: 1px solid rgba(132, 166, 214, 0.08);
-        }
-        .cb-shell-aside-item:last-child {
-            border-bottom: none;
-        }
-        .cb-shell-aside-label {
-            color: var(--cb-text-dim);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 0.12rem;
-        }
-        .cb-shell-aside-value {
-            color: var(--cb-text);
-            font-size: 0.95rem;
-            font-weight: 600;
-        }
         .cb-panel-head {
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.55rem;
         }
         .cb-panel-title {
             color: var(--cb-text);
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 1.35rem;
-            line-height: 1.08;
+            font-size: 1.1rem;
+            line-height: 1.14;
             margin: 0;
         }
         .cb-signal-card {
-            min-height: 11.2rem;
-            padding: 1rem 1.05rem;
-            border-radius: 24px;
+            min-height: 7rem;
+            padding: 0.85rem 0.95rem;
+            border-radius: 18px;
             border: 1px solid rgba(132, 166, 214, 0.18);
             background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
         .cb-signal-label {
             color: var(--cb-text-dim);
@@ -320,51 +277,51 @@ def _apply_theme() -> None:
             font-weight: 700;
         }
         .cb-signal-value {
-            margin-top: 0.9rem;
+            margin-top: 0.55rem;
             color: var(--cb-text);
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: clamp(1.8rem, 2vw, 2.45rem);
+            font-size: clamp(1.4rem, 1.7vw, 1.95rem);
             font-weight: 700;
             line-height: 1;
         }
         .cb-signal-note {
-            margin-top: 1rem;
+            margin-top: 0.55rem;
             color: var(--cb-text-soft);
-            line-height: 1.5;
-            font-size: 0.92rem;
+            line-height: 1.45;
+            font-size: 0.84rem;
         }
         .cb-sidebar-brand {
             position: relative;
-            padding: 0.45rem 0 1.1rem 0;
-            margin-bottom: 1rem;
+            padding: 0.3rem 0 0.8rem 0;
+            margin-bottom: 0.75rem;
             border-bottom: 1px solid rgba(132, 166, 214, 0.12);
         }
         .cb-sidebar-mark {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 3rem;
-            height: 3rem;
+            width: 2.5rem;
+            height: 2.5rem;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #8fd0ff 0%, #4b8ef4 46%, #244c82 100%);
             color: #08111d;
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 0.88rem;
+            font-size: 0.8rem;
             font-weight: 700;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 0 0 8px rgba(75, 142, 244, 0.08);
+            margin-bottom: 0.55rem;
+            box-shadow: 0 0 0 6px rgba(75, 142, 244, 0.08);
         }
         .cb-sidebar-title {
             color: var(--cb-text);
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 1.18rem;
+            font-size: 1rem;
             line-height: 1.08;
-            margin-bottom: 0.35rem;
+            margin-bottom: 0.2rem;
         }
         .cb-sidebar-subtitle {
             color: var(--cb-text-soft);
-            font-size: 0.87rem;
-            line-height: 1.6;
+            font-size: 0.8rem;
+            line-height: 1.45;
         }
         .cb-badge {
             display: inline-flex;
@@ -1295,30 +1252,30 @@ def _render_banner(current_view: str) -> None:
     view_copy = {
         "Dashboard": {
             "kicker": "Opportunity Briefing",
-            "title": "F2 signal desk for official TED market intelligence.",
-            "copy": "Track live procurement momentum, review scan freshness, and steer analysts toward the strongest public-sector process digitisation opportunities.",
+            "title": "Dashboard",
+            "copy": "Live TED opportunity picture for F2 review.",
         },
         "Live Scan": {
             "kicker": "Acquisition Workspace",
-            "title": "Interrogate TED's public API with an F2-first lens.",
-            "copy": "Configure a precise search posture, respect TED request budgets, and feed scored notices into the review queue without touching unsupported scraping routes.",
+            "title": "Live TED Scan",
+            "copy": "Run an official TED search and refresh the review queue.",
         },
         "Results": {
             "kicker": "Signal Board",
-            "title": "Read each notice as a dossier, not a spreadsheet row.",
-            "copy": "Surface timing, fit, platform risk, and keyword evidence together so cBrain teams can decide quickly where F2 deserves attention.",
+            "title": "Results",
+            "copy": "Review scored notices.",
         },
         "Notice Detail": {
             "kicker": "Opportunity Dossier",
-            "title": "Open one tender and inspect the reasoning in depth.",
-            "copy": "Review fit logic, supporting evidence, qualification questions, checklist coverage, and official TED documents from one audit-ready workspace.",
+            "title": "Notice Detail",
+            "copy": "Inspect one tender in depth.",
         },
     }.get(
         current_view,
         {
             "kicker": "cBrain Signal Studio",
-            "title": "Official TED-only tender intelligence for F2 teams.",
-            "copy": "Review live notices, fit signals, and qualification context inside a single internal workspace.",
+            "title": "TED Opportunity Intelligence",
+            "copy": "Official TED-only tender intelligence for F2 teams.",
         },
     )
     st.markdown(
@@ -1329,20 +1286,6 @@ def _render_banner(current_view: str) -> None:
               <div class="cb-shell-kicker">{html.escape(view_copy["kicker"])}</div>
               <h1 class="cb-shell-title">{html.escape(view_copy["title"])}</h1>
               <p class="cb-shell-copy">{html.escape(view_copy["copy"])}</p>
-            </div>
-            <div class="cb-shell-aside">
-              <div class="cb-shell-aside-item">
-                <div class="cb-shell-aside-label">Source posture</div>
-                <div class="cb-shell-aside-value">Official TED public API and official notice routes only</div>
-              </div>
-              <div class="cb-shell-aside-item">
-                <div class="cb-shell-aside-label">Scoring model</div>
-                <div class="cb-shell-aside-value">Deterministic F2-fit rules with audit trail support</div>
-              </div>
-              <div class="cb-shell-aside-item">
-                <div class="cb-shell-aside-label">Business timezone</div>
-                <div class="cb-shell-aside-value">{html.escape(settings.ui_timezone)}</div>
-              </div>
             </div>
           </div>
         </section>
@@ -1359,42 +1302,10 @@ def _render_live_scan() -> None:
     _render_section_header(
         "Live TED Scan",
         "Acquisition workspace",
-        "Configure a live TED search run, keep request usage controlled, and load fresh notices into the shared review datastore.",
     )
-
-    _render_stat_cards(
-        [
-            {
-                "label": "Search Profiles",
-                "value": str(len(profiles.names)),
-                "note": "Configured TED scan strategies",
-            },
-            {
-                "label": "TED RPM",
-                "value": str(settings.ted_requests_per_minute),
-                "note": "Polite request budget per minute",
-            },
-            {
-                "label": "Max Pages",
-                "value": str(settings.ted_max_pages_per_scan),
-                "note": "Live scan page cap per run",
-            },
-            {
-                "label": "UI Timezone",
-                "value": settings.ui_timezone,
-                "note": "Business-facing date display",
-            },
-        ]
-    )
-
-    st.markdown(
-        """
-        <div class="cb-note-card" style="margin: 1rem 0 1.1rem 0;">
-          <div class="cb-note-title">Scan posture</div>
-          <div class="cb-note-copy">Profiles adjust acquisition breadth while keeping TED's official public interfaces as the source of truth. Use the parameters below to steer the run.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.caption(
+        f"{len(profiles.names)} profiles configured. TED budget {settings.ted_requests_per_minute} req/min. "
+        f"Maximum {settings.ted_max_pages_per_scan} pages per run."
     )
 
     with st.form("live_ted_scan_form"):
@@ -1421,13 +1332,8 @@ def _render_live_scan() -> None:
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
     if not submitted:
-        st.info("Run a scan to load live TED notices into the review queue.")
-        _render_section_header(
-            "Configured Strategies",
-            "Search profiles",
-            "Each profile changes keyword groups, exclusions, and sensitivity so you can explore the market with different F2 hypotheses.",
-        )
-        _render_profile_cards()
+        with st.expander("Search profiles", expanded=False):
+            _render_profile_cards()
         return
 
     with st.spinner("Querying TED public API and scoring notices..."):
@@ -1460,13 +1366,6 @@ def _render_live_scan() -> None:
     outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
     outcome_cols[3].metric("Conditional", outcome["total_conditional"])
 
-    _render_section_header(
-        "Configured Strategies",
-        "Search profiles",
-        "The live run has completed. You can immediately run another acquisition pass with a different profile or move to the signal board.",
-    )
-    _render_profile_cards()
-
     st.session_state["active_view"] = "Results"
     st.rerun()
 
@@ -1480,7 +1379,6 @@ def _render_dashboard() -> None:
     _render_section_header(
         "Command Overview",
         "Dashboard",
-        "Read the current opportunity temperature, see whether acquisition is fresh enough, and jump straight into the queue that most deserves analyst time.",
     )
     _render_stat_cards(
         [
@@ -1500,66 +1398,43 @@ def _render_dashboard() -> None:
                 "note": "Relevant with qualification risk",
             },
             {
-                "label": "Expiring Soon",
-                "value": str(metrics["expiring_soon"]),
-                "note": "Deadlines within seven days",
-            },
-            {
-                "label": "Hard Locks",
-                "value": str(metrics["hard_lock"]),
-                "note": "Named platform delivery constraints",
-            },
-            {
                 "label": "Scan Freshness",
                 "value": format_datetime(metrics["scan_freshness"], settings.ui_timezone),
                 "note": "Latest completed scan",
             },
         ]
     )
+    st.caption(
+        f"Expiring soon: {metrics['expiring_soon']} | Hard locks: {metrics['hard_lock']}"
+    )
 
-    left, right = st.columns([1.05, 0.95], gap="large")
-    with left:
-        _render_section_header(
-            "Acquisition Feed",
-            "Recent scan runs",
-            "These are the latest TED ingestion runs and their operational yield.",
-        )
+    scans_tab, queue_tab = st.tabs(["Recent scan runs", "Immediate attention"])
+    with scans_tab:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
         else:
             st.info("No scan history found.")
 
-    with right:
-        _render_section_header(
-            "Review Queue",
-            "Immediate attention set",
-            "The shortlist below is tuned to put the most actionable F2 signals in front of analysts first.",
-        )
+    with queue_tab:
         if top_notices:
-            for notice in top_notices:
+            for notice in top_notices[:4]:
                 with st.container(border=True):
                     st.markdown(
                         f"""
                         <div class="cb-note-title">{html.escape(notice['title'])}</div>
-                        <div class="cb-note-copy">{html.escape(notice['publication_number'])} | {html.escape(notice['buyer'] or 'Unknown buyer')} | {html.escape(notice['buyer_country'] or 'N/A')} | Source: {html.escape(_notice_source_label(notice))}</div>
+                        <div class="cb-note-copy">{html.escape(notice['publication_number'])} | {html.escape(notice['buyer'] or 'Unknown buyer')} | {html.escape(notice['buyer_country'] or 'N/A')}</div>
                         """,
                         unsafe_allow_html=True,
                     )
-                    action_cols = st.columns([1, 1, 1, 1])
+                    action_cols = st.columns([0.8, 1.2, 1.2], gap="small")
                     action_cols[0].metric("Score", notice["score"])
-                    action_cols[1].metric("Fit", _display_value(notice["fit_label"]))
-                    action_cols[2].metric("Priority", _display_value(notice["priority_bucket"]))
-                    if action_cols[3].button("Inspect", key=f"inspect_top_{notice['id']}"):
+                    if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", width="stretch"):
                         st.session_state["selected_notice_id"] = notice["id"]
                         _go_to_view("Notice Detail")
                         st.rerun()
                     official_url = _resolve_official_notice_url(notice)
                     if official_url:
-                        st.link_button(
-                            "Open live TED notice",
-                            official_url,
-                            width="stretch",
-                        )
+                        action_cols[2].link_button("TED notice", official_url, width="stretch")
         else:
             st.info("No stored notices available yet.")
 
