@@ -59,21 +59,21 @@ def _apply_theme() -> None:
         <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap');
         :root {
-            --cb-bg: #06101b;
-            --cb-bg-soft: #0a1625;
-            --cb-surface: #0d192b;
-            --cb-surface-2: #112239;
-            --cb-surface-3: #152844;
-            --cb-line: rgba(132, 166, 214, 0.22);
-            --cb-text: #edf4ff;
-            --cb-text-soft: #a9bdd9;
-            --cb-text-dim: #7d93b1;
-            --cb-accent: #4b8ef4;
-            --cb-accent-2: #8fd0ff;
-            --cb-good: #3da786;
-            --cb-watch: #d6a457;
-            --cb-risk: #e07b69;
-            --cb-glow: 0 24px 54px rgba(0, 0, 0, 0.28);
+            --cb-bg: #f4f7fb;
+            --cb-bg-soft: #edf3f9;
+            --cb-surface: #ffffff;
+            --cb-surface-2: #f8fbff;
+            --cb-surface-3: #eef4fb;
+            --cb-line: #dbe4f0;
+            --cb-text: #142033;
+            --cb-text-soft: #4d627c;
+            --cb-text-dim: #73849c;
+            --cb-accent: #2f67d8;
+            --cb-accent-2: #5b8def;
+            --cb-good: #1f8a63;
+            --cb-watch: #a87006;
+            --cb-risk: #c75454;
+            --cb-sidebar: #0f1b2d;
         }
         html, body, [class*="css"] {
             font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
@@ -83,31 +83,45 @@ def _apply_theme() -> None:
         [data-testid="stAppViewContainer"] > .main,
         [data-testid="stMain"] {
             background:
-                radial-gradient(circle at 8% 0%, rgba(75, 142, 244, 0.17), transparent 24%),
-                radial-gradient(circle at 92% 0%, rgba(143, 208, 255, 0.12), transparent 22%),
-                linear-gradient(180deg, #07111d 0%, #091321 42%, #0a1420 100%);
+                radial-gradient(circle at top left, rgba(47, 103, 216, 0.06), transparent 22%),
+                linear-gradient(180deg, #f6f8fc 0%, #f3f6fb 100%);
             color: var(--cb-text);
         }
         [data-testid="stHeader"] {
-            background: rgba(6, 12, 21, 0.82);
-            border-bottom: 1px solid rgba(132, 166, 214, 0.14);
-            backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid var(--cb-line);
         }
         [data-testid="stSidebar"] {
-            background:
-                linear-gradient(180deg, rgba(11, 23, 37, 0.98) 0%, rgba(12, 27, 44, 0.98) 44%, rgba(15, 34, 57, 0.98) 100%);
-            border-right: 1px solid rgba(132, 166, 214, 0.12);
+            background: linear-gradient(180deg, #0f1b2d 0%, #14233a 100%);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
         }
         [data-testid="stSidebar"] * {
-            color: var(--cb-text);
+            color: #edf4ff;
+        }
+        [data-testid="stSidebar"] [data-testid="stExpander"] {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        [data-testid="stSidebar"] div[data-baseweb="input"] > div,
+        [data-testid="stSidebar"] div[data-baseweb="select"] > div,
+        [data-testid="stSidebar"] div[data-baseweb="textarea"] > div,
+        [data-testid="stSidebar"] .stDateInput > div > div,
+        [data-testid="stSidebar"] .stNumberInput > div > div {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #edf4ff;
+        }
+        [data-testid="stSidebar"] input,
+        [data-testid="stSidebar"] textarea {
+            color: #edf4ff !important;
         }
         [data-testid="stSidebarNav"] {
             display: none;
         }
         .main .block-container {
-            max-width: 1410px;
-            padding-top: 0.8rem;
-            padding-bottom: 2rem;
+            max-width: 1280px;
+            padding-top: 1rem;
+            padding-bottom: 2.2rem;
         }
         h1, h2, h3, h4, h5, h6 {
             color: var(--cb-text);
@@ -122,11 +136,11 @@ def _apply_theme() -> None:
             color: inherit;
         }
         div[data-testid="stMetric"] {
-            background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
+            background: var(--cb-surface);
             border: 1px solid var(--cb-line);
-            border-radius: 18px;
+            border-radius: 14px;
             padding: 0.85rem 0.95rem;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
         }
         div[data-testid="stMetricLabel"] p {
             color: var(--cb-text-dim);
@@ -139,10 +153,10 @@ def _apply_theme() -> None:
         }
         div[data-testid="stForm"],
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            background: linear-gradient(180deg, rgba(16, 30, 48, 0.94) 0%, rgba(11, 22, 37, 0.98) 100%);
+            background: var(--cb-surface);
             border: 1px solid var(--cb-line);
-            border-radius: 18px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
         }
         div[data-testid="stForm"] {
             padding: 0.95rem 1rem 1rem;
@@ -152,9 +166,9 @@ def _apply_theme() -> None:
         div[data-baseweb="textarea"] > div,
         .stDateInput > div > div,
         .stNumberInput > div > div {
-            background: rgba(7, 17, 29, 0.98);
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            border-radius: 14px;
+            background: #ffffff;
+            border: 1px solid var(--cb-line);
+            border-radius: 10px;
             color: var(--cb-text);
         }
         input, textarea {
@@ -162,34 +176,34 @@ def _apply_theme() -> None:
         }
         .stButton > button,
         .stDownloadButton > button {
-            background: linear-gradient(135deg, #4b8ef4 0%, #2a67be 100%);
+            background: var(--cb-accent);
             color: #f7fbff;
-            border: 1px solid rgba(143, 208, 255, 0.28);
-            border-radius: 999px;
-            min-height: 2.8rem;
+            border: 1px solid #2a59bb;
+            border-radius: 10px;
+            min-height: 2.6rem;
             font-weight: 700;
-            letter-spacing: 0.02em;
-            box-shadow: 0 18px 34px rgba(41, 89, 166, 0.24);
+            letter-spacing: 0.01em;
+            box-shadow: none;
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover {
-            background: linear-gradient(135deg, #63a1ff 0%, #316fca 100%);
-            border-color: rgba(143, 208, 255, 0.44);
+            background: #2556bb;
+            border-color: #214ea9;
             color: #ffffff;
         }
         .stLinkButton a {
-            background: rgba(12, 27, 44, 0.86);
+            background: #ffffff;
             color: var(--cb-text);
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            border-radius: 999px;
-            min-height: 2.8rem;
+            border: 1px solid var(--cb-line);
+            border-radius: 10px;
+            min-height: 2.6rem;
             font-weight: 700;
-            letter-spacing: 0.02em;
+            letter-spacing: 0.01em;
         }
         .stLinkButton a:hover {
-            background: rgba(18, 37, 59, 0.96);
-            border-color: rgba(132, 166, 214, 0.3);
-            color: #ffffff;
+            background: #f7faff;
+            border-color: #c8d7ea;
+            color: var(--cb-text);
         }
         .stAlert {
             border-radius: 20px;
@@ -201,27 +215,27 @@ def _apply_theme() -> None:
         button[data-baseweb="tab"] {
             height: 2.6rem;
             border-radius: 999px;
-            background: rgba(12, 27, 44, 0.82);
-            border: 1px solid rgba(132, 166, 214, 0.16);
+            background: #f2f6fb;
+            border: 1px solid #dbe4f0;
             color: var(--cb-text-soft);
             padding: 0 1rem;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
-            background: linear-gradient(135deg, rgba(75, 142, 244, 0.18) 0%, rgba(19, 42, 74, 0.9) 100%);
-            border-color: rgba(143, 208, 255, 0.3);
-            color: var(--cb-text);
+            background: #eaf1ff;
+            border-color: #bfd2f5;
+            color: #17315f;
         }
         [data-testid="stExpander"] {
-            background: linear-gradient(180deg, rgba(16, 30, 48, 0.94) 0%, rgba(11, 22, 37, 0.98) 100%);
+            background: var(--cb-surface);
             border: 1px solid var(--cb-line);
-            border-radius: 20px;
+            border-radius: 12px;
         }
         .cb-shell-hero {
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            border-radius: 18px;
-            padding: 0.95rem 1.05rem;
+            border: 1px solid var(--cb-line);
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
             margin-bottom: 0.9rem;
-            background: rgba(12, 22, 37, 0.84);
+            background: var(--cb-surface);
         }
         .cb-shell-grid {
             display: block;
@@ -229,7 +243,7 @@ def _apply_theme() -> None:
         .cb-shell-kicker,
         .cb-panel-kicker,
         .cb-sidebar-line {
-            color: var(--cb-accent-2);
+            color: var(--cb-accent);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.16em;
@@ -264,10 +278,10 @@ def _apply_theme() -> None:
         .cb-signal-card {
             min-height: 7rem;
             padding: 0.85rem 0.95rem;
-            border-radius: 18px;
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            background: linear-gradient(180deg, rgba(18, 33, 53, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            border: 1px solid var(--cb-line);
+            background: var(--cb-surface);
+            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
         }
         .cb-signal-label {
             color: var(--cb-text-dim);
@@ -294,7 +308,7 @@ def _apply_theme() -> None:
             position: relative;
             padding: 0.3rem 0 0.8rem 0;
             margin-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(132, 166, 214, 0.12);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         .cb-sidebar-mark {
             display: inline-flex;
@@ -326,38 +340,38 @@ def _apply_theme() -> None:
         .cb-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.34rem 0.65rem;
+            padding: 0.3rem 0.6rem;
             border-radius: 999px;
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            font-size: 0.72rem;
+            border: 1px solid #d6e1f0;
+            font-size: 0.7rem;
             font-weight: 700;
             line-height: 1;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            background: rgba(12, 27, 44, 0.8);
-            color: var(--cb-text-soft);
+            background: #f4f8ff;
+            color: #395272;
         }
-        .cb-badge-source { color: var(--cb-accent-2); border-color: rgba(75, 142, 244, 0.22); }
-        .cb-badge-fit { color: #dce8f9; }
-        .cb-badge-priority { color: #cce0ff; }
-        .cb-badge-good { color: #9ce0c9; border-color: rgba(61, 167, 134, 0.24); }
-        .cb-badge-watch { color: #f2d6a4; border-color: rgba(214, 164, 87, 0.24); }
-        .cb-badge-alert { color: #f5beb5; border-color: rgba(224, 123, 105, 0.28); }
+        .cb-badge-source { color: var(--cb-accent); border-color: #c8d8f8; background: #edf4ff; }
+        .cb-badge-fit { color: #17315f; }
+        .cb-badge-priority { color: #17315f; }
+        .cb-badge-good { color: var(--cb-good); border-color: #cce9dd; background: #effaf5; }
+        .cb-badge-watch { color: var(--cb-watch); border-color: #efdcb6; background: #fff8ea; }
+        .cb-badge-alert { color: var(--cb-risk); border-color: #f1cdcd; background: #fff2f2; }
         .cb-badge-neutral { color: var(--cb-text-dim); }
         .cb-chip-row {
             display: flex;
             flex-wrap: wrap;
             gap: 0.42rem;
-            margin-top: 0.9rem;
+            margin-top: 0.75rem;
         }
         .cb-chip {
             display: inline-flex;
             align-items: center;
             padding: 0.32rem 0.62rem;
             border-radius: 999px;
-            background: rgba(14, 30, 49, 0.92);
-            border: 1px solid rgba(132, 166, 214, 0.16);
-            color: var(--cb-text-soft);
+            background: #f3f7fc;
+            border: 1px solid #d9e3ef;
+            color: #48617d;
             font-size: 0.77rem;
             font-weight: 600;
             line-height: 1;
@@ -365,39 +379,39 @@ def _apply_theme() -> None:
         .cb-dossier {
             position: relative;
             overflow: hidden;
-            border-radius: 28px;
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            background: linear-gradient(180deg, rgba(17, 31, 50, 0.96) 0%, rgba(10, 21, 36, 0.98) 100%);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), var(--cb-glow);
-            padding: 1.2rem;
-            margin-bottom: 1rem;
+            border-radius: 14px;
+            border: 1px solid var(--cb-line);
+            background: var(--cb-surface);
+            box-shadow: 0 6px 22px rgba(20, 32, 51, 0.05);
+            padding: 1rem;
+            margin-bottom: 0.9rem;
         }
         .cb-dossier::before {
             content: "";
             position: absolute;
             inset: 0 auto 0 0;
             width: 4px;
-            background: rgba(132, 166, 214, 0.26);
+            background: #cedaec;
         }
-        .cb-dossier-high::before { background: linear-gradient(180deg, #8fd0ff 0%, #4b8ef4 100%); }
-        .cb-dossier-good::before { background: linear-gradient(180deg, #6dd4b6 0%, #3da786 100%); }
-        .cb-dossier-watch::before { background: linear-gradient(180deg, #f2d08d 0%, #d6a457 100%); }
-        .cb-dossier-ignore::before { background: linear-gradient(180deg, #94a4ba 0%, #66778e 100%); }
-        .cb-dossier-conditional::before { background: linear-gradient(180deg, #f1ae95 0%, #e07b69 100%); }
+        .cb-dossier-high::before { background: #2f67d8; }
+        .cb-dossier-good::before { background: #1f8a63; }
+        .cb-dossier-watch::before { background: #a87006; }
+        .cb-dossier-ignore::before { background: #8a98ab; }
+        .cb-dossier-conditional::before { background: #c75454; }
         .cb-dossier-grid {
             display: grid;
-            grid-template-columns: minmax(150px, 0.22fr) minmax(0, 1fr);
-            gap: 1rem;
+            grid-template-columns: minmax(120px, 0.18fr) minmax(0, 1fr);
+            gap: 0.9rem;
             align-items: start;
         }
         .cb-dossier-rail {
-            padding-right: 1rem;
-            border-right: 1px solid rgba(132, 166, 214, 0.12);
+            padding-right: 0.85rem;
+            border-right: 1px solid #e6edf5;
         }
         .cb-dossier-score {
             color: var(--cb-text);
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 2.6rem;
+            font-size: 2.2rem;
             line-height: 0.95;
             font-weight: 700;
             margin-bottom: 0.22rem;
@@ -476,11 +490,11 @@ def _apply_theme() -> None:
             line-height: 1.55;
         }
         .cb-note-card {
-            border: 1px solid rgba(132, 166, 214, 0.14);
-            border-radius: 24px;
-            padding: 1rem 1.05rem;
-            background: rgba(9, 18, 31, 0.72);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--cb-line);
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            background: var(--cb-surface);
+            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
         }
         .cb-note-title {
             color: var(--cb-text);
@@ -501,13 +515,13 @@ def _apply_theme() -> None:
             width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            background: rgba(8, 17, 29, 0.86);
-            border: 1px solid rgba(132, 166, 214, 0.18);
-            border-radius: 22px;
+            background: #ffffff;
+            border: 1px solid var(--cb-line);
+            border-radius: 14px;
             overflow: hidden;
         }
         .cb-checklist-table thead th {
-            background: rgba(18, 33, 53, 0.96);
+            background: #f5f8fc;
             color: var(--cb-text-dim);
             font-size: 0.75rem;
             font-weight: 700;
@@ -515,17 +529,17 @@ def _apply_theme() -> None:
             text-transform: uppercase;
             padding: 0.95rem 1rem;
             text-align: left;
-            border-bottom: 1px solid rgba(132, 166, 214, 0.14);
+            border-bottom: 1px solid var(--cb-line);
         }
         .cb-checklist-table tbody tr:nth-child(even) {
-            background: rgba(12, 24, 39, 0.85);
+            background: #fbfdff;
         }
         .cb-checklist-table tbody tr:hover {
-            background: rgba(18, 33, 53, 0.92);
+            background: #f3f7fc;
         }
         .cb-checklist-table td {
             padding: 0.95rem 1rem;
-            border-top: 1px solid rgba(132, 166, 214, 0.08);
+            border-top: 1px solid #edf2f7;
             vertical-align: top;
             font-size: 0.92rem;
             line-height: 1.55;
@@ -548,19 +562,85 @@ def _apply_theme() -> None:
             width: 35%;
             color: var(--cb-text-dim);
         }
+        .cb-result-card {
+            border: 1px solid var(--cb-line);
+            border-left: 4px solid #d7e2f0;
+            border-radius: 14px;
+            background: var(--cb-surface);
+            padding: 1rem 1.05rem;
+            margin-bottom: 0.85rem;
+            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
+        }
+        .cb-result-card.cb-dossier-high { border-left-color: #2f67d8; }
+        .cb-result-card.cb-dossier-good { border-left-color: #1f8a63; }
+        .cb-result-card.cb-dossier-watch { border-left-color: #a87006; }
+        .cb-result-card.cb-dossier-ignore { border-left-color: #8a98ab; }
+        .cb-result-card.cb-dossier-conditional { border-left-color: #c75454; }
+        .cb-result-head {
+            display: grid;
+            grid-template-columns: 84px minmax(0, 1fr);
+            gap: 1rem;
+            align-items: start;
+        }
+        .cb-result-score-block {
+            background: #f5f8fd;
+            border: 1px solid #dde6f2;
+            border-radius: 12px;
+            padding: 0.8rem 0.7rem;
+            text-align: center;
+        }
+        .cb-result-score {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .cb-result-score-label {
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-top: 0.25rem;
+        }
+        .cb-result-main {
+            min-width: 0;
+        }
+        .cb-result-title {
+            color: var(--cb-text);
+            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+            font-size: 1.22rem;
+            line-height: 1.28;
+            margin: 0.35rem 0 0.35rem 0;
+        }
+        .cb-result-meta {
+            color: var(--cb-text-dim);
+            font-size: 0.85rem;
+            line-height: 1.55;
+        }
+        .cb-result-summary {
+            color: var(--cb-text-soft);
+            font-size: 0.94rem;
+            line-height: 1.6;
+            margin-top: 0.55rem;
+        }
         @media (max-width: 980px) {
             .cb-shell-grid,
-            .cb-dossier-grid {
+            .cb-dossier-grid,
+            .cb-result-head {
                 grid-template-columns: 1fr;
             }
             .cb-dossier-rail {
                 padding-right: 0;
                 padding-bottom: 0.9rem;
                 border-right: none;
-                border-bottom: 1px solid rgba(132, 166, 214, 0.12);
+                border-bottom: 1px solid #e6edf5;
             }
             .cb-signal-card {
                 min-height: auto;
+            }
+            .cb-result-score-block {
+                max-width: 88px;
             }
         }
         </style>
@@ -682,6 +762,15 @@ def _display_value(value: Any) -> str:
 
 def _escape_text(value: Any) -> str:
     return html.escape(_display_value(value))
+
+
+def _truncate_text(value: str | None, *, limit: int = 220) -> str:
+    if not value:
+        return ""
+    cleaned = " ".join(str(value).split())
+    if len(cleaned) <= limit:
+        return cleaned
+    return cleaned[: limit - 1].rstrip() + "…"
 
 
 def _render_pill(label: str, tone: str) -> str:
@@ -1001,10 +1090,10 @@ def _render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
         <div class="cb-sidebar-brand">
-          <div class="cb-sidebar-line">cBrain Signal Studio</div>
+          <div class="cb-sidebar-line">cBrain</div>
           <div class="cb-sidebar-mark">F2</div>
-          <div class="cb-sidebar-title">TED Opportunity Intelligence</div>
-          <div class="cb-sidebar-subtitle">Internal F2 opportunity workspace.</div>
+          <div class="cb-sidebar-title">TED F2 Intelligence</div>
+          <div class="cb-sidebar-subtitle">Official TED review workspace.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1096,53 +1185,37 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
     deadline = format_datetime(notice.get("deadline"), settings.ui_timezone)
     publication_date = format_date(notice.get("publication_date"))
     title = notice.get("title") or "Untitled notice"
+    summary_text = _truncate_text(
+        notice.get("reasoning") or notice.get("summary") or "No summary available.",
+        limit=240,
+    )
     keyword_chips = "".join(_render_chip(label) for label in _notice_keyword_labels(notice))
     if not keyword_chips:
         keyword_chips = _render_chip("No keyword evidence captured yet")
-    narrative_parts = [
-        f"Buyer: {buyer}.",
-        f"Publication: {publication_date}.",
-        f"Deadline: {deadline}.",
-        f"Confidence: {confidence}.",
+    meta_parts = [
+        publication,
+        buyer,
+        country,
+        f"Published {publication_date}",
+        f"Deadline {deadline}",
+        f"Confidence {confidence}",
     ]
-    if notice.get("hard_lock_detected"):
-        narrative_parts.append("Platform lock signals are present and should be qualified early.")
-    elif notice.get("viable_timing"):
-        narrative_parts.append("Timing posture currently looks workable for review.")
-    else:
-        narrative_parts.append("Timing posture needs analyst attention.")
 
     st.markdown(
         f"""
-        <div class="cb-dossier {card_class}">
-          <div class="cb-dossier-grid">
-            <div class="cb-dossier-rail">
-              <div class="cb-dossier-score">{notice['score']}</div>
-              <div class="cb-dossier-score-label">Signal Score</div>
-              <div class="cb-dossier-rail-line">
-                <div class="cb-dossier-rail-key">Fit</div>
-                <div class="cb-dossier-rail-value">{html.escape(fit_label)}</div>
-              </div>
-              <div class="cb-dossier-rail-line">
-                <div class="cb-dossier-rail-key">Priority</div>
-                <div class="cb-dossier-rail-value">{html.escape(priority_bucket)}</div>
-              </div>
-              <div class="cb-dossier-rail-line">
-                <div class="cb-dossier-rail-key">Country</div>
-                <div class="cb-dossier-rail-value">{html.escape(country)}</div>
-              </div>
-              <div class="cb-dossier-rail-line">
-                <div class="cb-dossier-rail-key">Deadline</div>
-                <div class="cb-dossier-rail-value">{html.escape(deadline)}</div>
-              </div>
+        <div class="cb-result-card {card_class}">
+          <div class="cb-result-head">
+            <div class="cb-result-score-block">
+              <div class="cb-result-score">{notice['score']}</div>
+              <div class="cb-result-score-label">Score</div>
             </div>
-            <div>
+            <div class="cb-result-main">
               <div class="cb-dossier-topline">
               {''.join(top_line_badges)}
               </div>
-              <div class="cb-dossier-meta">{html.escape(publication)} | {html.escape(buyer)} | {html.escape(country)}</div>
-              <div class="cb-dossier-title">{html.escape(title)}</div>
-              <div class="cb-dossier-summary">{html.escape(" ".join(narrative_parts))}</div>
+              <div class="cb-result-title">{html.escape(title)}</div>
+              <div class="cb-result-meta">{html.escape(" | ".join(meta_parts))}</div>
+              <div class="cb-result-summary">{html.escape(summary_text)}</div>
               <div class="cb-chip-row">{keyword_chips}</div>
             </div>
           </div>
