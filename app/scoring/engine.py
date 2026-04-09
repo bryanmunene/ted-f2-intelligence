@@ -112,9 +112,27 @@ class ScoringEngine:
         deadline_days = self._days_until_deadline(notice.deadline, now)
         publication_days = self._publication_age_days(notice.publication_date, now.date())
         if deadline_days is not None and deadline_days < 7:
-            return self._forced_no(result, "timing.deadline_under_7_days", "Deadline under 7 days", "Deadline under 7 days. Classification: NO / IGNORE.", [notice.deadline.isoformat()] if notice.deadline else [])
+            result.viable_timing = False
+            hard_blockers.append("deadline under 7 days")
+            negative_reasons.append("deadline under 7 days")
+            result.timing_flags.append({"flag": "deadline_under_7_days", "message": "Submission deadline is under 7 days away."})
+            self._record_signal(
+                result,
+                signal_list=result.negative_signals,
+                signal=SignalEvidence(id="timing.deadline_under_7_days", label="Deadline under 7 days", points=-10, evidence=[notice.deadline.isoformat()] if notice.deadline else [], category="negative"),
+                rule_id="timing.deadline_under_7_days",
+            )
         if exclude_old and publication_days is not None and publication_days > 90:
-            return self._forced_no(result, "timing.publication_older_than_90_days", "Publication older than 90 days", "Publication age exceeds 90 days. Classification: NO / IGNORE.", [notice.publication_date.isoformat()] if notice.publication_date else [])
+            result.viable_timing = False
+            hard_blockers.append("publication older than 90 days")
+            negative_reasons.append("publication older than 90 days")
+            result.timing_flags.append({"flag": "publication_older_than_90_days", "message": "Notice was published more than 90 days ago."})
+            self._record_signal(
+                result,
+                signal_list=result.negative_signals,
+                signal=SignalEvidence(id="timing.publication_older_than_90_days", label="Publication older than 90 days", points=-10, evidence=[notice.publication_date.isoformat()] if notice.publication_date else [], category="negative"),
+                rule_id="timing.publication_older_than_90_days",
+            )
 
         score = 0
         score += self.score_positive_domains(context, result, matched_domains, positive_reasons)
@@ -148,12 +166,12 @@ class ScoringEngine:
             result.soft_lock_detected = True
             soft_blockers.append("soft platform lock")
             questions.append("Is the buyer open to an alternative platform?")
-            score -= 15
+            score -= 10
             negative_reasons.append("soft platform lock")
             self._record_signal(
                 result,
                 signal_list=result.platform_lock_signals,
-                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=-15, evidence=lock_matches, category="platform_lock", severity="soft"),
+                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=-10, evidence=lock_matches, category="platform_lock", severity="soft"),
                 rule_id="platform.soft_lock",
             )
 
@@ -162,33 +180,34 @@ class ScoringEngine:
             result.timing_flags.append({"flag": "missing_deadline", "message": "Submission deadline missing."})
             questions.append("What is the submission deadline?")
             negative_reasons.append("deadline missing")
-            score -= 8
+            score -= 6
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-8, evidence=[], category="negative"),
+                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-6, evidence=[], category="negative"),
                 rule_id="timing.missing_deadline",
             )
         else:
-            result.viable_timing = True
+            if not hard_blockers:
+                result.viable_timing = True
             self._record_rule(result, rule_id="timing.deadline_viable", label="Deadline at or above 7 days", points=0, evidence=[notice.deadline.isoformat()])
 
         if self.thin_scope_text(notice, context):
             negative_reasons.append("limited scope text")
-            score -= 5
+            score -= 3
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="scope.thin_text", label="Description too thin for confident classification", points=-5, evidence=[], category="negative"),
+                signal=SignalEvidence(id="scope.thin_text", label="Description too thin for confident classification", points=-3, evidence=[], category="negative"),
                 rule_id="scope.thin_text",
             )
         if self._only_lot_title_present(context, notice):
             negative_reasons.append("lot title only")
-            score -= 5
+            score -= 3
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="scope.only_lot_title", label="Only lot title present with no usable scope text", points=-5, evidence=context.lot_titles[:2], category="negative"),
+                signal=SignalEvidence(id="scope.only_lot_title", label="Only lot title present with no usable scope text", points=-3, evidence=context.lot_titles[:2], category="negative"),
                 rule_id="scope.only_lot_title",
             )
         if self._detect_scanning_mix_soft_blocker(context.full_text):
@@ -335,15 +354,15 @@ class ScoringEngine:
         return len(normalize_text(notice.summary or "")) < 40 and len(" ".join(context.lot_titles + context.lot_descriptions)) < 40
 
     def classify(self, *, score: int, blockers: list[str], soft_blockers: list[str], force_no: bool = False) -> FitLabel:
-        if force_no or blockers or score < 40:
+        if force_no or blockers or score < 30:
             return FitLabel.NO
-        if 40 <= score <= 64 or (score >= 65 and soft_blockers):
+        if 30 <= score <= 59 or (score >= 60 and soft_blockers):
             return FitLabel.CONDITIONAL
         return FitLabel.YES
 
     def _determine_priority(self, fit_label: FitLabel, score: int) -> PriorityBucket:
         if fit_label == FitLabel.YES:
-            return PriorityBucket.HIGH if score >= 75 else PriorityBucket.GOOD
+            return PriorityBucket.HIGH if score >= 70 else PriorityBucket.GOOD
         return PriorityBucket.WATCHLIST if fit_label == FitLabel.CONDITIONAL else PriorityBucket.IGNORE
 
     def _determine_confidence(self, result: ScoreResult, notice: NormalizedNotice, context: MatchContext) -> ConfidenceIndicator:

@@ -39,9 +39,9 @@ def test_scoring_engine_rejects_deadlines_under_seven_days(ted_fixture_payload: 
 
     assert score.fit_label == FitLabel.NO
     assert score.priority_bucket == PriorityBucket.IGNORE
-    assert score.score == 0
+    assert score.score > 0
     assert score.viable_timing is False
-    assert "Deadline under 7 days" in score.reasoning
+    assert any(flag["flag"] == "deadline_under_7_days" for flag in score.timing_flags)
 
 
 def test_scoring_engine_flags_hard_platform_lock_even_with_good_scope() -> None:
@@ -110,7 +110,8 @@ def test_scoring_engine_rejects_publications_older_than_ninety_days() -> None:
 
     assert score.fit_label == FitLabel.NO
     assert score.priority_bucket == PriorityBucket.IGNORE
-    assert score.score == 0
+    assert score.score > 0
+    assert any(flag["flag"] == "publication_older_than_90_days" for flag in score.timing_flags)
 
 
 def test_scoring_engine_rejects_clear_poor_fit_hardware_scope() -> None:
