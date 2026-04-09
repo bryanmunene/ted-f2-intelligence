@@ -32,6 +32,7 @@ def test_results_metrics_handle_naive_and_string_dates() -> None:
     by_label = {card["label"]: card for card in cards}
 
     assert by_label["Matching Results"]["value"] == "2"
-    assert by_label["Expiring Soon"]["value"] == "1"
+    assert by_label["Review Now"]["value"] == "2"
+    assert "1 due within 7 days" in by_label["Review Now"]["note"]
     assert by_label["Hard Locks"]["value"] == "1"
-    assert by_label["Published 30d"]["value"] == "2"
+    assert "2 published in the last 30 days" in by_label["Hard Locks"]["note"]

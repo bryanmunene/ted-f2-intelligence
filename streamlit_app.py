@@ -1014,6 +1014,7 @@ def _build_results_metrics(notices: list[dict[str, Any]], *, total_matches: int)
     )
     live_notices = sum(1 for notice in notices if not notice.get("is_demo_record"))
     highest_score = max(int(notice.get("score") or 0) for notice in notices)
+    review_now = high_fit + good_fit
 
     return [
         {
@@ -1027,34 +1028,14 @@ def _build_results_metrics(notices: list[dict[str, Any]], *, total_matches: int)
             "note": f"Highest current score: {highest_score}",
         },
         {
-            "label": "High Priority",
-            "value": str(high_fit),
-            "note": "Priority bucket HIGH in the current result set.",
-        },
-        {
-            "label": "Good Priority",
-            "value": str(good_fit),
-            "note": "Priority bucket GOOD in the current result set.",
-        },
-        {
-            "label": "Expiring Soon",
-            "value": str(expiring_soon),
-            "note": "Submission deadline within the next 7 days.",
+            "label": "Review Now",
+            "value": str(review_now),
+            "note": f"{expiring_soon} due within 7 days, {high_fit} marked HIGH priority.",
         },
         {
             "label": "Hard Locks",
             "value": str(hard_locks),
-            "note": "Mandatory platform constraints flagged by scoring.",
-        },
-        {
-            "label": "Published 30d",
-            "value": str(recent_publications),
-            "note": "Notices published in the last 30 days.",
-        },
-        {
-            "label": "Live TED",
-            "value": str(live_notices),
-            "note": "Non-demo notices linked back to official TED records.",
+            "note": f"{live_notices} linked to live TED records, {recent_publications} published in the last 30 days.",
         },
     ]
 
@@ -1066,11 +1047,61 @@ def _render_sidebar_brand() -> None:
           <div class="cb-sidebar-line">cBrain Signal Studio</div>
           <div class="cb-sidebar-mark">F2</div>
           <div class="cb-sidebar-title">TED Opportunity Intelligence</div>
-          <div class="cb-sidebar-subtitle">Internal TED opportunity workspace for F2-fit scoring, qualification decisions, and official notice review.</div>
+          <div class="cb-sidebar-subtitle">Internal F2 opportunity workspace.</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+
+def _default_filter_state() -> dict[str, Any]:
+    return {
+        "country": None,
+        "search": None,
+        "relevant_only": False,
+        "fit_label": None,
+        "priority_bucket": None,
+        "confidence_indicator": None,
+        "score_min": 0,
+        "score_max": 100,
+        "publication_date_from": None,
+        "publication_date_to": None,
+        "min_days_remaining": None,
+        "deadline_from": None,
+        "deadline_to": None,
+        "deadline_window_days": None,
+        "hard_lock_only": False,
+        "saved_only": False,
+        "include_dismissed": False,
+        "page_size": 20,
+        "total_matches": 0,
+    }
+
+
+def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    payload = load_filtered_notices(
+        country=filter_state.get("country"),
+        fit_label=filter_state.get("fit_label"),
+        priority_bucket=filter_state.get("priority_bucket"),
+        min_score=filter_state.get("score_min") if (filter_state.get("score_min") or 0) > 0 else None,
+        max_score=filter_state.get("score_max") if (filter_state.get("score_max") or 100) < 100 else None,
+        confidence_indicator=filter_state.get("confidence_indicator"),
+        relevant_only=bool(filter_state.get("relevant_only")),
+        min_days_remaining=filter_state.get("min_days_remaining"),
+        hard_lock_only=bool(filter_state.get("hard_lock_only")),
+        publication_date_from=filter_state.get("publication_date_from"),
+        publication_date_to=filter_state.get("publication_date_to"),
+        deadline_from=filter_state.get("deadline_from"),
+        deadline_to=filter_state.get("deadline_to"),
+        deadline_window_days=filter_state.get("deadline_window_days"),
+        include_dismissed=bool(filter_state.get("include_dismissed")),
+        saved_only=bool(filter_state.get("saved_only")),
+        search=filter_state.get("search"),
+        page_size=int(filter_state.get("page_size") or 20),
+    )
+    updated_state = dict(filter_state)
+    updated_state["total_matches"] = int(payload["total"])
+    return payload["items"], updated_state
 
 
 def _notice_keyword_labels(notice: dict[str, Any], *, limit: int = 4) -> list[str]:
@@ -1533,65 +1564,89 @@ def _render_dashboard() -> None:
             st.info("No stored notices available yet.")
 
 
-def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    filter_state = dict(st.session_state.get("results_filter_state", _default_filter_state()))
+
+    if not render_sidebar:
+        return _load_notices_for_filter_state(filter_state)
+
     st.sidebar.markdown("### Signal Filters")
-    st.sidebar.caption(
-        "Expired notices stay hidden. Use these controls to tighten or broaden the active review set."
-    )
-    country = st.sidebar.text_input("Country (DK or DNK)", "").strip() or None
-    search = st.sidebar.text_input("Search", "").strip() or None
+    st.sidebar.caption("Broaden or narrow the review surface without leaving the signal board.")
 
-    st.sidebar.markdown("#### Relevance Gate")
-    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=False)
-    fit_label = st.sidebar.selectbox("Fit Label", ["Any", "YES", "CONDITIONAL", "NO"], index=0)
-    priority_bucket = st.sidebar.selectbox("Priority Bucket", ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"], index=0)
-    confidence_indicator = st.sidebar.selectbox("Confidence", ["Any", "HIGH", "MEDIUM", "LOW"], index=0)
+    with st.sidebar.expander("Quick Filters", expanded=True):
+        country = st.text_input("Country", value=filter_state.get("country") or "", placeholder="DK or DNK").strip() or None
+        search = st.text_input("Search", value=filter_state.get("search") or "").strip() or None
+        relevant_only = st.checkbox("Relevant to F2 Only", value=bool(filter_state.get("relevant_only")))
+        page_size = st.slider(
+            "Cards to Load",
+            min_value=10,
+            max_value=100,
+            value=int(filter_state.get("page_size") or 20),
+            step=5,
+        )
 
-    st.sidebar.markdown("#### Signal Strength")
-    score_range = st.sidebar.slider("Score Range", min_value=0, max_value=100, value=(0, 100))
+    with st.sidebar.expander("Scoring", expanded=False):
+        fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
+        priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
+        confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
+        fit_label = st.selectbox(
+            "Fit Label",
+            fit_options,
+            index=fit_options.index(filter_state.get("fit_label") or "Any"),
+        )
+        priority_bucket = st.selectbox(
+            "Priority Bucket",
+            priority_options,
+            index=priority_options.index(filter_state.get("priority_bucket") or "Any"),
+        )
+        confidence_indicator = st.selectbox(
+            "Confidence",
+            confidence_options,
+            index=confidence_options.index(filter_state.get("confidence_indicator") or "Any"),
+        )
+        score_range = st.slider(
+            "Score Range",
+            min_value=0,
+            max_value=100,
+            value=(
+                int(filter_state.get("score_min") or 0),
+                int(filter_state.get("score_max") or 100),
+            ),
+        )
 
-    st.sidebar.markdown("#### Publication Window")
-    publication_date_from = st.sidebar.date_input("Published From", value=None)
-    publication_date_to = st.sidebar.date_input("Published To", value=None)
-    publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
+    with st.sidebar.expander("Timing", expanded=False):
+        min_days_remaining = st.number_input(
+            "Minimum Days Remaining",
+            min_value=0,
+            max_value=30,
+            value=int(filter_state.get("min_days_remaining") or 0),
+            step=1,
+        )
+        deadline_from = st.date_input("Deadline From", value=filter_state.get("deadline_from"))
+        deadline_to = st.date_input("Deadline To", value=filter_state.get("deadline_to"))
+        deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
+        deadline_window_days = st.number_input(
+            "Deadline Within (Days)",
+            min_value=0,
+            max_value=365,
+            value=int(filter_state.get("deadline_window_days") or 0),
+            step=7,
+        )
 
-    st.sidebar.markdown("#### Timing Window")
-    min_days_remaining = st.sidebar.number_input("Minimum Days Remaining", min_value=0, max_value=30, value=0, step=1)
-    deadline_from = st.sidebar.date_input("Deadline From", value=None)
-    deadline_to = st.sidebar.date_input("Deadline To", value=None)
-    deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
-    deadline_window_days = st.sidebar.number_input("Deadline Within (Days)", min_value=0, max_value=365, value=0, step=7)
+    with st.sidebar.expander("Publication", expanded=False):
+        publication_date_from = st.date_input("Published From", value=filter_state.get("publication_date_from"))
+        publication_date_to = st.date_input("Published To", value=filter_state.get("publication_date_to"))
+        publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
 
-    st.sidebar.markdown("#### Flags")
-    hard_lock_only = st.sidebar.checkbox("Hard Lock Only", value=False)
-    saved_only = st.sidebar.checkbox("Saved Only", value=False)
-    include_dismissed = st.sidebar.checkbox("Include Dismissed", value=False)
-    page_size = st.sidebar.slider("Cards to Load", min_value=10, max_value=100, value=25, step=5)
+    with st.sidebar.expander("Flags", expanded=False):
+        hard_lock_only = st.checkbox("Hard Lock Only", value=bool(filter_state.get("hard_lock_only")))
+        saved_only = st.checkbox("Saved Only", value=bool(filter_state.get("saved_only")))
+        include_dismissed = st.checkbox("Include Dismissed", value=bool(filter_state.get("include_dismissed")))
 
-    payload = load_filtered_notices(
-        country=country,
-        fit_label=None if fit_label == "Any" else fit_label,
-        priority_bucket=None if priority_bucket == "Any" else priority_bucket,
-        min_score=score_range[0] if score_range[0] > 0 else None,
-        max_score=score_range[1] if score_range[1] < 100 else None,
-        confidence_indicator=None if confidence_indicator == "Any" else confidence_indicator,
-        relevant_only=relevant_only,
-        min_days_remaining=min_days_remaining if min_days_remaining > 0 else None,
-        hard_lock_only=hard_lock_only,
-        publication_date_from=publication_date_from,
-        publication_date_to=publication_date_to,
-        deadline_from=deadline_from,
-        deadline_to=deadline_to,
-        deadline_window_days=deadline_window_days if deadline_window_days > 0 else None,
-        include_dismissed=include_dismissed,
-        saved_only=saved_only,
-        search=search,
-        page_size=page_size,
-    )
     filter_state = {
-        "relevant_only": relevant_only,
-        "min_days_remaining": min_days_remaining if min_days_remaining > 0 else None,
         "country": country,
+        "search": search,
+        "relevant_only": relevant_only,
         "fit_label": None if fit_label == "Any" else fit_label,
         "priority_bucket": None if priority_bucket == "Any" else priority_bucket,
         "confidence_indicator": None if confidence_indicator == "Any" else confidence_indicator,
@@ -1599,17 +1654,18 @@ def _render_filters() -> tuple[list[dict[str, Any]], dict[str, Any]]:
         "score_max": score_range[1],
         "publication_date_from": publication_date_from,
         "publication_date_to": publication_date_to,
+        "min_days_remaining": min_days_remaining if min_days_remaining > 0 else None,
         "deadline_from": deadline_from,
         "deadline_to": deadline_to,
         "deadline_window_days": deadline_window_days if deadline_window_days > 0 else None,
-        "search": search,
         "hard_lock_only": hard_lock_only,
         "saved_only": saved_only,
         "include_dismissed": include_dismissed,
         "page_size": page_size,
-        "total_matches": int(payload["total"]),
     }
-    return payload["items"], filter_state
+    notices, updated_state = _load_notices_for_filter_state(filter_state)
+    st.session_state["results_filter_state"] = dict(updated_state)
+    return notices, updated_state
 
 
 def _render_results() -> list[dict[str, Any]]:
@@ -1619,31 +1675,25 @@ def _render_results() -> list[dict[str, Any]]:
     _render_section_header(
         "Signal Board",
         "Results",
-        "Every opportunity below is presented as a briefing card so timing, fit, and platform risk can be read together instead of as isolated table columns.",
+        "Review the current shortlist with a lighter card surface and an on-demand filter rail.",
     )
     total_matches = filter_state["total_matches"]
-    st.markdown(
-        f"""
-        <div class="cb-note-card" style="margin-bottom: 1rem;">
-          <div class="cb-note-title">Current review surface</div>
-          <div class="cb-note-copy">{total_matches} notices match the active filter posture. {len(notices)} are loaded into the current signal board.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
 
     if not notices:
         st.warning("No notices match the current filters.")
         return notices
 
+    st.caption(f"{total_matches} notices match the current filter posture. {len(notices)} are loaded right now.")
+
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:
-        st.markdown(
-            "<div class='cb-note-card'><div class='cb-note-title'>Active filter posture</div><div class='cb-chip-row'>"
-            + "".join(_render_chip(chip) for chip in active_filter_chips)
-            + "</div></div>",
-            unsafe_allow_html=True,
-        )
+        with st.expander("Active filters", expanded=False):
+            st.markdown(
+                "<div class='cb-chip-row'>"
+                + "".join(_render_chip(chip) for chip in active_filter_chips)
+                + "</div>",
+                unsafe_allow_html=True,
+            )
 
     _render_stat_cards(_build_results_metrics(notices, total_matches=total_matches))
 
@@ -2040,11 +2090,8 @@ def main() -> None:
     )
     current_view = inverse_view_labels[selected_label]
     st.session_state["active_view"] = current_view
-    _render_banner(current_view)
-    st.sidebar.markdown("---")
-    st.sidebar.caption(
-        "Official TED opportunity workspace with live scans through TED's public API."
-    )
+    if current_view in {"Dashboard", "Live Scan"}:
+        _render_banner(current_view)
 
     if current_view == "Dashboard":
         _render_dashboard()
@@ -2053,7 +2100,7 @@ def main() -> None:
     elif current_view == "Results":
         _render_results()
     else:
-        notices, _ = _render_filters()
+        notices, _ = _render_filters(render_sidebar=False)
         _seed_selected_notice(notices)
         options = notices
         if not options:
