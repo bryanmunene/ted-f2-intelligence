@@ -1126,6 +1126,33 @@ def _default_filter_state() -> dict[str, Any]:
     }
 
 
+def _ensure_live_scan_state(profile_names: list[str]) -> None:
+    default_profile = profile_names[0] if profile_names else ""
+    defaults: dict[str, Any] = {
+        "live_scan_profile_name": default_profile,
+        "live_scan_country": "",
+        "live_scan_cpv": "",
+        "live_scan_keyword_override": "",
+        "live_scan_date_from": None,
+        "live_scan_date_to": None,
+        "live_scan_page_size": 25,
+        "live_scan_max_pages": 1,
+        "live_scan_include_conditional": True,
+        "live_scan_exclude_old": True,
+        "live_scan_include_soft_locks": True,
+    }
+    for key, value in defaults.items():
+        st.session_state.setdefault(key, value)
+
+    if profile_names and st.session_state.get("live_scan_profile_name") not in profile_names:
+        st.session_state["live_scan_profile_name"] = default_profile
+
+    st.session_state["live_scan_max_pages"] = min(
+        int(st.session_state.get("live_scan_max_pages") or 1),
+        settings.ted_max_pages_per_scan,
+    )
+
+
 def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     payload = load_filtered_notices(
         country=filter_state.get("country"),
@@ -1236,8 +1263,7 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
         action_cols[0].caption("No official TED URL")
 
     if action_cols[1].button("Review notice", key=f"review_notice_{card_index}_{notice['id']}", width="stretch"):
-        st.session_state["selected_notice_id"] = notice["id"]
-        _go_to_view("Notice Detail")
+        _open_notice_detail(notice["id"])
         st.rerun()
 
 
@@ -1252,6 +1278,12 @@ def _seed_selected_notice(notices: list[dict[str, Any]]) -> None:
 
 def _go_to_view(view_name: str) -> None:
     st.session_state["active_view"] = view_name
+
+
+def _open_notice_detail(notice_id: str) -> None:
+    st.session_state["selected_notice_id"] = notice_id
+    st.session_state["detail_return_view"] = st.session_state.get("active_view", "Results")
+    _go_to_view("Notice Detail")
 
 
 def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
@@ -1373,6 +1405,7 @@ def _render_banner(current_view: str) -> None:
 
 def _render_live_scan() -> None:
     profiles = get_search_profiles_registry()
+    _ensure_live_scan_state(profiles.names)
 
     _render_section_header(
         "",
@@ -1381,37 +1414,47 @@ def _render_live_scan() -> None:
     )
 
     with st.form("live_ted_scan_form"):
-        profile_name = st.selectbox("Search Profile", options=profiles.names, index=0)
+        profile_name = st.selectbox(
+            "Search Profile",
+            options=profiles.names,
+            key="live_scan_profile_name",
+        )
         selected_profile = next((profile for profile in profiles.profiles if profile.name == profile_name), None)
         if selected_profile:
             st.caption(selected_profile.description)
 
         primary_left, primary_right = st.columns(2, gap="medium")
         with primary_left:
-            country = st.text_input("Buyer Country", value="", placeholder="DK or DNK")
-            cpv = st.text_input("CPV Code", value="", placeholder="72260000")
+            country = st.text_input("Buyer Country", key="live_scan_country", placeholder="DK or DNK")
+            cpv = st.text_input("CPV Code", key="live_scan_cpv", placeholder="72260000")
         with primary_right:
             keyword_override = st.text_input(
                 "Keyword Override",
-                value="",
+                key="live_scan_keyword_override",
                 placeholder="case management, workflow automation",
             )
 
         with st.expander("Advanced options", expanded=False):
             dates_left, dates_right = st.columns(2, gap="medium")
             with dates_left:
-                date_from = st.date_input("Publication Date From", value=None)
-                page_size = st.select_slider("Page Size", options=[10, 25, 50, 100], value=25)
-                include_conditional = st.checkbox("Include conditional", value=True)
+                date_from = st.date_input("Publication Date From", value=None, key="live_scan_date_from")
+                page_size = st.select_slider(
+                    "Page Size",
+                    options=[10, 25, 50, 100],
+                    value=int(st.session_state.get("live_scan_page_size") or 25),
+                    key="live_scan_page_size",
+                )
+                include_conditional = st.checkbox("Include conditional", value=True, key="live_scan_include_conditional")
             with dates_right:
-                date_to = st.date_input("Publication Date To", value=None)
+                date_to = st.date_input("Publication Date To", value=None, key="live_scan_date_to")
                 max_pages = st.select_slider(
                     "Max Pages",
                     options=list(range(1, settings.ted_max_pages_per_scan + 1)),
-                    value=1,
+                    value=int(st.session_state.get("live_scan_max_pages") or 1),
+                    key="live_scan_max_pages",
                 )
-                exclude_old = st.checkbox("Exclude older notices", value=True)
-                include_soft_locks = st.checkbox("Include soft locks", value=True)
+                exclude_old = st.checkbox("Exclude older notices", value=True, key="live_scan_exclude_old")
+                include_soft_locks = st.checkbox("Include soft locks", value=True, key="live_scan_include_soft_locks")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
@@ -1448,6 +1491,7 @@ def _render_live_scan() -> None:
     outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
     outcome_cols[3].metric("Conditional", outcome["total_conditional"])
 
+    st.session_state["results_return_view"] = "Live Scan"
     st.session_state["active_view"] = "Results"
     st.rerun()
 
@@ -1511,8 +1555,7 @@ def _render_dashboard() -> None:
                     action_cols = st.columns([0.8, 1.2, 1.2], gap="small")
                     action_cols[0].metric("Score", notice["score"])
                     if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", width="stretch"):
-                        st.session_state["selected_notice_id"] = notice["id"]
-                        _go_to_view("Notice Detail")
+                        _open_notice_detail(notice["id"])
                         st.rerun()
                     official_url = _resolve_official_notice_url(notice)
                     if official_url:
@@ -1628,6 +1671,12 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
 def _render_results() -> list[dict[str, Any]]:
     notices, filter_state = _render_filters()
     _seed_selected_notice(notices)
+
+    nav_cols = st.columns([0.18, 0.82], gap="small")
+    if st.session_state.get("results_return_view") == "Live Scan":
+        if nav_cols[0].button("Back to Scan", key="results_back_to_scan", width="stretch"):
+            _go_to_view("Live Scan")
+            st.rerun()
 
     _render_section_header(
         "",
@@ -1848,6 +1897,12 @@ def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
 
 
 def _render_notice_detail(notice_id: str | None) -> None:
+    return_view = st.session_state.get("detail_return_view", "Results")
+    nav_cols = st.columns([0.2, 0.8], gap="small")
+    if nav_cols[0].button(f"Back to {return_view if return_view != 'Notice Detail' else 'Results'}", key="detail_back_button", width="stretch"):
+        _go_to_view(return_view if return_view != "Notice Detail" else "Results")
+        st.rerun()
+
     _render_section_header(
         "",
         "Notice detail",
