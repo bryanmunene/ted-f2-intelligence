@@ -1191,7 +1191,6 @@ def _ensure_live_scan_state(profile_names: list[str]) -> None:
         "live_scan_keyword_override": "",
         "live_scan_date_from": None,
         "live_scan_date_to": None,
-        "live_scan_page_size": 25,
         "live_scan_max_pages": 1,
         "live_scan_include_conditional": True,
         "live_scan_exclude_old": False,
@@ -1363,7 +1362,6 @@ def run_live_scan(
     include_conditional: bool,
     exclude_old: bool,
     include_soft_locks: bool,
-    page_size: int,
     max_pages: int,
 ) -> dict[str, Any]:
     session = get_session_factory()()
@@ -1390,7 +1388,7 @@ def run_live_scan(
             include_conditional=include_conditional,
             exclude_old=exclude_old,
             include_soft_locks=include_soft_locks,
-            page_size=page_size,
+            page_size=settings.ted_default_page_size,
             max_pages=max_pages,
         )
         outcome = service.run_manual_scan(payload)
@@ -1507,12 +1505,6 @@ def _render_live_scan() -> None:
             dates_left, dates_right = st.columns(2, gap="medium")
             with dates_left:
                 date_from = st.date_input("Publication Date From", value=None, key="live_scan_date_from")
-                page_size = st.select_slider(
-                    "Page Size",
-                    options=[10, 25, 50, 100],
-                    value=int(st.session_state.get("live_scan_page_size") or 25),
-                    key="live_scan_page_size",
-                )
                 include_conditional = st.checkbox("Include conditional", value=True, key="live_scan_include_conditional")
             with dates_right:
                 date_to = st.date_input("Publication Date To", value=None, key="live_scan_date_to")
@@ -1526,6 +1518,7 @@ def _render_live_scan() -> None:
                 include_soft_locks = st.checkbox("Include soft locks", value=True, key="live_scan_include_soft_locks")
         if country:
             st.caption(f"Country filter: {_country_display_label(country)}")
+        st.caption(f"Page size is fixed at {settings.ted_default_page_size} notices per page.")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
@@ -1544,7 +1537,6 @@ def _render_live_scan() -> None:
                 include_conditional=include_conditional,
                 exclude_old=exclude_old,
                 include_soft_locks=include_soft_locks,
-                page_size=page_size,
                 max_pages=max_pages,
             )
         except Exception as exc:
