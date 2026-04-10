@@ -988,7 +988,7 @@ def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
     chips: list[str] = []
     if filter_state.get("relevant_only"):
         chips.append("Relevant to F2 Only")
-    if filter_state.get("min_days_remaining") is not None:
+    if filter_state.get("min_days_remaining") not in {None, 0}:
         chips.append(f"Deadline >= {filter_state['min_days_remaining']} days")
     if filter_state.get("country"):
         chips.append(f"Country: {filter_state['country']}")
@@ -1114,7 +1114,7 @@ def _default_filter_state() -> dict[str, Any]:
         "score_max": 100,
         "publication_date_from": None,
         "publication_date_to": None,
-        "min_days_remaining": None,
+        "min_days_remaining": 0,
         "deadline_from": None,
         "deadline_to": None,
         "deadline_window_days": None,
@@ -1566,6 +1566,8 @@ def _render_dashboard() -> None:
 
 def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     filter_state = dict(st.session_state.get("results_filter_state", _default_filter_state()))
+    if filter_state.get("min_days_remaining") is None:
+        filter_state["min_days_remaining"] = 0
 
     if not render_sidebar:
         return _load_notices_for_filter_state(filter_state)
@@ -1654,7 +1656,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         "score_max": score_range[1],
         "publication_date_from": publication_date_from,
         "publication_date_to": publication_date_to,
-        "min_days_remaining": min_days_remaining if min_days_remaining > 0 else None,
+        "min_days_remaining": min_days_remaining,
         "deadline_from": deadline_from,
         "deadline_to": deadline_to,
         "deadline_window_days": deadline_window_days if deadline_window_days > 0 else None,

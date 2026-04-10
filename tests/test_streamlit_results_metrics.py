@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from streamlit_app import _build_results_metrics
+from streamlit_app import _build_results_metrics, _default_filter_state
 
 
 def test_results_metrics_handle_naive_and_string_dates() -> None:
@@ -36,3 +36,9 @@ def test_results_metrics_handle_naive_and_string_dates() -> None:
     assert "1 due within 7 days" in by_label["Review Now"]["note"]
     assert by_label["Hard Locks"]["value"] == "1"
     assert "2 published in the last 30 days" in by_label["Hard Locks"]["note"]
+
+
+def test_streamlit_default_results_filter_hides_expired_tenders() -> None:
+    default_state = _default_filter_state()
+
+    assert default_state["min_days_remaining"] == 0
