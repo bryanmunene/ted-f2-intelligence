@@ -19,6 +19,7 @@ from app.services.rescoring import rescore_outdated_notices
 from app.services.tender_checklist import TenderChecklistService
 from app.services.ted_client import TedApiClient
 from app.services.ted_documents import DocumentSpec, TedDocumentService
+from app.utils.countries import country_display_label, country_filter_options
 from app.utils.time import ensure_utc, format_date, format_datetime, parse_ted_date, parse_ted_datetime
 
 settings = get_settings()
@@ -674,7 +675,7 @@ def load_dashboard_payload() -> dict[str, Any]:
 @st.cache_data(ttl=60, show_spinner=False)
 def load_filtered_notices(
     *,
-    country: str | None,
+    country: str | list[str] | None,
     fit_label: str | None,
     priority_bucket: str | None,
     min_score: int | None,
@@ -764,6 +765,16 @@ def _display_value(value: Any) -> str:
     if raw is None:
         return "N/A"
     return str(raw)
+
+
+def _normalize_country_filter_values(value: Any) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [part.strip().upper() for part in value.split(",") if part.strip()]
+    if isinstance(value, (list, tuple, set)):
+        return [str(part).strip().upper() for part in value if str(part).strip()]
+    return []
 
 
 def _escape_text(value: Any) -> str:
@@ -994,8 +1005,13 @@ def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
         chips.append("Relevant to F2 Only")
     if filter_state.get("min_days_remaining") not in {None, 0}:
         chips.append(f"Deadline >= {filter_state['min_days_remaining']} days")
-    if filter_state.get("country"):
-        chips.append(f"Country: {filter_state['country']}")
+    selected_countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
+    if selected_countries:
+        country_labels = [country_display_label(country) for country in selected_countries]
+        if len(country_labels) > 3:
+            chips.append(f"Countries: {', '.join(country_labels[:3])} +{len(country_labels) - 3} more")
+        else:
+            chips.append(f"Countries: {', '.join(country_labels)}")
     if filter_state.get("fit_label"):
         chips.append(f"Fit: {filter_state['fit_label']}")
     if filter_state.get("priority_bucket"):
@@ -1108,7 +1124,7 @@ def _render_sidebar_brand() -> None:
 
 def _default_filter_state() -> dict[str, Any]:
     return {
-        "country": None,
+        "countries": [],
         "search": None,
         "relevant_only": False,
         "fit_label": None,
@@ -1158,8 +1174,9 @@ def _ensure_live_scan_state(profile_names: list[str]) -> None:
 
 
 def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
     payload = load_filtered_notices(
-        country=filter_state.get("country"),
+        country=countries or None,
         fit_label=filter_state.get("fit_label"),
         priority_bucket=filter_state.get("priority_bucket"),
         min_score=filter_state.get("score_min") if (filter_state.get("score_min") or 0) > 0 else None,
@@ -1428,8 +1445,20 @@ def _render_live_scan() -> None:
             st.caption(selected_profile.description)
 
         primary_left, primary_right = st.columns(2, gap="medium")
+        country_options = country_filter_options()
+        country_labels = ["Any"] + [label for label, _ in country_options]
+        country_value_by_label = {"Any": ""}
+        country_value_by_label.update({label: code for label, code in country_options})
+        current_country_value = str(st.session_state.get("live_scan_country") or "")
+        current_country_label = next((label for label, code in country_options if code == current_country_value), "Any")
         with primary_left:
-            country = st.text_input("Buyer Country", key="live_scan_country", placeholder="DK or DNK")
+            selected_country_label = st.selectbox(
+                "Buyer Country",
+                options=country_labels,
+                index=country_labels.index(current_country_label),
+            )
+            country = country_value_by_label[selected_country_label]
+            st.session_state["live_scan_country"] = country
             cpv = st.text_input("CPV Code", key="live_scan_cpv", placeholder="72260000")
         with primary_right:
             keyword_override = st.text_input(
@@ -1459,6 +1488,8 @@ def _render_live_scan() -> None:
                 )
                 exclude_old = st.checkbox("Exclude older notices", value=True, key="live_scan_exclude_old")
                 include_soft_locks = st.checkbox("Include soft locks", value=True, key="live_scan_include_soft_locks")
+        if country:
+            st.caption(f"Country filter: {country_display_label(country)}")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
@@ -1572,15 +1603,27 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     filter_state = dict(st.session_state.get("results_filter_state", _default_filter_state()))
     if filter_state.get("min_days_remaining") is None:
         filter_state["min_days_remaining"] = 0
+    selected_countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
+    filter_state["countries"] = selected_countries
 
     if not render_sidebar:
         return _load_notices_for_filter_state(filter_state)
 
     st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption("Broaden or narrow the review surface without leaving the signal board.")
+    country_options = country_filter_options()
+    country_labels = [label for label, _ in country_options]
+    country_code_by_label = {label: code for label, code in country_options}
+    selected_country_labels = [label for label, code in country_options if code in selected_countries]
 
     with st.sidebar.expander("Quick Filters", expanded=True):
-        country = st.text_input("Country", value=filter_state.get("country") or "", placeholder="DK or DNK").strip() or None
+        selected_country_labels = st.multiselect(
+            "Countries",
+            options=country_labels,
+            default=selected_country_labels,
+            placeholder="All countries",
+        )
+        countries = [country_code_by_label[label] for label in selected_country_labels]
         search = st.text_input("Search", value=filter_state.get("search") or "").strip() or None
         relevant_only = st.checkbox("Relevant to F2 Only", value=bool(filter_state.get("relevant_only")))
         page_size = st.slider(
@@ -1650,7 +1693,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         include_dismissed = st.checkbox("Include Dismissed", value=bool(filter_state.get("include_dismissed")))
 
     filter_state = {
-        "country": country,
+        "countries": countries,
         "search": search,
         "relevant_only": relevant_only,
         "fit_label": None if fit_label == "Any" else fit_label,

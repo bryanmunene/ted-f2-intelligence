@@ -93,6 +93,50 @@ COUNTRY_NAME_TO_TED_COUNTRY: dict[str, str] = {
 
 TED_COUNTRY_TO_ALPHA2: dict[str, str] = {value: key for key, value in ALPHA2_TO_TED_COUNTRY.items()}
 
+TED_COUNTRY_TO_NAME: dict[str, str] = {
+    "AUT": "Austria",
+    "BEL": "Belgium",
+    "BGR": "Bulgaria",
+    "HRV": "Croatia",
+    "CYP": "Cyprus",
+    "CZE": "Czechia",
+    "DNK": "Denmark",
+    "EST": "Estonia",
+    "FIN": "Finland",
+    "FRA": "France",
+    "DEU": "Germany",
+    "GRC": "Greece",
+    "HUN": "Hungary",
+    "IRL": "Ireland",
+    "ITA": "Italy",
+    "LVA": "Latvia",
+    "LTU": "Lithuania",
+    "LUX": "Luxembourg",
+    "MLT": "Malta",
+    "NLD": "Netherlands",
+    "POL": "Poland",
+    "PRT": "Portugal",
+    "ROU": "Romania",
+    "SVK": "Slovakia",
+    "SVN": "Slovenia",
+    "ESP": "Spain",
+    "SWE": "Sweden",
+    "NOR": "Norway",
+    "ISL": "Iceland",
+    "LIE": "Liechtenstein",
+    "CHE": "Switzerland",
+    "GBR": "United Kingdom",
+    "ALB": "Albania",
+    "BIH": "Bosnia and Herzegovina",
+    "MNE": "Montenegro",
+    "MKD": "North Macedonia",
+    "SRB": "Serbia",
+    "TUR": "Turkey",
+    "UKR": "Ukraine",
+    "MDA": "Moldova",
+    "GEO": "Georgia",
+}
+
 
 def normalize_ted_country_code(value: str | None) -> str | None:
     if value is None:
@@ -119,3 +163,23 @@ def ted_country_code_variants(value: str | None) -> list[str]:
     if alpha2 and alpha2 not in variants:
         variants.append(alpha2)
     return variants
+
+
+def country_display_label(value: str | None) -> str:
+    normalized = normalize_ted_country_code(value)
+    if not normalized:
+        return "Unknown"
+
+    name = TED_COUNTRY_TO_NAME.get(normalized, normalized)
+    alpha2 = TED_COUNTRY_TO_ALPHA2.get(normalized)
+    if alpha2:
+        return f"{name} ({alpha2})"
+    return name
+
+
+def country_filter_options() -> list[tuple[str, str]]:
+    options: list[tuple[str, str]] = []
+    for ted_code, name in sorted(TED_COUNTRY_TO_NAME.items(), key=lambda item: item[1]):
+        alpha2 = TED_COUNTRY_TO_ALPHA2.get(ted_code, ted_code)
+        options.append((f"{name} ({alpha2})", alpha2))
+    return options

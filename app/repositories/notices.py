@@ -14,7 +14,7 @@ from app.utils.countries import ted_country_code_variants
 
 @dataclass(slots=True)
 class NoticeListFilters:
-    country: str | None = None
+    country: str | list[str] | None = None
     fit_label: str | None = None
     priority_bucket: str | None = None
     min_score: int | None = None
@@ -176,7 +176,7 @@ class NoticeRepository:
         if filters.relevant_only:
             stmt = stmt.where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
         if filters.country:
-            country_variants = ted_country_code_variants(filters.country)
+            country_variants = self._country_variants(filters.country)
             if country_variants:
                 stmt = stmt.where(Notice.buyer_country.in_(country_variants))
         if filters.fit_label:
@@ -222,3 +222,22 @@ class NoticeRepository:
                 | func.lower(func.coalesce(Notice.summary, "")).like(pattern)
             )
         return stmt
+
+    def _country_variants(self, value: str | list[str] | None) -> list[str]:
+        if value is None:
+            return []
+
+        raw_values: list[str]
+        if isinstance(value, str):
+            raw_values = [part.strip() for part in value.split(",") if part.strip()]
+        else:
+            raw_values = [part.strip() for part in value if isinstance(part, str) and part.strip()]
+
+        variants: list[str] = []
+        seen: set[str] = set()
+        for raw in raw_values:
+            for variant in ted_country_code_variants(raw):
+                if variant not in seen:
+                    seen.add(variant)
+                    variants.append(variant)
+        return variants

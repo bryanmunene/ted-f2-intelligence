@@ -55,6 +55,30 @@ def test_notice_repository_country_filter_accepts_iso2_or_ted_code(db_session, s
     assert notices_alpha3[0].id == seeded_notice
 
 
+def test_notice_repository_country_filter_accepts_multiple_countries(db_session, seeded_notice: str) -> None:
+    repository = NoticeRepository(db_session)
+    swe_notice_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "77701-2026",
+            "notice-title": "Records management platform",
+            "buyer-name": "Municipal Archives Authority",
+            "buyer-country": "SE",
+            "publication-date": "2026-03-28",
+            "deadline": "2026-06-20T10:00:00Z",
+            "additional-information": "Records management, workflow automation and archiving.",
+        },
+    )
+
+    notices_list, total_list = repository.list(NoticeListFilters(country=["DK", "SE"]), page=1, page_size=25)
+    notices_csv, total_csv = repository.list(NoticeListFilters(country="DK,SE"), page=1, page_size=25)
+
+    assert total_list == 2
+    assert total_csv == 2
+    assert {notice.id for notice in notices_list} == {seeded_notice, swe_notice_id}
+    assert {notice.id for notice in notices_csv} == {seeded_notice, swe_notice_id}
+
+
 def test_notice_repository_default_review_queue_is_broader_but_can_be_narrowed(
     db_session,
     seeded_notice: str,
