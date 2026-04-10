@@ -10,6 +10,7 @@ from app.ingestion.models import NormalizedNotice
 from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
 from app.scoring.types import RuleContribution, ScoreResult, SignalEvidence
 from app.utils.text import normalize_text, unique_preserve_order
+from app.utils.time import ensure_utc
 
 ACRONYMS = {"bpm", "dms", "ecm", "edms", "erp", "hr", "ocr", "sap", "sso"}
 
@@ -524,7 +525,9 @@ class ScoringEngine:
         return result
 
     def _days_until_deadline(self, deadline: datetime | None, now: datetime) -> int | None:
-        return None if deadline is None else int((deadline - now).total_seconds() // 86400)
+        if deadline is None:
+            return None
+        return int((ensure_utc(deadline) - ensure_utc(now)).total_seconds() // 86400)
 
     def _publication_age_days(self, publication_date: date | None, today: date) -> int | None:
         return None if publication_date is None else (today - publication_date).days

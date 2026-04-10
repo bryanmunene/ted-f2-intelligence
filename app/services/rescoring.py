@@ -11,7 +11,7 @@ from app.ingestion.models import NormalizedNotice
 from app.models import Notice, NoticeAnalysis
 from app.repositories.notices import NoticeRepository
 from app.scoring.engine import ScoringEngine
-from app.utils.time import utcnow
+from app.utils.time import ensure_utc, utcnow
 
 
 @lru_cache(maxsize=1)
@@ -42,7 +42,7 @@ def normalized_notice_from_record(notice: Notice) -> NormalizedNotice:
         procedure_type=notice.procedure_type,
         cpv_codes=list(notice.cpv_codes or []),
         publication_date=notice.publication_date,
-        deadline=notice.deadline,
+        deadline=ensure_utc(notice.deadline) if notice.deadline else None,
         contract_duration=notice.contract_duration,
         source_url=notice.source_url,
         html_url=notice.html_url,

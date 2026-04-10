@@ -135,3 +135,25 @@ def test_scoring_engine_rejects_clear_poor_fit_hardware_scope() -> None:
     assert score.fit_label == FitLabel.NO
     assert score.priority_bucket == PriorityBucket.IGNORE
     assert any(signal.id == "hardware_only" for signal in score.negative_signals)
+
+
+def test_scoring_engine_handles_naive_deadline_datetimes() -> None:
+    scorer, profile = _scorer()
+    notice = normalize_notice(
+        {
+            "publication-number": "88999-2026",
+            "notice-title": "Case management platform",
+            "buyer-name": "Municipal Authority",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-20",
+            "deadline": "2026-05-30T10:00:00",
+            "additional-information": "Case management, workflow automation, records governance, integration and training.",
+            "classification-cpv": ["72262000"],
+        },
+        extraction_version="test-version",
+    )
+
+    score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
+
+    assert score.score > 0
+    assert score.fit_label in {FitLabel.YES, FitLabel.CONDITIONAL}
