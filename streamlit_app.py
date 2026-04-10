@@ -15,6 +15,7 @@ from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.demo_bootstrap import ensure_streamlit_storage
 from app.services.scan_service import ScanService
+from app.services.rescoring import rescore_outdated_notices
 from app.services.tender_checklist import TenderChecklistService
 from app.services.ted_client import TedApiClient
 from app.services.ted_documents import DocumentSpec, TedDocumentService
@@ -655,6 +656,7 @@ def _apply_theme() -> None:
 def load_dashboard_payload() -> dict[str, Any]:
     session = get_session_factory()()
     try:
+        rescore_outdated_notices(session)
         notice_repo = NoticeRepository(session)
         scan_repo = ScanRunRepository(session)
         return {
@@ -693,6 +695,7 @@ def load_filtered_notices(
 ) -> dict[str, Any]:
     session = get_session_factory()()
     try:
+        rescore_outdated_notices(session)
         filters = NoticeListFilters(
             country=country,
             fit_label=fit_label,
@@ -725,6 +728,7 @@ def load_filtered_notices(
 def load_notice_detail(notice_id: str) -> dict[str, Any] | None:
     session = get_session_factory()()
     try:
+        rescore_outdated_notices(session)
         notice = NoticeRepository(session).get_by_id(notice_id)
         return notice_to_detail_dict(notice) if notice else None
     finally:
@@ -1138,7 +1142,7 @@ def _ensure_live_scan_state(profile_names: list[str]) -> None:
         "live_scan_page_size": 25,
         "live_scan_max_pages": 1,
         "live_scan_include_conditional": True,
-        "live_scan_exclude_old": True,
+        "live_scan_exclude_old": False,
         "live_scan_include_soft_locks": True,
     }
     for key, value in defaults.items():

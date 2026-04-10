@@ -196,7 +196,7 @@ class Settings(BaseSettings):
     keyword_pack_path: Path = Path("config/keyword_pack.yaml")
     search_profiles_path: Path = Path("config/search_profiles.yaml")
     tender_checklist_template_path: Path = Path("config/tender_checklist.yaml")
-    scoring_version: str = "2026.04.3"
+    scoring_version: str = "2026.04.4"
     analysis_extraction_version: str = "2026.03.2"
 
     @property

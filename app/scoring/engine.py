@@ -14,8 +14,8 @@ from app.utils.text import normalize_text, unique_preserve_order
 ACRONYMS = {"bpm", "dms", "ecm", "edms", "erp", "hr", "ocr", "sap", "sso"}
 
 DOMAIN_RULES = (
-    ("document_management", "EDMS / ECM / DMS / document management", 20, ("title",), ("document management", "document management system", "records management", "enterprise content management", "content services platform", "electronic document management", "electronic records management", "edms", "ecm", "dms")),
-    ("records_archives", "Records / archives / registry", 16, ("summary",), ("records", "records governance", "archives", "archive management", "registry", "file tracking", "file registry", "document repository", "records repository")),
+    ("document_management", "EDMS / ECM / DMS / document management", 20, ("title", "summary", "metadata"), ("document management", "document management system", "records management", "enterprise content management", "content services platform", "electronic document management", "electronic records management", "edms", "ecm", "dms")),
+    ("records_archives", "Records / archives / registry", 16, ("title", "summary", "metadata"), ("records", "records governance", "archives", "archive management", "registry", "file tracking", "file registry", "document repository", "records repository")),
     ("workflow_bpm", "Workflow / BPM / approvals", 14, ("all",), ("workflow", "workflow automation", "workflow management", "workflow system", "bpm", "approvals", "approval workflow", "routing", "process automation")),
     ("case_management", "Case management / complaints / matters", 14, ("all",), ("case management", "case handling", "complaint management", "grievance", "matter management", "case tracking")),
     ("service_delivery", "Service delivery / licensing / permits / e-government", 12, ("all",), ("service delivery", "licensing", "licensing system", "permits", "permit management", "citizen services", "e-government", "digital government", "public service portal")),
@@ -108,29 +108,34 @@ class ScoringEngine:
         hard_blockers: list[str] = []
         soft_blockers: list[str] = []
         questions: list[str] = []
+        timing_penalty = 0
 
         deadline_days = self._days_until_deadline(notice.deadline, now)
         publication_days = self._publication_age_days(notice.publication_date, now.date())
         if deadline_days is not None and deadline_days < 7:
             result.viable_timing = False
-            hard_blockers.append("deadline under 7 days")
+            soft_blockers.append("deadline under 7 days")
             negative_reasons.append("deadline under 7 days")
             result.timing_flags.append({"flag": "deadline_under_7_days", "message": "Submission deadline is under 7 days away."})
+            score_penalty = -8
+            timing_penalty += score_penalty
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.deadline_under_7_days", label="Deadline under 7 days", points=-10, evidence=[notice.deadline.isoformat()] if notice.deadline else [], category="negative"),
+                signal=SignalEvidence(id="timing.deadline_under_7_days", label="Deadline under 7 days", points=score_penalty, evidence=[notice.deadline.isoformat()] if notice.deadline else [], category="negative"),
                 rule_id="timing.deadline_under_7_days",
             )
         if exclude_old and publication_days is not None and publication_days > 90:
             result.viable_timing = False
-            hard_blockers.append("publication older than 90 days")
+            soft_blockers.append("publication older than 90 days")
             negative_reasons.append("publication older than 90 days")
             result.timing_flags.append({"flag": "publication_older_than_90_days", "message": "Notice was published more than 90 days ago."})
+            score_penalty = -10
+            timing_penalty += score_penalty
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.publication_older_than_90_days", label="Publication older than 90 days", points=-10, evidence=[notice.publication_date.isoformat()] if notice.publication_date else [], category="negative"),
+                signal=SignalEvidence(id="timing.publication_older_than_90_days", label="Publication older than 90 days", points=score_penalty, evidence=[notice.publication_date.isoformat()] if notice.publication_date else [], category="negative"),
                 rule_id="timing.publication_older_than_90_days",
             )
 
@@ -140,6 +145,7 @@ class ScoringEngine:
         score += self.score_structural_fit(context, result, positive_reasons)
         score += self.score_cpv(context.cpv_codes, context.cpv_labels, result, positive_reasons, negative_reasons)
         score += self.score_negative_scope(context.full_text, result, negative_reasons, hard_blockers)
+        score += timing_penalty
 
         lock_status, lock_matches, openness_matches = self.detect_platform_lock(context.full_text)
         if openness_matches:
@@ -166,12 +172,12 @@ class ScoringEngine:
             result.soft_lock_detected = True
             soft_blockers.append("soft platform lock")
             questions.append("Is the buyer open to an alternative platform?")
-            score -= 10
+            score -= 6
             negative_reasons.append("soft platform lock")
             self._record_signal(
                 result,
                 signal_list=result.platform_lock_signals,
-                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=-10, evidence=lock_matches, category="platform_lock", severity="soft"),
+                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=-6, evidence=lock_matches, category="platform_lock", severity="soft"),
                 rule_id="platform.soft_lock",
             )
 
@@ -180,11 +186,11 @@ class ScoringEngine:
             result.timing_flags.append({"flag": "missing_deadline", "message": "Submission deadline missing."})
             questions.append("What is the submission deadline?")
             negative_reasons.append("deadline missing")
-            score -= 6
+            score -= 4
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-6, evidence=[], category="negative"),
+                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-4, evidence=[], category="negative"),
                 rule_id="timing.missing_deadline",
             )
         else:
@@ -194,20 +200,20 @@ class ScoringEngine:
 
         if self.thin_scope_text(notice, context):
             negative_reasons.append("limited scope text")
-            score -= 3
+            score -= 1
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="scope.thin_text", label="Description too thin for confident classification", points=-3, evidence=[], category="negative"),
+                signal=SignalEvidence(id="scope.thin_text", label="Description too thin for confident classification", points=-1, evidence=[], category="negative"),
                 rule_id="scope.thin_text",
             )
         if self._only_lot_title_present(context, notice):
             negative_reasons.append("lot title only")
-            score -= 3
+            score -= 1
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="scope.only_lot_title", label="Only lot title present with no usable scope text", points=-3, evidence=context.lot_titles[:2], category="negative"),
+                signal=SignalEvidence(id="scope.only_lot_title", label="Only lot title present with no usable scope text", points=-1, evidence=context.lot_titles[:2], category="negative"),
                 rule_id="scope.only_lot_title",
             )
         if self._detect_scanning_mix_soft_blocker(context.full_text):
@@ -354,15 +360,15 @@ class ScoringEngine:
         return len(normalize_text(notice.summary or "")) < 40 and len(" ".join(context.lot_titles + context.lot_descriptions)) < 40
 
     def classify(self, *, score: int, blockers: list[str], soft_blockers: list[str], force_no: bool = False) -> FitLabel:
-        if force_no or blockers or score < 30:
+        if force_no or blockers or score < 10:
             return FitLabel.NO
-        if 30 <= score <= 59 or (score >= 60 and soft_blockers):
+        if 10 <= score <= 54 or (score >= 55 and soft_blockers):
             return FitLabel.CONDITIONAL
         return FitLabel.YES
 
     def _determine_priority(self, fit_label: FitLabel, score: int) -> PriorityBucket:
         if fit_label == FitLabel.YES:
-            return PriorityBucket.HIGH if score >= 70 else PriorityBucket.GOOD
+            return PriorityBucket.HIGH if score >= 68 else PriorityBucket.GOOD
         return PriorityBucket.WATCHLIST if fit_label == FitLabel.CONDITIONAL else PriorityBucket.IGNORE
 
     def _determine_confidence(self, result: ScoreResult, notice: NormalizedNotice, context: MatchContext) -> ConfidenceIndicator:

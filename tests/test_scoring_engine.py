@@ -31,7 +31,7 @@ def test_scoring_engine_flags_strong_ted_f2_fit(ted_fixture_payload: dict) -> No
     assert "Matched domains:" in score.reasoning
 
 
-def test_scoring_engine_rejects_deadlines_under_seven_days(ted_fixture_payload: dict) -> None:
+def test_scoring_engine_rejects_deadlines_under_seven_days_when_other_hard_blockers_exist(ted_fixture_payload: dict) -> None:
     scorer, profile = _scorer()
     notice = normalize_notice(ted_fixture_payload["results"][1], extraction_version="test-version")
 
@@ -108,8 +108,8 @@ def test_scoring_engine_rejects_publications_older_than_ninety_days() -> None:
 
     score = scorer.score(notice, profile=profile, evaluated_at=datetime(2026, 3, 30, tzinfo=UTC))
 
-    assert score.fit_label == FitLabel.NO
-    assert score.priority_bucket == PriorityBucket.IGNORE
+    assert score.fit_label == FitLabel.CONDITIONAL
+    assert score.priority_bucket == PriorityBucket.WATCHLIST
     assert score.score > 0
     assert any(flag["flag"] == "publication_older_than_90_days" for flag in score.timing_flags)
 
