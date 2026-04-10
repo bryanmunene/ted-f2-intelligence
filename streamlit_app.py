@@ -19,7 +19,7 @@ from app.services.rescoring import rescore_outdated_notices
 from app.services.tender_checklist import TenderChecklistService
 from app.services.ted_client import TedApiClient
 from app.services.ted_documents import DocumentSpec, TedDocumentService
-from app.utils.countries import country_display_label, country_filter_options
+from app.utils import countries as country_utils
 from app.utils.time import ensure_utc, format_date, format_datetime, parse_ted_date, parse_ted_datetime
 
 settings = get_settings()
@@ -777,6 +777,42 @@ def _normalize_country_filter_values(value: Any) -> list[str]:
     return []
 
 
+def _country_display_label(value: str | None) -> str:
+    helper = getattr(country_utils, "country_display_label", None)
+    if callable(helper):
+        return str(helper(value))
+
+    normalized = country_utils.normalize_ted_country_code(value)
+    if not normalized:
+        return "Unknown"
+
+    name_to_code = getattr(country_utils, "COUNTRY_NAME_TO_TED_COUNTRY", {})
+    code_to_alpha2 = getattr(country_utils, "TED_COUNTRY_TO_ALPHA2", {})
+    code_to_name = {code: name.title() for name, code in name_to_code.items()}
+    name = code_to_name.get(normalized, normalized)
+    alpha2 = code_to_alpha2.get(normalized)
+    return f"{name} ({alpha2})" if alpha2 else name
+
+
+def _country_filter_options() -> list[tuple[str, str]]:
+    helper = getattr(country_utils, "country_filter_options", None)
+    if callable(helper):
+        return list(helper())
+
+    name_to_code = getattr(country_utils, "COUNTRY_NAME_TO_TED_COUNTRY", {})
+    code_to_alpha2 = getattr(country_utils, "TED_COUNTRY_TO_ALPHA2", {})
+
+    deduped_by_code: dict[str, str] = {}
+    for raw_name, ted_code in name_to_code.items():
+        deduped_by_code.setdefault(ted_code, raw_name.title())
+
+    options: list[tuple[str, str]] = []
+    for ted_code, name in sorted(deduped_by_code.items(), key=lambda item: item[1]):
+        alpha2 = code_to_alpha2.get(ted_code, ted_code)
+        options.append((f"{name} ({alpha2})", alpha2))
+    return options
+
+
 def _escape_text(value: Any) -> str:
     return html.escape(_display_value(value))
 
@@ -1007,7 +1043,7 @@ def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
         chips.append(f"Deadline >= {filter_state['min_days_remaining']} days")
     selected_countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
     if selected_countries:
-        country_labels = [country_display_label(country) for country in selected_countries]
+        country_labels = [_country_display_label(country) for country in selected_countries]
         if len(country_labels) > 3:
             chips.append(f"Countries: {', '.join(country_labels[:3])} +{len(country_labels) - 3} more")
         else:
@@ -1445,7 +1481,7 @@ def _render_live_scan() -> None:
             st.caption(selected_profile.description)
 
         primary_left, primary_right = st.columns(2, gap="medium")
-        country_options = country_filter_options()
+        country_options = _country_filter_options()
         country_labels = ["Any"] + [label for label, _ in country_options]
         country_value_by_label = {"Any": ""}
         country_value_by_label.update({label: code for label, code in country_options})
@@ -1489,7 +1525,7 @@ def _render_live_scan() -> None:
                 exclude_old = st.checkbox("Exclude older notices", value=True, key="live_scan_exclude_old")
                 include_soft_locks = st.checkbox("Include soft locks", value=True, key="live_scan_include_soft_locks")
         if country:
-            st.caption(f"Country filter: {country_display_label(country)}")
+            st.caption(f"Country filter: {_country_display_label(country)}")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
@@ -1611,7 +1647,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
 
     st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption("Broaden or narrow the review surface without leaving the signal board.")
-    country_options = country_filter_options()
+    country_options = _country_filter_options()
     country_labels = [label for label, _ in country_options]
     country_code_by_label = {label: code for label, code in country_options}
     selected_country_labels = [label for label, code in country_options if code in selected_countries]
