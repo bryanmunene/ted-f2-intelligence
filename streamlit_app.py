@@ -1201,23 +1201,12 @@ def _ensure_live_scan_state(profile_names: list[str]) -> None:
         "live_scan_country": "",
         "live_scan_cpv": "",
         "live_scan_keyword_override": "",
-        "live_scan_date_from": None,
-        "live_scan_date_to": None,
-        "live_scan_max_pages": 1,
-        "live_scan_include_conditional": True,
-        "live_scan_exclude_old": False,
-        "live_scan_include_soft_locks": True,
     }
     for key, value in defaults.items():
         st.session_state.setdefault(key, value)
 
     if profile_names and st.session_state.get("live_scan_profile_name") not in profile_names:
         st.session_state["live_scan_profile_name"] = default_profile
-
-    st.session_state["live_scan_max_pages"] = min(
-        int(st.session_state.get("live_scan_max_pages") or 1),
-        settings.ted_max_pages_per_scan,
-    )
 
 
 def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
@@ -1369,12 +1358,6 @@ def run_live_scan(
     country: str | None,
     cpv: str | None,
     keyword_override: str | None,
-    date_from: date | None,
-    date_to: date | None,
-    include_conditional: bool,
-    exclude_old: bool,
-    include_soft_locks: bool,
-    max_pages: int,
 ) -> dict[str, Any]:
     session = get_session_factory()()
     try:
@@ -1395,13 +1378,13 @@ def run_live_scan(
             country=country or None,
             cpv=cpv or None,
             keyword_override=keyword_override or None,
-            date_from=date_from,
-            date_to=date_to,
-            include_conditional=include_conditional,
-            exclude_old=exclude_old,
-            include_soft_locks=include_soft_locks,
+            date_from=None,
+            date_to=None,
+            include_conditional=True,
+            exclude_old=False,
+            include_soft_locks=True,
             page_size=settings.ted_default_page_size,
-            max_pages=max_pages,
+            max_pages=1,
         )
         outcome = service.run_manual_scan(payload)
         session.commit()
@@ -1512,25 +1495,9 @@ def _render_live_scan() -> None:
                 key="live_scan_keyword_override",
                 placeholder="case management, workflow automation",
             )
-
-        with st.expander("Advanced options", expanded=False):
-            dates_left, dates_right = st.columns(2, gap="medium")
-            with dates_left:
-                date_from = st.date_input("Publication Date From", value=None, key="live_scan_date_from")
-                include_conditional = st.checkbox("Include conditional", value=True, key="live_scan_include_conditional")
-            with dates_right:
-                date_to = st.date_input("Publication Date To", value=None, key="live_scan_date_to")
-                max_pages = st.select_slider(
-                    "Max Pages",
-                    options=list(range(1, settings.ted_max_pages_per_scan + 1)),
-                    value=int(st.session_state.get("live_scan_max_pages") or 1),
-                    key="live_scan_max_pages",
-                )
-                exclude_old = st.checkbox("Exclude older notices", value=True, key="live_scan_exclude_old")
-                include_soft_locks = st.checkbox("Include soft locks", value=True, key="live_scan_include_soft_locks")
         if country:
             st.caption(f"Country filter: {_country_display_label(country)}")
-        st.caption(f"Page size is fixed at {settings.ted_default_page_size} notices per page.")
+        st.caption("Scan uses the default review settings.")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
 
@@ -1544,12 +1511,6 @@ def _render_live_scan() -> None:
                 country=country.strip() or None,
                 cpv=cpv.strip() or None,
                 keyword_override=keyword_override.strip() or None,
-                date_from=date_from,
-                date_to=date_to,
-                include_conditional=include_conditional,
-                exclude_old=exclude_old,
-                include_soft_locks=include_soft_locks,
-                max_pages=max_pages,
             )
         except Exception as exc:
             st.error(f"Live TED scan failed: {exc}")
