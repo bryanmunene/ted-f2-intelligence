@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from streamlit_app import _build_results_metrics, _default_filter_state
+from streamlit_app import _build_results_metrics, _default_filter_state, _default_live_scan_max_pages, settings
 
 
 def test_results_metrics_handle_naive_and_string_dates() -> None:
@@ -42,3 +42,9 @@ def test_streamlit_default_results_filter_hides_expired_tenders() -> None:
     default_state = _default_filter_state()
 
     assert default_state["min_days_remaining"] == 0
+
+
+def test_overall_live_scan_fetches_deeper_than_country_scan() -> None:
+    assert _default_live_scan_max_pages("DNK") == 1
+    assert _default_live_scan_max_pages(" DK ") == 1
+    assert _default_live_scan_max_pages(None) == min(3, settings.ted_max_pages_per_scan)

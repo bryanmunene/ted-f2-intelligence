@@ -1352,6 +1352,13 @@ def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
     return notice.get("source_url") or notice.get("html_url") or notice.get("pdf_url")
 
 
+def _default_live_scan_max_pages(country: str | None) -> int:
+    normalized_country = (country or "").strip()
+    if normalized_country:
+        return 1
+    return min(3, settings.ted_max_pages_per_scan)
+
+
 def run_live_scan(
     *,
     profile_name: str,
@@ -1384,7 +1391,7 @@ def run_live_scan(
             exclude_old=False,
             include_soft_locks=True,
             page_size=settings.ted_default_page_size,
-            max_pages=1,
+            max_pages=_default_live_scan_max_pages(country),
         )
         outcome = service.run_manual_scan(payload)
         session.commit()
@@ -1497,6 +1504,9 @@ def _render_live_scan() -> None:
             )
         if country:
             st.caption(f"Country filter: {_country_display_label(country)}")
+            st.caption("Country scans use a focused TED pull.")
+        else:
+            st.caption("Overall scans use a deeper TED pull across multiple result pages.")
         st.caption("Scan uses the default review settings.")
 
         submitted = st.form_submit_button("Run live TED scan", width="stretch")
