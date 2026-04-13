@@ -4,10 +4,11 @@ import httpx
 import respx
 from fastapi.testclient import TestClient
 
-from app.deps import get_db
+from app.deps import get_db, get_scan_service
 from app.database import get_db_session
 from app.main import create_app
 from app.repositories.notices import NoticeRepository
+from app.services.scan_service import ScanOutcome
 
 
 def test_dashboard_and_notice_endpoints(db_session, seeded_notice: str) -> None:
@@ -140,3 +141,58 @@ def test_api_notice_filters_support_score_and_date_windows(db_session, seeded_no
     too_strict = client.get("/api/v1/notices", params={"max_score": notice.analysis.score - 1})
     assert too_strict.status_code == 200
     assert too_strict.json() == []
+
+
+def test_historical_backfill_endpoint_aggregates_windows(db_session) -> None:
+    app = create_app()
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    class FakeScanService:
+        def __init__(self) -> None:
+            self.settings = type("SettingsStub", (), {"ted_max_pages_per_scan": 4, "ted_default_page_size": 50})()
+            self.calls = 0
+
+        def run_manual_scan(self, payload):
+            self.calls += 1
+            return ScanOutcome(
+                scan_run_id=f"scan-{self.calls}",
+                total_notices_returned=10,
+                total_notices_ingested=4,
+                total_after_timing_filters=2,
+                total_high_fit=1,
+                total_conditional=1,
+                total_ignored=2,
+                request_count=2,
+                rate_limit_events=0,
+            )
+
+    fake_scan_service = FakeScanService()
+
+    def override_scan_service():
+        return fake_scan_service
+
+    app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_scan_service] = override_scan_service
+    client = TestClient(app)
+
+    response = client.post(
+        "/api/v1/backfills/historical",
+        json={
+            "profile_name": "F2 Core",
+            "date_from": "2025-01-01",
+            "date_to": "2025-02-15",
+            "country": "DK",
+        },
+    )
+    assert response.status_code == 201
+    payload = response.json()
+    assert payload["total_windows"] == 2
+    assert payload["completed_windows"] == 2
+    assert payload["total_notices_ingested"] == 8
+    assert len(payload["windows"]) == 2

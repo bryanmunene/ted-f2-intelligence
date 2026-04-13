@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 from app.api.presenters import notice_to_detail_dict, notice_to_summary_dict, scan_run_to_dict
 from app.api.schemas import (
     DashboardMetricsResponse,
+    HistoricalBackfillRequestPayload,
+    HistoricalBackfillResponse,
     NoticeDetailResponse,
     PredictiveOutlookResponse,
     NoticeSummaryResponse,
@@ -18,6 +20,7 @@ from app.api.schemas import (
 from app.deps import get_db, get_scan_service
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
+from app.services.historical_backfill import HistoricalBackfillService
 from app.services.predictive_outlook import PredictiveOutlookService
 from app.services.scan_service import ScanService
 from app.services.tender_checklist import TenderChecklistService
@@ -46,6 +49,42 @@ def run_scan(payload: ScanRequestPayload, scan_service: ScanService = Depends(ge
     if scan_run is None:
         raise HTTPException(status_code=500, detail="Scan run could not be reloaded after completion.")
     return ScanRunResponse.model_validate(scan_run_to_dict(scan_run))
+
+
+@router.post("/backfills/historical", response_model=HistoricalBackfillResponse, status_code=status.HTTP_201_CREATED)
+def run_historical_backfill(
+    payload: HistoricalBackfillRequestPayload,
+    scan_service: ScanService = Depends(get_scan_service),
+) -> HistoricalBackfillResponse:
+    service = HistoricalBackfillService(scan_service=scan_service, settings=scan_service.settings)
+    outcome = service.run(payload)
+    return HistoricalBackfillResponse.model_validate(
+        {
+            "date_from": outcome.date_from,
+            "date_to": outcome.date_to,
+            "window_months": outcome.window_months,
+            "total_windows": outcome.total_windows,
+            "completed_windows": outcome.completed_windows,
+            "total_notices_returned": outcome.total_notices_returned,
+            "total_notices_ingested": outcome.total_notices_ingested,
+            "total_after_timing_filters": outcome.total_after_timing_filters,
+            "total_high_fit": outcome.total_high_fit,
+            "total_conditional": outcome.total_conditional,
+            "total_ignored": outcome.total_ignored,
+            "request_count": outcome.request_count,
+            "rate_limit_events": outcome.rate_limit_events,
+            "windows": [
+                {
+                    "date_from": window.date_from,
+                    "date_to": window.date_to,
+                    "scan_run_id": window.scan_run_id,
+                    "total_notices_returned": window.total_notices_returned,
+                    "total_notices_ingested": window.total_notices_ingested,
+                }
+                for window in outcome.windows
+            ],
+        }
+    )
 
 
 @router.get("/notices", response_model=list[NoticeSummaryResponse])

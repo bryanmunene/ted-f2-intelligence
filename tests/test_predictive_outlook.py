@@ -49,8 +49,8 @@ def _store_relevant_notice(
             "scoring_version": "test",
             "analysis_timestamp": utcnow(),
             "keyword_hits": [],
-            "domain_hits": [],
-            "positive_signals": [],
+            "domain_hits": [{"label": "Records", "terms": ["records"], "scopes": ["summary"]}],
+            "positive_signals": [{"label": "Repository and workflow", "evidence": ["records", "workflow"]}],
             "negative_signals": [],
             "platform_lock_signals": [],
             "timing_flags": [],
@@ -58,7 +58,13 @@ def _store_relevant_notice(
             "score_breakdown": [],
             "score": score,
             "fit_label": fit_label,
-            "priority_bucket": PriorityBucket.HIGH if fit_label == FitLabel.YES else PriorityBucket.WATCHLIST,
+            "priority_bucket": (
+                PriorityBucket.HIGH
+                if fit_label == FitLabel.YES
+                else PriorityBucket.WATCHLIST
+                if fit_label == FitLabel.CONDITIONAL
+                else PriorityBucket.IGNORE
+            ),
             "confidence_indicator": ConfidenceIndicator.HIGH,
             "qualification_questions": [],
             "reasoning": "Relevant public-sector process digitisation opportunity.",
@@ -106,7 +112,7 @@ def test_predictive_outlook_learns_release_budget_and_country_patterns(db_sessio
         publication_date=date(2024, 3, 18),
         deadline=datetime(2024, 4, 20, tzinfo=UTC),
         score=61,
-        fit_label=FitLabel.CONDITIONAL,
+        fit_label=FitLabel.NO,
         procedure_type="Restricted procedure",
         raw_payload={"contract value": "EUR 1200000"},
     )

@@ -7,13 +7,14 @@ from typing import Any
 import streamlit as st
 
 from app.api.presenters import notice_to_detail_dict, notice_to_summary_dict, scan_run_to_dict
-from app.api.schemas import ScanRequestPayload
+from app.api.schemas import HistoricalBackfillRequestPayload, ScanRequestPayload
 from app.auth import ActorContext
 from app.config import get_settings, load_keyword_pack, load_search_profiles
 from app.database import get_session_factory
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.demo_bootstrap import ensure_streamlit_storage
+from app.services.historical_backfill import HistoricalBackfillService
 from app.services.predictive_outlook import PredictiveOutlookService
 from app.services.scan_service import ScanService
 from app.services.rescoring import rescore_outdated_notices
@@ -1300,6 +1301,23 @@ def _ensure_live_scan_state(profile_names: list[str]) -> None:
         st.session_state["live_scan_profile_name"] = default_profile
 
 
+def _ensure_backfill_state(profile_names: list[str]) -> None:
+    default_profile = profile_names[0] if profile_names else ""
+    defaults: dict[str, Any] = {
+        "backfill_profile_name": default_profile,
+        "backfill_country": "",
+        "backfill_cpv": "",
+        "backfill_keyword_override": "",
+        "backfill_date_from": date(datetime.now(tz=UTC).year - 1, 1, 1),
+        "backfill_date_to": datetime.now(tz=UTC).date(),
+    }
+    for key, value in defaults.items():
+        st.session_state.setdefault(key, value)
+
+    if profile_names and st.session_state.get("backfill_profile_name") not in profile_names:
+        st.session_state["backfill_profile_name"] = default_profile
+
+
 def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
     payload = load_filtered_notices(
@@ -1501,6 +1519,68 @@ def run_live_scan(
         session.close()
 
 
+def run_historical_backfill(
+    *,
+    profile_name: str,
+    date_from: date,
+    date_to: date,
+    country: str | None,
+    cpv: str | None,
+    keyword_override: str | None,
+) -> dict[str, Any]:
+    session = get_session_factory()()
+    try:
+        scan_service = ScanService(
+            session=session,
+            settings=settings,
+            ted_client=get_ted_client_resource(),
+            keyword_pack=get_keyword_pack_resource(),
+            search_profiles=get_search_profiles_registry(),
+            actor=ActorContext(
+                email=settings.default_user_email,
+                display_name=settings.default_user_name,
+                auth_provider="streamlit-shell",
+            ),
+        )
+        payload = HistoricalBackfillRequestPayload(
+            profile_name=profile_name,
+            date_from=date_from,
+            date_to=date_to,
+            country=country or None,
+            cpv=cpv or None,
+            keyword_override=keyword_override or None,
+        )
+        outcome = HistoricalBackfillService(scan_service=scan_service, settings=settings).run(payload)
+        session.commit()
+        return {
+            "date_from": outcome.date_from,
+            "date_to": outcome.date_to,
+            "window_months": outcome.window_months,
+            "total_windows": outcome.total_windows,
+            "completed_windows": outcome.completed_windows,
+            "total_notices_returned": outcome.total_notices_returned,
+            "total_notices_ingested": outcome.total_notices_ingested,
+            "total_after_timing_filters": outcome.total_after_timing_filters,
+            "total_high_fit": outcome.total_high_fit,
+            "total_conditional": outcome.total_conditional,
+            "total_ignored": outcome.total_ignored,
+            "request_count": outcome.request_count,
+            "rate_limit_events": outcome.rate_limit_events,
+            "windows": [
+                {
+                    "date_from": window.date_from,
+                    "date_to": window.date_to,
+                    "scan_run_id": window.scan_run_id,
+                    "total_notices_returned": window.total_notices_returned,
+                    "total_notices_ingested": window.total_notices_ingested,
+                }
+                for window in outcome.windows
+            ],
+        }
+    finally:
+        session.close()
+
+
 def _render_banner(current_view: str) -> None:
     storage_state = initialize_streamlit_storage()
     purged_demo_notices = storage_state.get("purged_demo_notices", 0)
@@ -1631,6 +1711,111 @@ def _render_live_scan() -> None:
     st.session_state["results_return_view"] = "Live Scan"
     st.session_state["active_view"] = "Results"
     st.rerun()
+
+
+def _render_historical_backfill() -> None:
+    profiles = get_search_profiles_registry()
+    _ensure_backfill_state(profiles.names)
+
+    _render_section_header(
+        "",
+        "Historical Backfill",
+        "Import older TED notices to strengthen pattern learning without changing the live review workflow.",
+    )
+    st.caption(
+        "This backfill runs official TED Search API windows, scores the notices with the existing F2 logic, "
+        "and feeds the predictive outlook. Expired notices remain out of the active queue by default."
+    )
+
+    with st.form("historical_backfill_form"):
+        profile_name = st.selectbox(
+            "Search Profile",
+            options=profiles.names,
+            key="backfill_profile_name",
+        )
+        selected_profile = next((profile for profile in profiles.profiles if profile.name == profile_name), None)
+        if selected_profile:
+            st.caption(selected_profile.description)
+
+        date_cols = st.columns(2, gap="medium")
+        with date_cols[0]:
+            date_from = st.date_input("From", key="backfill_date_from")
+        with date_cols[1]:
+            date_to = st.date_input("To", key="backfill_date_to")
+
+        field_cols = st.columns(2, gap="medium")
+        country_options = _country_filter_options()
+        country_labels = ["Any"] + [label for label, _ in country_options]
+        country_value_by_label = {"Any": ""}
+        country_value_by_label.update({label: code for label, code in country_options})
+        current_country_value = str(st.session_state.get("backfill_country") or "")
+        current_country_label = next((label for label, code in country_options if code == current_country_value), "Any")
+        with field_cols[0]:
+            selected_country_label = st.selectbox(
+                "Buyer Country",
+                options=country_labels,
+                index=country_labels.index(current_country_label),
+            )
+            country = country_value_by_label[selected_country_label]
+            st.session_state["backfill_country"] = country
+            cpv = st.text_input("CPV Code", key="backfill_cpv", placeholder="72260000")
+        with field_cols[1]:
+            keyword_override = st.text_input(
+                "Keyword Override",
+                key="backfill_keyword_override",
+                placeholder="case management, records management",
+            )
+
+        st.caption("Backfill runs in monthly windows with a deeper historical pull to stay polite to TED and preserve traceability.")
+        submitted = st.form_submit_button("Run historical TED backfill", width="stretch")
+
+    if not submitted:
+        return
+
+    if date_from > date_to:
+        st.error("The start date must be on or before the end date.")
+        return
+
+    with st.spinner("Backfilling historical TED notices and updating predictive outlook..."):
+        try:
+            outcome = run_historical_backfill(
+                profile_name=profile_name,
+                date_from=date_from,
+                date_to=date_to,
+                country=country.strip() or None,
+                cpv=cpv.strip() or None,
+                keyword_override=keyword_override.strip() or None,
+            )
+        except Exception as exc:
+            st.error(f"Historical TED backfill failed: {exc}")
+            return
+
+    st.cache_data.clear()
+    st.success(
+        f"Historical backfill completed across {outcome['completed_windows']} windows. "
+        f"Ingested {outcome['total_notices_ingested']} notices from {outcome['request_count']} TED API requests."
+    )
+    outcome_cols = st.columns(4)
+    outcome_cols[0].metric("Windows", outcome["completed_windows"])
+    outcome_cols[1].metric("Ingested", outcome["total_notices_ingested"])
+    outcome_cols[2].metric("High Fit", outcome["total_high_fit"])
+    outcome_cols[3].metric("Conditional", outcome["total_conditional"])
+
+    with st.expander("Backfill windows", expanded=False):
+        for window in outcome["windows"]:
+            st.write(
+                f"{window['date_from']} to {window['date_to']} | "
+                f"Returned {window['total_notices_returned']} | Ingested {window['total_notices_ingested']}"
+            )
+
+    action_cols = st.columns(2, gap="medium")
+    if action_cols[0].button("Open Dashboard", key="backfill_open_dashboard", width="stretch"):
+        _go_to_view("Dashboard")
+        st.rerun()
+    if action_cols[1].button("Open Results", key="backfill_open_results", width="stretch"):
+        st.session_state["results_return_view"] = "Historical Backfill"
+        _go_to_view("Results")
+        st.rerun()
 
 
 def _render_dashboard() -> None:
@@ -1800,9 +1985,11 @@ def _render_results() -> list[dict[str, Any]]:
     _seed_selected_notice(notices)
 
     nav_cols = st.columns([0.18, 0.82], gap="small")
-    if st.session_state.get("results_return_view") == "Live Scan":
-        if nav_cols[0].button("Back to Scan", key="results_back_to_scan", width="stretch"):
-            _go_to_view("Live Scan")
+    results_return_view = st.session_state.get("results_return_view")
+    if results_return_view in {"Live Scan", "Historical Backfill"}:
+        back_label = "Back to Scan" if results_return_view == "Live Scan" else "Back to Backfill"
+        if nav_cols[0].button(back_label, key="results_back_to_source", width="stretch"):
+            _go_to_view(results_return_view)
             st.rerun()
 
     _render_section_header(
@@ -2205,10 +2392,11 @@ def _render_notice_detail(notice_id: str | None) -> None:
 def main() -> None:
     _apply_theme()
 
-    views = ["Dashboard", "Live Scan", "Results", "Notice Detail"]
+    views = ["Dashboard", "Live Scan", "Historical Backfill", "Results", "Notice Detail"]
     view_labels = {
         "Dashboard": "Dashboard",
         "Live Scan": "Scan",
+        "Historical Backfill": "Backfill",
         "Results": "Results",
         "Notice Detail": "Detail",
     }
@@ -2231,6 +2419,8 @@ def main() -> None:
         _render_dashboard()
     elif current_view == "Live Scan":
         _render_live_scan()
+    elif current_view == "Historical Backfill":
+        _render_historical_backfill()
     elif current_view == "Results":
         _render_results()
     else:

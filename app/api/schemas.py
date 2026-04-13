@@ -117,6 +117,41 @@ class ScanRunResponse(BaseModel):
     error_count: int
 
 
+class HistoricalBackfillRequestPayload(BaseModel):
+    profile_name: str = "F2 Core"
+    date_from: date
+    date_to: date
+    country: str | None = None
+    cpv: str | None = None
+    keyword_override: str | None = None
+    window_months: int = Field(default=1, ge=1, le=3)
+
+
+class HistoricalBackfillWindowResponse(BaseModel):
+    date_from: date
+    date_to: date
+    scan_run_id: str
+    total_notices_returned: int
+    total_notices_ingested: int
+
+
+class HistoricalBackfillResponse(BaseModel):
+    date_from: date
+    date_to: date
+    window_months: int
+    total_windows: int
+    completed_windows: int
+    total_notices_returned: int
+    total_notices_ingested: int
+    total_after_timing_filters: int
+    total_high_fit: int
+    total_conditional: int
+    total_ignored: int
+    request_count: int
+    rate_limit_events: int
+    windows: list[HistoricalBackfillWindowResponse]
+
+
 class DashboardMetricsResponse(BaseModel):
     total_notices: int
     high_fit: int

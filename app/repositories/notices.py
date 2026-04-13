@@ -120,7 +120,6 @@ class NoticeRepository:
             select(Notice)
             .join(Notice.analysis)
             .options(contains_eager(Notice.analysis))
-            .where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
             .order_by(Notice.publication_date.desc().nullslast(), Notice.updated_at.desc())
             .limit(limit)
         )

@@ -6,7 +6,7 @@ from calendar import month_name
 from collections import Counter
 from datetime import UTC, date, datetime
 from statistics import median
-from typing import Any, Iterable, Sequence
+from typing import Any, Callable, Iterable, Sequence
 
 from app.models import Notice
 from app.models.enums import FitLabel
@@ -121,7 +121,12 @@ class PredictiveOutlookService:
         if analysis is None:
             return False
         if analysis.fit_label not in {FitLabel.YES, FitLabel.CONDITIONAL}:
-            return False
+            if analysis.hard_lock_detected:
+                return False
+            if analysis.score < 45:
+                return False
+            if not analysis.domain_hits and not analysis.positive_signals:
+                return False
         raw_payload = notice.raw_payload_json or {}
         return not bool(raw_payload.get("_seed_fixture"))
 
@@ -135,7 +140,13 @@ class PredictiveOutlookService:
                 values.append(delta)
         return values
 
-    def _top_items(self, counts: Counter[Any], *, label_fn: callable | None = None, limit: int = 3) -> list[dict[str, Any]]:
+    def _top_items(
+        self,
+        counts: Counter[Any],
+        *,
+        label_fn: Callable[[Any], str] | None = None,
+        limit: int = 3,
+    ) -> list[dict[str, Any]]:
         if not counts:
             return []
         total = sum(counts.values()) or 1
