@@ -777,6 +777,19 @@ def _normalize_country_filter_values(value: Any) -> list[str]:
     return []
 
 
+def _score_out_of_ten(value: Any) -> float:
+    try:
+        return max(0.0, min(10.0, round(float(value or 0) / 10.0, 1)))
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _format_score_out_of_ten(value: Any, *, include_suffix: bool = False) -> str:
+    score = _score_out_of_ten(value)
+    formatted = f"{score:.1f}"
+    return f"{formatted}/10" if include_suffix else formatted
+
+
 def _country_display_label(value: str | None) -> str:
     helper = getattr(country_utils, "country_display_label", None)
     if callable(helper):
@@ -1054,10 +1067,9 @@ def _summarize_results_filters(filter_state: dict[str, Any]) -> list[str]:
         chips.append(f"Priority: {filter_state['priority_bucket']}")
     if filter_state.get("confidence_indicator"):
         chips.append(f"Confidence: {filter_state['confidence_indicator']}")
-    score_min = filter_state.get("score_min")
-    score_max = filter_state.get("score_max")
-    if score_min != 0 or score_max != 100:
-        chips.append(f"Score: {score_min}-{score_max}")
+    score_min = int(filter_state.get("score_min") or 0)
+    if score_min > 0:
+        chips.append(f"Score >= {_format_score_out_of_ten(score_min, include_suffix=True)}")
     publication_date_from = filter_state.get("publication_date_from")
     publication_date_to = filter_state.get("publication_date_to")
     if publication_date_from or publication_date_to:
@@ -1129,8 +1141,8 @@ def _build_results_metrics(notices: list[dict[str, Any]], *, total_matches: int)
         },
         {
             "label": "Average Score",
-            "value": f"{avg_score:.1f}",
-            "note": f"Highest current score: {highest_score}",
+            "value": _format_score_out_of_ten(avg_score, include_suffix=True),
+            "note": f"Highest current score: {_format_score_out_of_ten(highest_score, include_suffix=True)}",
         },
         {
             "label": "Review Now",
@@ -1291,8 +1303,8 @@ def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
         <div class="cb-result-card {card_class}">
           <div class="cb-result-head">
             <div class="cb-result-score-block">
-              <div class="cb-result-score">{notice['score']}</div>
-              <div class="cb-result-score-label">Score</div>
+              <div class="cb-result-score">{_format_score_out_of_ten(notice['score'])}</div>
+              <div class="cb-result-score-label">Score / 10</div>
             </div>
             <div class="cb-result-main">
               <div class="cb-dossier-topline">
@@ -1616,7 +1628,7 @@ def _render_dashboard() -> None:
                         unsafe_allow_html=True,
                     )
                     action_cols = st.columns([0.8, 1.2, 1.2], gap="small")
-                    action_cols[0].metric("Score", notice["score"])
+                    action_cols[0].metric("Score", _format_score_out_of_ten(notice["score"], include_suffix=True))
                     if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", width="stretch"):
                         _open_notice_detail(notice["id"])
                         st.rerun()
@@ -1638,31 +1650,31 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         return _load_notices_for_filter_state(filter_state)
 
     st.sidebar.markdown("### Signal Filters")
-    st.sidebar.caption("Broaden or narrow the review surface without leaving the signal board.")
+    st.sidebar.caption("Use a few simple filters to narrow the review queue.")
     country_options = _country_filter_options()
-    country_labels = [label for label, _ in country_options]
-    country_code_by_label = {label: code for label, code in country_options}
-    selected_country_labels = [label for label, code in country_options if code in selected_countries]
+    country_labels = ["Any"] + [label for label, _ in country_options]
+    country_code_by_label = {"Any": ""}
+    country_code_by_label.update({label: code for label, code in country_options})
+    selected_country = selected_countries[0] if selected_countries else ""
+    selected_country_label = next((label for label, code in country_options if code == selected_country), "Any")
 
-    with st.sidebar.expander("Quick Filters", expanded=True):
-        selected_country_labels = st.multiselect(
-            "Countries",
-            options=country_labels,
-            default=selected_country_labels,
-            placeholder="All countries",
-        )
-        countries = [country_code_by_label[label] for label in selected_country_labels]
-        search = st.text_input("Search", value=filter_state.get("search") or "").strip() or None
-        relevant_only = st.checkbox("Relevant to F2 Only", value=bool(filter_state.get("relevant_only")))
-        page_size = st.slider(
-            "Cards to Load",
-            min_value=10,
-            max_value=100,
-            value=int(filter_state.get("page_size") or 20),
-            step=5,
-        )
+    selected_country_label = st.sidebar.selectbox(
+        "Country",
+        options=country_labels,
+        index=country_labels.index(selected_country_label),
+    )
+    countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
+    search = st.sidebar.text_input("Search", value=filter_state.get("search") or "").strip() or None
+    minimum_score_ten = st.sidebar.slider(
+        "Minimum Score",
+        min_value=0.0,
+        max_value=10.0,
+        value=float(int(filter_state.get("score_min") or 0) / 10),
+        step=0.5,
+    )
+    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=bool(filter_state.get("relevant_only")))
 
-    with st.sidebar.expander("Scoring", expanded=False):
+    with st.sidebar.expander("More Filters", expanded=False):
         fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
         priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
         confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
@@ -1681,17 +1693,6 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
             confidence_options,
             index=confidence_options.index(filter_state.get("confidence_indicator") or "Any"),
         )
-        score_range = st.slider(
-            "Score Range",
-            min_value=0,
-            max_value=100,
-            value=(
-                int(filter_state.get("score_min") or 0),
-                int(filter_state.get("score_max") or 100),
-            ),
-        )
-
-    with st.sidebar.expander("Timing", expanded=False):
         min_days_remaining = st.number_input(
             "Minimum Days Remaining",
             min_value=0,
@@ -1699,23 +1700,6 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
             value=int(filter_state.get("min_days_remaining") or 0),
             step=1,
         )
-        deadline_from = st.date_input("Deadline From", value=filter_state.get("deadline_from"))
-        deadline_to = st.date_input("Deadline To", value=filter_state.get("deadline_to"))
-        deadline_from, deadline_to = _normalize_date_range(deadline_from, deadline_to)
-        deadline_window_days = st.number_input(
-            "Deadline Within (Days)",
-            min_value=0,
-            max_value=365,
-            value=int(filter_state.get("deadline_window_days") or 0),
-            step=7,
-        )
-
-    with st.sidebar.expander("Publication", expanded=False):
-        publication_date_from = st.date_input("Published From", value=filter_state.get("publication_date_from"))
-        publication_date_to = st.date_input("Published To", value=filter_state.get("publication_date_to"))
-        publication_date_from, publication_date_to = _normalize_date_range(publication_date_from, publication_date_to)
-
-    with st.sidebar.expander("Flags", expanded=False):
         hard_lock_only = st.checkbox("Hard Lock Only", value=bool(filter_state.get("hard_lock_only")))
         saved_only = st.checkbox("Saved Only", value=bool(filter_state.get("saved_only")))
         include_dismissed = st.checkbox("Include Dismissed", value=bool(filter_state.get("include_dismissed")))
@@ -1727,18 +1711,18 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         "fit_label": None if fit_label == "Any" else fit_label,
         "priority_bucket": None if priority_bucket == "Any" else priority_bucket,
         "confidence_indicator": None if confidence_indicator == "Any" else confidence_indicator,
-        "score_min": score_range[0],
-        "score_max": score_range[1],
-        "publication_date_from": publication_date_from,
-        "publication_date_to": publication_date_to,
+        "score_min": int(round(minimum_score_ten * 10)),
+        "score_max": 100,
+        "publication_date_from": None,
+        "publication_date_to": None,
         "min_days_remaining": min_days_remaining,
-        "deadline_from": deadline_from,
-        "deadline_to": deadline_to,
-        "deadline_window_days": deadline_window_days if deadline_window_days > 0 else None,
+        "deadline_from": None,
+        "deadline_to": None,
+        "deadline_window_days": None,
         "hard_lock_only": hard_lock_only,
         "saved_only": saved_only,
         "include_dismissed": include_dismissed,
-        "page_size": page_size,
+        "page_size": 20,
     }
     notices, updated_state = _load_notices_for_filter_state(filter_state)
     st.session_state["results_filter_state"] = dict(updated_state)
@@ -2011,8 +1995,8 @@ def _render_notice_detail(notice_id: str | None) -> None:
         <div class="cb-dossier {detail_card_class}" style="margin-top: 0.3rem;">
           <div class="cb-dossier-grid">
             <div class="cb-dossier-rail">
-              <div class="cb-dossier-score">{detail['score']}</div>
-              <div class="cb-dossier-score-label">Signal Score</div>
+              <div class="cb-dossier-score">{_format_score_out_of_ten(detail['score'])}</div>
+              <div class="cb-dossier-score-label">Score / 10</div>
               <div class="cb-dossier-rail-line">
                 <div class="cb-dossier-rail-key">Confidence</div>
                 <div class="cb-dossier-rail-value">{html.escape(_display_value(detail["confidence_indicator"]))}</div>
@@ -2042,7 +2026,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
         [
             {
                 "label": "Score",
-                "value": str(detail["score"]),
+                "value": _format_score_out_of_ten(detail["score"], include_suffix=True),
                 "note": "Deterministic F2-fit score",
             },
             {
