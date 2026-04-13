@@ -124,3 +124,39 @@ class DashboardMetricsResponse(BaseModel):
     expiring_soon: int
     hard_lock: int
     scan_freshness: datetime | None
+
+
+class PredictiveTrendItemResponse(BaseModel):
+    label: str
+    count: int
+    share: float
+
+
+class PredictiveBudgetSummaryResponse(BaseModel):
+    sample_size: int
+    range_display: str
+    median_display: str
+    note: str
+
+
+class PredictiveWindowResponse(BaseModel):
+    label: str
+    reason: str
+
+
+class PredictiveOutlookResponse(BaseModel):
+    sample_size: int
+    confidence: str
+    average_score_ten: float
+    median_lead_days: int | None
+    publication_span_start: date | None
+    publication_span_end: date | None
+    budget_summary: PredictiveBudgetSummaryResponse
+    next_expected_window: PredictiveWindowResponse | None
+    peak_release_months: list[PredictiveTrendItemResponse]
+    peak_release_weekdays: list[PredictiveTrendItemResponse]
+    top_countries: list[PredictiveTrendItemResponse]
+    top_buyers: list[PredictiveTrendItemResponse]
+    top_procedures: list[PredictiveTrendItemResponse]
+    top_cpv_families: list[PredictiveTrendItemResponse]
+    forecast_summary: str

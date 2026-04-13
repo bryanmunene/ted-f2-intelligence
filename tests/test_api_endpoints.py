@@ -27,6 +27,11 @@ def test_dashboard_and_notice_endpoints(db_session, seeded_notice: str) -> None:
     assert dashboard.status_code == 200
     assert dashboard.json()["total_notices"] == 1
 
+    predictive = client.get("/api/v1/analytics/predictive-outlook")
+    assert predictive.status_code == 200
+    assert predictive.json()["sample_size"] == 1
+    assert predictive.json()["forecast_summary"]
+
     notice = client.get(f"/api/v1/notices/{seeded_notice}")
     assert notice.status_code == 200
     assert notice.json()["id"] == seeded_notice

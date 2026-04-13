@@ -9,6 +9,7 @@ from app.api.presenters import notice_to_detail_dict, notice_to_summary_dict, sc
 from app.api.schemas import (
     DashboardMetricsResponse,
     NoticeDetailResponse,
+    PredictiveOutlookResponse,
     NoticeSummaryResponse,
     ScanRequestPayload,
     ScanRunResponse,
@@ -17,6 +18,7 @@ from app.api.schemas import (
 from app.deps import get_db, get_scan_service
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
+from app.services.predictive_outlook import PredictiveOutlookService
 from app.services.scan_service import ScanService
 from app.services.tender_checklist import TenderChecklistService
 
@@ -27,6 +29,13 @@ router = APIRouter(prefix="/api/v1", tags=["api"])
 def dashboard_metrics(session: Session = Depends(get_db)) -> DashboardMetricsResponse:
     payload = NoticeRepository(session).dashboard_metrics()
     return DashboardMetricsResponse.model_validate(payload)
+
+
+@router.get("/analytics/predictive-outlook", response_model=PredictiveOutlookResponse)
+def predictive_outlook(session: Session = Depends(get_db)) -> PredictiveOutlookResponse:
+    notices = NoticeRepository(session).predictive_history(limit=500)
+    payload = PredictiveOutlookService().build(notices)
+    return PredictiveOutlookResponse.model_validate(payload)
 
 
 @router.post("/scans", response_model=ScanRunResponse, status_code=status.HTTP_201_CREATED)

@@ -115,6 +115,17 @@ class NoticeRepository:
         )
         return self.session.scalar(stmt)
 
+    def predictive_history(self, *, limit: int = 500) -> list[Notice]:
+        stmt = (
+            select(Notice)
+            .join(Notice.analysis)
+            .options(contains_eager(Notice.analysis))
+            .where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
+            .order_by(Notice.publication_date.desc().nullslast(), Notice.updated_at.desc())
+            .limit(limit)
+        )
+        return list(self.session.scalars(stmt).unique().all())
+
     def set_triage(self, notice_id: str, *, saved: bool | None = None, dismissed: bool | None = None) -> Notice:
         notice = self.get_by_id(notice_id)
         if notice is None:

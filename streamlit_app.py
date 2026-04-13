@@ -14,6 +14,7 @@ from app.database import get_session_factory
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.demo_bootstrap import ensure_streamlit_storage
+from app.services.predictive_outlook import PredictiveOutlookService
 from app.services.scan_service import ScanService
 from app.services.rescoring import rescore_outdated_notices
 from app.services.tender_checklist import TenderChecklistService
@@ -660,6 +661,7 @@ def load_dashboard_payload() -> dict[str, Any]:
         rescore_outdated_notices(session)
         notice_repo = NoticeRepository(session)
         scan_repo = ScanRunRepository(session)
+        predictive_outlook = PredictiveOutlookService().build(notice_repo.predictive_history(limit=500))
         return {
             "metrics": notice_repo.dashboard_metrics(),
             "recent_scans": [scan_run_to_dict(scan) for scan in scan_repo.recent(limit=6)],
@@ -667,6 +669,7 @@ def load_dashboard_payload() -> dict[str, Any]:
                 notice_to_summary_dict(notice)
                 for notice in notice_repo.list(NoticeListFilters(), page=1, page_size=8)[0]
             ],
+            "predictive_outlook": predictive_outlook,
         }
     finally:
         session.close()
@@ -988,6 +991,94 @@ def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
             detail_cols[2].metric("Requests", scan["request_count"])
             if scan["rate_limit_events"]:
                 st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
+
+
+def _render_ranked_signal_list(title: str, items: list[dict[str, Any]], *, empty_message: str) -> None:
+    with st.container(border=True):
+        st.markdown(f"**{title}**")
+        if not items:
+            st.caption(empty_message)
+            return
+        for item in items:
+            st.markdown(f"- `{item['count']}` {item['label']} ({item['share']:.1f}%)")
+
+
+def _render_predictive_outlook(outlook: dict[str, Any]) -> None:
+    if not outlook or not outlook.get("sample_size"):
+        st.info("Predictive outlook will appear once the app has enough relevant TED history to learn from.")
+        return
+
+    _render_section_header(
+        "",
+        "Predictive Outlook",
+        "Historical patterns from relevant TED notices to help anticipate where and when similar opportunities appear.",
+    )
+
+    next_window = outlook.get("next_expected_window") or {}
+    budget_summary = outlook.get("budget_summary") or {}
+    _render_stat_cards(
+        [
+            {
+                "label": "Relevant History",
+                "value": str(outlook.get("sample_size", 0)),
+                "note": f"{outlook.get('confidence', 'Low')} confidence sample",
+            },
+            {
+                "label": "Typical Lead Time",
+                "value": str(outlook.get("median_lead_days") or "Unknown"),
+                "note": "Median days from publication to deadline",
+            },
+            {
+                "label": "Budget Range",
+                "value": str(budget_summary.get("range_display") or "Unknown"),
+                "note": str(budget_summary.get("note") or "No budget pattern available"),
+            },
+            {
+                "label": "Next Likely Window",
+                "value": str(next_window.get("label") or "Unknown"),
+                "note": str(next_window.get("reason") or "Not enough month history yet"),
+            },
+        ]
+    )
+    st.caption(
+        f"Historical span: {format_date(outlook.get('publication_span_start'))} to {format_date(outlook.get('publication_span_end'))} | "
+        f"Average score: {outlook.get('average_score_ten', 0.0):.1f}/10"
+    )
+    st.info(str(outlook.get("forecast_summary") or "No forecast summary available yet."))
+
+    top_left, top_right = st.columns(2, gap="medium")
+    with top_left:
+        _render_ranked_signal_list(
+            "Peak Release Months",
+            outlook.get("peak_release_months", []),
+            empty_message="No publication-month pattern available yet.",
+        )
+        _render_ranked_signal_list(
+            "Top Countries",
+            outlook.get("top_countries", []),
+            empty_message="No country concentration visible yet.",
+        )
+        _render_ranked_signal_list(
+            "Common Procedures",
+            outlook.get("top_procedures", []),
+            empty_message="No procedure pattern available yet.",
+        )
+    with top_right:
+        _render_ranked_signal_list(
+            "Peak Release Weekdays",
+            outlook.get("peak_release_weekdays", []),
+            empty_message="No weekday publication pattern available yet.",
+        )
+        _render_ranked_signal_list(
+            "Repeat Buyers",
+            outlook.get("top_buyers", []),
+            empty_message="No repeat-buyer pattern available yet.",
+        )
+        _render_ranked_signal_list(
+            "Common CPV Families",
+            outlook.get("top_cpv_families", []),
+            empty_message="No CPV-family pattern available yet.",
+        )
 
 
 def _normalize_date_range(start: date | None, end: date | None) -> tuple[date | None, date | None]:
@@ -1547,6 +1638,7 @@ def _render_dashboard() -> None:
     metrics = payload["metrics"]
     recent_scans = payload["recent_scans"]
     top_notices = payload["top_notices"]
+    predictive_outlook = payload["predictive_outlook"]
 
     _render_section_header(
         "",
@@ -1580,7 +1672,7 @@ def _render_dashboard() -> None:
         f"Expiring soon: {metrics['expiring_soon']} | Hard locks: {metrics['hard_lock']}"
     )
 
-    scans_tab, queue_tab = st.tabs(["Recent scan runs", "Immediate attention"])
+    scans_tab, queue_tab, forecast_tab = st.tabs(["Recent scan runs", "Immediate attention", "Predictive outlook"])
     with scans_tab:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
@@ -1608,6 +1700,9 @@ def _render_dashboard() -> None:
                         action_cols[2].link_button("TED notice", official_url, width="stretch")
         else:
             st.info("No stored notices available yet.")
+
+    with forecast_tab:
+        _render_predictive_outlook(predictive_outlook)
 
 
 def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]], dict[str, Any]]:
