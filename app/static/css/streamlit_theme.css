@@ -79,6 +79,33 @@
         [data-testid="stSidebarNav"] {
             display: none;
         }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 0.4rem 0.55rem;
+            margin-bottom: 0.3rem;
+            transition: background 160ms ease, border-color 160ms ease;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.24);
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label p {
+            color: #edf4ff !important;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            opacity: 1 !important;
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] {
+            accent-color: #7aa7ff;
+            filter: saturate(1.25) brightness(1.08);
+        }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input[type="radio"]:checked) {
+            background: rgba(122, 167, 255, 0.28);
+            border-color: rgba(172, 201, 255, 0.62);
+            box-shadow: 0 0 0 1px rgba(124, 169, 255, 0.28) inset;
+        }
         .main .block-container {
             max-width: 1120px;
             padding-top: 1rem;
