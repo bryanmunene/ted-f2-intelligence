@@ -157,6 +157,15 @@
         .stLinkButton a span {
             color: inherit !important;
         }
+        .stButton > button p,
+        .stButton > button div,
+        .stButton > button svg,
+        .stDownloadButton > button p,
+        .stDownloadButton > button div,
+        .stDownloadButton > button svg {
+            color: inherit !important;
+            fill: currentColor !important;
+        }
         .stButton > button:disabled,
         .stDownloadButton > button:disabled {
             background: #d8e4f5;
