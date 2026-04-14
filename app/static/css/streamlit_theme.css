@@ -146,11 +146,30 @@
             letter-spacing: 0.01em;
             box-shadow: none;
         }
+        /* Streamlit sometimes renders submit/actions as stBaseButton-* instead of .stButton */
+        [data-testid="stBaseButton-primary"],
+        [data-testid="stBaseButton-secondary"],
+        [data-testid="stFormSubmitButton"] > button {
+            background: var(--cb-accent) !important;
+            color: #f7fbff !important;
+            border: 1px solid #2a59bb !important;
+            border-radius: 10px !important;
+            min-height: 2.6rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.01em !important;
+        }
         .stButton > button:hover,
         .stDownloadButton > button:hover {
             background: #2556bb;
             border-color: #214ea9;
             color: #ffffff;
+        }
+        [data-testid="stBaseButton-primary"]:hover,
+        [data-testid="stBaseButton-secondary"]:hover,
+        [data-testid="stFormSubmitButton"] > button:hover {
+            background: #2556bb !important;
+            border-color: #214ea9 !important;
+            color: #ffffff !important;
         }
         .stButton > button span,
         .stDownloadButton > button span,
@@ -193,11 +212,25 @@
             color: #102645;
             border-color: #bfd2f5;
         }
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"],
+        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"],
+        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button {
+            background: #eaf2ff !important;
+            color: #102645 !important;
+            border-color: #bfd2f5 !important;
+        }
         [data-testid="stSidebar"] .stButton > button:hover,
         [data-testid="stSidebar"] .stDownloadButton > button:hover {
             background: #dce9ff;
             color: #0b203e;
             border-color: #aac4f0;
+        }
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"]:hover,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"]:hover,
+        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button:hover {
+            background: #dce9ff !important;
+            color: #0b203e !important;
+            border-color: #aac4f0 !important;
         }
         [data-testid="stSidebar"] .stLinkButton a {
             background: rgba(255, 255, 255, 0.1);
