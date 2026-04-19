@@ -205,65 +205,69 @@ def render_result_card(
     }.get(raw_fit_label.upper(), raw_fit_label)
     confidence = str(display_value(notice.get("confidence_indicator")))
     card_class = card_tone_class(notice)
+    score_value = max(0, min(100, int(round(float(notice.get("score") or 0)))))
 
-    top_line_badges = [render_pill(fit_label, "fit")]
     if notice.get("hard_lock_detected"):
-        top_line_badges.append(render_pill("Needs caution", "alert"))
-        status_title = "Needs caution"
-        status_note = "A key requirement may need checking first."
-    elif notice.get("viable_timing"):
-        top_line_badges.append(render_pill("Ready to review", "good"))
+        status_title = "Check first"
+        status_note = "A key requirement needs extra care."
+        status_tone = "alert"
+    elif notice.get("viable_timing") and raw_fit_label.upper() == "YES":
         status_title = "Ready to review"
-        status_note = "The timing still looks workable."
+        status_note = "This looks like a strong option."
+        status_tone = "good"
+    elif raw_fit_label.upper() == "CONDITIONAL":
+        status_title = "Worth a look"
+        status_note = "Promising, but review the details."
+        status_tone = "watch"
     else:
-        top_line_badges.append(render_pill("Timing check", "watch"))
-        status_title = "Timing check"
-        status_note = "Check the closing date before going deeper."
+        status_title = "Review timing"
+        status_note = "Check the dates before spending time here."
+        status_tone = "watch"
+
+    top_line_badges = [
+        render_pill(status_title, status_tone),
+        render_pill(notice_source_label(notice), "source"),
+    ]
 
     buyer = notice.get("buyer") or "Unknown buyer"
     country = notice.get("buyer_country") or "N/A"
-    source_label = notice_source_label(notice)
     publication = notice.get("publication_number") or "Unknown publication"
     deadline = format_datetime(notice.get("deadline"), ui_timezone)
     publication_date = format_date(notice.get("publication_date"))
     title = notice.get("title") or "Untitled notice"
     summary_text = truncate_text(
         notice.get("reasoning") or notice.get("summary") or "Open the summary to see the full tender details and evidence.",
-        limit=180,
+        limit=150,
     )
     keyword_labels = notice_keyword_labels(notice, limit=2)
-    keyword_chips = "".join(render_chip(label) for label in keyword_labels)
-    if not keyword_chips:
-        keyword_chips = render_chip("More details inside")
-
-    quick_facts_html = "".join(
-        [
-            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Buyer</div><div class="cb-result-quickfact-value">{html.escape(str(buyer))}</div></div>',
-            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Deadline</div><div class="cb-result-quickfact-value">{html.escape(str(deadline))}</div></div>',
-            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Confidence</div><div class="cb-result-quickfact-value">{html.escape(confidence)}</div></div>',
-        ]
-    )
+    why_it_matches = " • ".join(keyword_labels)
+    if not why_it_matches:
+        why_it_matches = f"Confidence: {confidence}"
 
     with st.container(border=True):
         st.markdown(
             f"""
             <div class="cb-result-shell cb-flow-surface {card_class}" style="--cb-enter-delay: {min(card_index * 45, 360)}ms;">
               <div class="cb-result-toprow">
-                <div class="cb-result-score-block">
-                  <div class="cb-result-score">{format_score_out_of_ten(notice['score'])}</div>
-                  <div class="cb-result-score-label">Match</div>
-                </div>
                 <div class="cb-result-main">
                   <div class="cb-dossier-topline">{''.join(top_line_badges)}</div>
                   <div class="cb-result-title">{html.escape(title)}</div>
-                  <div class="cb-result-meta">{html.escape(buyer)} • {html.escape(country)} • {html.escape(source_label)}</div>
+                  <div class="cb-result-meta">{html.escape(str(buyer))} • {html.escape(str(country))} • Deadline {html.escape(str(deadline))}</div>
                   <div class="cb-result-summary">{html.escape(summary_text)}</div>
+                  <div class="cb-result-matchline">Why it matches: {html.escape(why_it_matches)}</div>
+                  <div class="cb-result-reference">Reference {html.escape(publication)} • Published {html.escape(publication_date)}</div>
+                </div>
+                <div class="cb-result-meter-card">
+                  <div class="cb-result-meter-label">
+                    <span class="cb-result-meter-title">Match</span>
+                    <span class="cb-result-meter-value">{format_score_out_of_ten(notice['score'])}</span>
+                  </div>
+                  <div class="cb-result-meter">
+                    <div class="cb-result-meter-fill cb-result-meter-fill-{status_tone}" style="width: {score_value}%;"></div>
+                  </div>
+                  <div class="cb-result-meter-note">{html.escape(fit_label)} • {html.escape(status_note)}</div>
                 </div>
               </div>
-              <div class="cb-result-quickfacts">{quick_facts_html}</div>
-              <div class="cb-chip-row">{keyword_chips}</div>
-              <div class="cb-result-helper"><span class="cb-result-helper-title">{html.escape(status_title)}:</span><span>{html.escape(status_note)}</span></div>
-              <div class="cb-result-reference">Reference {html.escape(publication)} • Published {html.escape(publication_date)}</div>
             </div>
             """,
             unsafe_allow_html=True,
