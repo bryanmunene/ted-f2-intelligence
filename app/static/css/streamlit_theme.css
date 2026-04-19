@@ -1,20 +1,20 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
         :root {
-            --cb-bg: #f8f6ff;
-            --cb-bg-soft: #eef2ff;
+            --cb-bg: #fbfafc;
+            --cb-bg-soft: #f4f1fb;
             --cb-surface: #ffffff;
-            --cb-surface-2: #fbfaff;
-            --cb-surface-3: #f3f4ff;
-            --cb-line: #d8def0;
-            --cb-text: #1f2940;
-            --cb-text-soft: #46556e;
-            --cb-text-dim: #6f7d97;
-            --cb-accent: #6c63ff;
-            --cb-accent-2: #8b7dff;
-            --cb-good: #1f8a63;
-            --cb-watch: #b7791f;
-            --cb-risk: #c75454;
-            --cb-sidebar: #1d2340;
+            --cb-surface-2: #fdfbff;
+            --cb-surface-3: #f7f4fb;
+            --cb-line: #e5deef;
+            --cb-text: #2c3044;
+            --cb-text-soft: #5c647c;
+            --cb-text-dim: #7f869d;
+            --cb-accent: #7c6cf2;
+            --cb-accent-2: #9c8cff;
+            --cb-good: #2f8f6b;
+            --cb-watch: #c08932;
+            --cb-risk: #c75e63;
+            --cb-sidebar: #f8f4fc;
             --cb-motion-fast: 180ms;
             --cb-motion-base: 320ms;
             --cb-motion-slow: 540ms;
@@ -49,64 +49,65 @@
             backdrop-filter: blur(8px);
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #0f1b2d 0%, #14233a 100%);
-            border-right: 1px solid rgba(255, 255, 255, 0.08);
-            min-width: 250px !important;
-            max-width: 250px !important;
+            background: linear-gradient(180deg, #fbf8ff 0%, #f5f1fb 100%);
+            border-right: 1px solid #e8e0f1;
+            min-width: 260px !important;
+            max-width: 260px !important;
         }
         [data-testid="stSidebar"],
         [data-testid="stSidebar"] p,
         [data-testid="stSidebar"] label,
         [data-testid="stSidebar"] span,
         [data-testid="stSidebar"] small {
-            color: #edf4ff;
+            color: #2e3550;
         }
         [data-testid="stSidebar"] [data-testid="stExpander"] {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.75);
+            border: 1px solid #e7dff2;
         }
         [data-testid="stSidebar"] div[data-baseweb="input"] > div,
         [data-testid="stSidebar"] div[data-baseweb="select"] > div,
         [data-testid="stSidebar"] div[data-baseweb="textarea"] > div,
         [data-testid="stSidebar"] .stDateInput > div > div,
         [data-testid="stSidebar"] .stNumberInput > div > div {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: #edf4ff;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #ded7ea;
+            color: #2e3550;
         }
         [data-testid="stSidebar"] input,
         [data-testid="stSidebar"] textarea {
-            color: #edf4ff !important;
+            color: #2e3550 !important;
         }
         [data-testid="stSidebarNav"] {
             display: none;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-            padding: 0.4rem 0.55rem;
-            margin-bottom: 0.3rem;
-            transition: background 160ms ease, border-color 160ms ease;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #e2d9ee;
+            border-radius: 14px;
+            padding: 0.5rem 0.7rem;
+            margin-bottom: 0.38rem;
+            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
-            background: rgba(255, 255, 255, 0.12);
-            border-color: rgba(255, 255, 255, 0.24);
+            background: #ffffff;
+            border-color: #cfc2ea;
+            transform: translateX(1px);
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label p {
-            color: #edf4ff !important;
+            color: #2e3550 !important;
             font-weight: 600;
             letter-spacing: 0.01em;
             opacity: 1 !important;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] {
-            accent-color: #7aa7ff;
-            filter: saturate(1.25) brightness(1.08);
+            accent-color: #8b7dff;
+            filter: saturate(1.05);
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input[type="radio"]:checked) {
-            background: rgba(122, 167, 255, 0.28);
-            border-color: rgba(172, 201, 255, 0.62);
-            box-shadow: 0 0 0 1px rgba(124, 169, 255, 0.28) inset;
+            background: linear-gradient(135deg, #efeaff 0%, #f7f3ff 100%);
+            border-color: #c7baea;
+            box-shadow: 0 0 0 1px rgba(139, 125, 255, 0.15) inset;
         }
         .main .block-container {
             max-width: 1120px;
@@ -134,9 +135,9 @@
         }
         div[data-testid="stMetricLabel"] p {
             color: var(--cb-text-dim);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            font-size: 0.78rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
         }
         div[data-testid="stMetricValue"] {
             color: var(--cb-text);
@@ -270,60 +271,60 @@
         [data-testid="stSidebar"] .stDownloadButton > button,
         [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button,
         [data-testid="stSidebar"] [data-testid^="stBaseButton-"] {
-            background: rgba(255, 255, 255, 0.12) !important;
-            color: #f8fbff !important;
-            border-color: rgba(191, 210, 245, 0.5) !important;
+            background: #ffffff !important;
+            color: #2f3753 !important;
+            border-color: #dbd2ea !important;
         }
         [data-testid="stSidebar"] .stButton > button:hover,
         [data-testid="stSidebar"] .stDownloadButton > button:hover,
         [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button:hover,
         [data-testid="stSidebar"] [data-testid^="stBaseButton-"]:hover {
-            background: rgba(96, 165, 250, 0.22) !important;
-            color: #ffffff !important;
-            border-color: rgba(147, 197, 253, 0.8) !important;
+            background: #f6f2ff !important;
+            color: #2b3150 !important;
+            border-color: #cdbfee !important;
         }
         [data-testid="stSidebar"] .stLinkButton a {
-            background: rgba(255, 255, 255, 0.1);
-            color: #edf4ff;
-            border-color: rgba(255, 255, 255, 0.24);
+            background: #ffffff;
+            color: #2f3753;
+            border-color: #dbd2ea;
         }
         [data-testid="stSidebar"] .stLinkButton a:hover {
-            background: rgba(255, 255, 255, 0.18);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.35);
+            background: #f6f2ff;
+            color: #2b3150;
+            border-color: #cdbfee;
         }
         .stAlert {
-            border-radius: 20px;
+            border-radius: 16px;
+            border: 1px solid #e5dcf2;
         }
         [data-baseweb="tab-list"] {
-            gap: 0.55rem;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(243, 244, 255, 0.95));
-            border: 1px solid #dde3f4;
-            border-radius: 18px;
+            gap: 0.4rem;
+            background: #fbf8fd;
+            border: 1px solid #e6def1;
+            border-radius: 16px;
             padding: 0.35rem;
-            box-shadow: 0 8px 22px rgba(99, 102, 241, 0.08);
+            box-shadow: 0 6px 18px rgba(118, 111, 160, 0.07);
         }
         button[data-baseweb="tab"] {
-            height: 2.75rem;
-            border-radius: 999px;
+            height: 2.7rem;
+            border-radius: 12px;
             background: transparent;
             border: 1px solid transparent;
-            color: #53627c;
-            padding: 0 1.1rem;
+            color: #5b647b;
+            padding: 0 1rem;
             font-weight: 700;
             transition: all 140ms ease;
         }
         button[data-baseweb="tab"]:hover {
-            background: rgba(255, 255, 255, 0.92);
-            border-color: #d8def0;
-            color: #22314d;
-            transform: translateY(-1px);
+            background: #ffffff;
+            border-color: #e1d8ee;
+            color: #313955;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
-            background: linear-gradient(135deg, #6c63ff 0%, #8b7dff 100%);
-            border-color: transparent;
-            color: #ffffff;
-            box-shadow: 0 8px 18px rgba(108, 99, 255, 0.24);
+            background: #ffffff;
+            border-color: #cbbdea;
+            color: #5d4fe5;
+            box-shadow: 0 4px 12px rgba(124, 108, 242, 0.12);
         }
         [data-testid="stExpander"] {
             background: var(--cb-surface);
@@ -347,9 +348,9 @@
         .cb-panel-kicker,
         .cb-sidebar-line {
             color: var(--cb-accent);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.16em;
+            font-size: 0.76rem;
+            text-transform: none;
+            letter-spacing: 0.03em;
             margin-bottom: 0.45rem;
             font-weight: 700;
         }
@@ -398,9 +399,9 @@
         }
         .cb-signal-label {
             color: var(--cb-text-dim);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
+            font-size: 0.8rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
             font-weight: 700;
         }
         .cb-signal-value {
@@ -430,23 +431,23 @@
             width: 2.5rem;
             height: 2.5rem;
             border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #8fd0ff 0%, #4b8ef4 46%, #244c82 100%);
-            color: #08111d;
+            background: linear-gradient(135deg, #eee8ff 0%, #d9d0ff 100%);
+            color: #5446d8;
             font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
             font-size: 0.8rem;
             font-weight: 700;
             margin-bottom: 0.55rem;
-            box-shadow: 0 0 0 6px rgba(75, 142, 244, 0.08);
+            box-shadow: 0 0 0 6px rgba(139, 125, 255, 0.08);
         }
         .cb-sidebar-title {
-            color: #edf4ff;
+            color: #2f3753;
             font-family: "IBM Plex Sans", sans-serif;
             font-size: 0.95rem;
             line-height: 1.08;
             margin-bottom: 0;
         }
         .cb-sidebar-subtitle {
-            color: #c8d9ee;
+            color: #6d7690;
             font-size: 0.78rem;
             line-height: 1.35;
         }
@@ -456,11 +457,11 @@
             padding: 0.3rem 0.6rem;
             border-radius: 999px;
             border: 1px solid #d6e1f0;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             line-height: 1;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            text-transform: none;
+            letter-spacing: 0.01em;
             background: #f4f8ff;
             color: #395272;
         }
@@ -536,9 +537,9 @@
         }
         .cb-dossier-score-label {
             color: var(--cb-text-dim);
-            font-size: 0.76rem;
-            text-transform: uppercase;
-            letter-spacing: 0.14em;
+            font-size: 0.78rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
             margin-bottom: 0.85rem;
         }
         .cb-dossier-rail-line {
@@ -546,9 +547,9 @@
         }
         .cb-dossier-rail-key {
             color: var(--cb-text-dim);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            font-size: 0.76rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
             margin-bottom: 0.15rem;
         }
         .cb-dossier-rail-value {
@@ -597,9 +598,9 @@
         }
         .cb-fact-label {
             color: var(--cb-text-dim);
-            font-size: 0.73rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            font-size: 0.76rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
             margin-bottom: 0.18rem;
         }
         .cb-fact-value {
@@ -727,9 +728,9 @@
         }
         .cb-result-score-label {
             color: var(--cb-text-dim);
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
+            font-size: 0.75rem;
+            text-transform: none;
+            letter-spacing: 0.01em;
             margin-top: 0.25rem;
         }
         .cb-result-main {

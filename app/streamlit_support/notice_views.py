@@ -23,9 +23,9 @@ def render_download_controls(
     fetch_official_document: Callable[[str, str, str], tuple[bytes, str, str]],
 ) -> None:
     render_section_header(
-        "Official Source Access",
-        "TED notice and document actions",
-        "Use the official TED notice route for live review, or fetch the official PDF directly into the dossier workspace.",
+        "Official source",
+        "Public notice and PDF",
+        "Open the public notice or download the official PDF for easy reference.",
     )
 
     if detail.get("is_demo_record"):
@@ -49,7 +49,7 @@ def render_download_controls(
 
     prep_key = f"prepare_pdf_{detail['id']}"
     state_key = f"prepared_pdf_{detail['id']}"
-    if pdf_column.button("Prepare PDF", key=prep_key, type="secondary", width="stretch"):
+    if pdf_column.button("Get PDF", key=prep_key, type="secondary", width="stretch"):
         with st.spinner("Fetching official TED PDF document..."):
             try:
                 st.session_state[state_key] = fetch_official_document(
@@ -82,15 +82,15 @@ def render_checklist_cross_reference(
     get_tender_checklist_service: Callable[[], Any],
 ) -> None:
     render_section_header(
-        "Tender Checklist",
-        "Checklist cross-reference",
-        "Cross-reference this opportunity against the cBrain East Africa tender checklist template. Answers are marked as filled, inferred, or review.",
+        "Requirements check",
+        "Checklist helper",
+        "Use this to quickly see what is already covered and what still needs attention.",
     )
 
     state_key = f"show_checklist_{detail['id']}"
     button_cols = st.columns([0.34, 0.66])
     if button_cols[0].button(
-        "Run checklist cross-reference",
+        "Check requirements",
         key=f"run_checklist_{detail['id']}",
         type="primary",
         width="stretch",
@@ -98,7 +98,7 @@ def render_checklist_cross_reference(
         st.session_state[state_key] = True
 
     if not st.session_state.get(state_key):
-        button_cols[1].caption("Generate a structured checklist cross-reference for this tender in one click.")
+        button_cols[1].caption("Create a simple requirements checklist for this tender in one click.")
         return
 
     service = get_tender_checklist_service()
@@ -297,7 +297,7 @@ def render_notice_detail_layout(
 
     render_download_controls_fn(detail)
     overview_tab, checklist_tab, keywords_tab, audit_tab, raw_tab = st.tabs(
-        ["Overview", "Checklist", "Why it matches", "Notes & audit", "Source record"]
+        ["Quick view", "Requirements", "Why it matches", "Notes", "Source"]
     )
 
     with overview_tab:

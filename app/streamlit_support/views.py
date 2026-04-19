@@ -66,15 +66,15 @@ def render_recent_scan_cards(recent_scans: list[dict[str, Any]], *, ui_timezone:
         with st.container(border=True):
             st.markdown(
                 f"""
-                <div class="cb-note-title">{html.escape(scan['status'])}</div>
+                <div class="cb-note-title">{html.escape(str(scan['status']).replace('_', ' ').title())}</div>
                 <div class="cb-note-copy">Started {html.escape(format_datetime(scan['started_at'], ui_timezone))}</div>
                 """,
                 unsafe_allow_html=True,
             )
             detail_cols = st.columns(3, gap="small")
-            detail_cols[0].metric("Ingested", scan["total_notices_ingested"])
-            detail_cols[1].metric("High Fit", scan["total_high_fit"])
-            detail_cols[2].metric("Requests", scan["request_count"])
+            detail_cols[0].metric("Added", scan["total_notices_ingested"])
+            detail_cols[1].metric("Strong matches", scan["total_high_fit"])
+            detail_cols[2].metric("Searches", scan["request_count"])
             if scan["rate_limit_events"]:
                 st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
 
@@ -230,14 +230,14 @@ def render_result_card(
     action_cols = st.columns([1, 1], gap="small")
     official_url = resolve_official_notice_url(notice)
     if official_url:
-        action_cols[0].link_button("Open TED notice", official_url, width="stretch")
+        action_cols[0].link_button("Official notice", official_url, width="stretch")
     elif notice.get("is_demo_record"):
         action_cols[0].caption("No live TED link")
     else:
         action_cols[0].caption("No official TED URL")
 
     if action_cols[1].button(
-        "Review notice",
+        "Open summary",
         key=f"review_notice_{card_index}_{notice['id']}",
         type="primary",
         width="stretch",

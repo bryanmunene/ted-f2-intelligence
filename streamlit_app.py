@@ -509,24 +509,24 @@ def _render_banner(current_view: str) -> None:
     purged_demo_notices = storage_state.get("purged_demo_notices", 0)
     view_copy = {
         "Dashboard": {
-            "kicker": "Overview",
-            "title": "Dashboard",
-            "copy": "A clear snapshot of the most relevant TED opportunities for your team.",
+            "kicker": "Welcome",
+            "title": "Home",
+            "copy": "See the most useful opportunities at a glance and pick up where you left off.",
         },
         "Live Scan": {
-            "kicker": "Explore Opportunities",
-            "title": "Live TED Scan",
-            "copy": "Find fresh public tenders and send the best matches into your review queue.",
+            "kicker": "Find New Tenders",
+            "title": "Search",
+            "copy": "Run a simple search and bring in fresh public opportunities to review.",
         },
         "Results": {
-            "kicker": "Review Queue",
-            "title": "Results",
-            "copy": "Browse the most relevant opportunities with simple, guided filtering.",
+            "kicker": "Your Shortlist",
+            "title": "Shortlist",
+            "copy": "Browse the best matches with simple filters and clear next steps.",
         },
         "Notice Detail": {
-            "kicker": "Tender Summary",
-            "title": "Notice Detail",
-            "copy": "Review one opportunity with the key facts, evidence, and notes in one place.",
+            "kicker": "Tender Overview",
+            "title": "Summary",
+            "copy": "Everything important about one tender, in one easy place.",
         },
     }.get(
         current_view,
@@ -560,12 +560,11 @@ def _render_live_scan() -> None:
 
     _render_section_header(
         "",
-        "Live TED Scan",
-        "Run an official TED search to refresh the review queue.",
+        "Find new tenders",
+        "Choose a few simple options and start a fresh search.",
     )
     st.info(
-        "Quick start: choose a search profile, optionally narrow by country or CPV, then run the scan. "
-        "The results view will rank the strongest live opportunities first."
+        "Pick a search profile, add an optional country or topic, and click the button below to bring in fresh opportunities."
     )
 
     with st.form("live_ted_scan_form"):
@@ -607,7 +606,7 @@ def _render_live_scan() -> None:
             st.caption("Overall scans use a deeper TED pull across multiple result pages.")
         st.caption("Scan uses the default review settings.")
 
-        submitted = st.form_submit_button("Run live TED scan", type="primary", width="stretch")
+        submitted = st.form_submit_button("Find matching tenders", type="primary", width="stretch")
 
     if not submitted:
         return
@@ -646,11 +645,11 @@ def _render_historical_backfill() -> None:
 
     _render_section_header(
         "",
-        "Historical Backfill",
-        "Import older TED notices to strengthen pattern learning without changing the live review workflow.",
+        "Past notices",
+        "Bring in older notices when you want more background and context.",
     )
     st.info(
-        "Use backfill when you want extra market context or pattern learning. The active review queue still stays focused on current tenders."
+        "Use this when you want extra history. Your main review queue will still stay focused on current tenders."
     )
     st.caption(
         "This backfill runs official TED Search API windows, scores the notices with the existing F2 logic, "
@@ -697,7 +696,7 @@ def _render_historical_backfill() -> None:
             )
 
         st.caption("Backfill runs in monthly windows with a deeper historical pull to stay polite to TED and preserve traceability.")
-        submitted = st.form_submit_button("Run historical TED backfill", type="primary", width="stretch")
+        submitted = st.form_submit_button("Load past notices", type="primary", width="stretch")
 
     if not submitted:
         return
@@ -757,32 +756,32 @@ def _render_dashboard() -> None:
 
     _render_section_header(
         "",
-        "Dashboard",
+        "Home",
     )
     st.info(
-        "Suggested workflow: run a live scan, review the top-ranked results, then open a notice detail page for evidence, checklist support, and internal notes."
+        "Start with a quick search, then open the most promising tenders from your shortlist."
     )
     _render_stat_cards(
         [
             {
-                "label": "Total Notices",
+                "label": "Saved tenders",
                 "value": str(metrics["total_notices"]),
-                "note": "Current stored review queue",
+                "note": "Everything currently in your workspace",
             },
             {
-                "label": "High Fit",
+                "label": "Strong matches",
                 "value": str(metrics["high_fit"]),
-                "note": "Immediate follow-up candidates",
+                "note": "Opportunities worth first attention",
             },
             {
-                "label": "Conditional",
+                "label": "Needs a closer look",
                 "value": str(metrics["conditional"]),
-                "note": "Relevant with qualification risk",
+                "note": "Relevant, but may need extra checking",
             },
             {
-                "label": "Scan Freshness",
+                "label": "Last update",
                 "value": format_datetime(metrics["scan_freshness"], settings.ui_timezone),
-                "note": "Latest completed scan",
+                "note": "Most recent completed search",
             },
         ]
     )
@@ -790,7 +789,7 @@ def _render_dashboard() -> None:
         f"Expiring soon: {metrics['expiring_soon']} | Hard locks: {metrics['hard_lock']}"
     )
 
-    scans_tab, queue_tab, forecast_tab = st.tabs(["Recent activity", "Top opportunities", "Outlook"])
+    scans_tab, queue_tab, forecast_tab = st.tabs(["Latest updates", "Best matches", "Trends"])
     with scans_tab:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
@@ -833,9 +832,9 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     if not render_sidebar:
         return _load_notices_for_filter_state(filter_state)
 
-    st.sidebar.markdown("### Refine results")
-    st.sidebar.caption("Use a few simple filters to narrow the review queue.")
-    st.sidebar.info("Active tenders are prioritised by default so the review queue stays current and actionable.")
+    st.sidebar.markdown("### Narrow results")
+    st.sidebar.caption("Use a few simple filters to find the tenders you want.")
+    st.sidebar.info("Current opportunities are shown first so the list stays useful and up to date.")
     country_options = _country_filter_options()
     country_labels = ["Any"] + [label for label, _ in country_options]
     country_code_by_label = {"Any": ""}
@@ -869,15 +868,15 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
     search = (
         st.sidebar.text_input(
-            "Search title or buyer",
+            "Search",
             key="results_search",
-            placeholder="e.g. document management, ministry, archive",
+            placeholder="Type a topic or buyer name",
         ).strip()
         or None
     )
 
     minimum_score_ten = st.sidebar.slider(
-        "Minimum Score",
+        "Minimum match score",
         min_value=0.0,
         max_value=10.0,
         value=float(st.session_state.get("results_minimum_score_ten", score_min_ten_default)),
@@ -885,7 +884,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         key="results_minimum_score_ten",
     )
     filter_action_cols = st.sidebar.columns(2, gap="small")
-    if filter_action_cols[0].button("Reset score", use_container_width=True, type="secondary"):
+    if filter_action_cols[0].button("Reset", use_container_width=True, type="secondary"):
         st.session_state["results_minimum_score_ten"] = 0.0
         st.rerun()
     if filter_action_cols[1].button("Clear all", use_container_width=True, type="secondary"):
@@ -904,7 +903,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         st.session_state["results_include_dismissed"] = bool(default_state.get("include_dismissed"))
         st.cache_data.clear()
         st.rerun()
-    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", key="results_relevant_only")
+    relevant_only = st.sidebar.checkbox("Show strongest matches only", key="results_relevant_only")
 
     advanced_filters_active = any(
         [
@@ -918,18 +917,18 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         ]
     )
 
-    with st.sidebar.expander("More Filters", expanded=advanced_filters_active):
+    with st.sidebar.expander("More options", expanded=advanced_filters_active):
         fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
         priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
         confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
         fit_label = st.selectbox(
-            "Fit Label",
+            "Match",
             fit_options,
             index=fit_options.index(st.session_state.get("results_fit_label", "Any")),
             key="results_fit_label",
         )
         priority_bucket = st.selectbox(
-            "Priority Bucket",
+            "Attention level",
             priority_options,
             index=priority_options.index(st.session_state.get("results_priority_bucket", "Any")),
             key="results_priority_bucket",
@@ -941,16 +940,16 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
             key="results_confidence_indicator",
         )
         min_days_remaining = st.number_input(
-            "Minimum Days Remaining",
+            "Minimum days left",
             min_value=0,
             max_value=30,
             value=int(st.session_state.get("results_min_days_remaining", filter_state.get("min_days_remaining") or 0)),
             step=1,
             key="results_min_days_remaining",
         )
-        hard_lock_only = st.checkbox("Hard Lock Only", key="results_hard_lock_only")
-        saved_only = st.checkbox("Saved Only", key="results_saved_only")
-        include_dismissed = st.checkbox("Include Dismissed", key="results_include_dismissed")
+        hard_lock_only = st.checkbox("Show blockers only", key="results_hard_lock_only")
+        saved_only = st.checkbox("Saved only", key="results_saved_only")
+        include_dismissed = st.checkbox("Include dismissed", key="results_include_dismissed")
 
     filter_state = {
         "countries": countries,
@@ -991,7 +990,7 @@ def _render_results() -> list[dict[str, Any]]:
 
     _render_section_header(
         "",
-        "Results",
+        "Shortlist",
     )
     total_matches = filter_state["total_matches"]
 
@@ -1000,7 +999,7 @@ def _render_results() -> list[dict[str, Any]]:
         return notices
 
     st.caption(f"Showing {len(notices)} of {total_matches} ranked notices for the current review posture.")
-    st.info("Use Open TED notice for the public source record and Review notice for the internal dossier with evidence, checklist support, and audit detail.")
+    st.info("Open the official notice for the public source, or open the summary for the guided internal view.")
 
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:
@@ -1056,7 +1055,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
     st.caption(f"{return_view} → Notice detail")
     _render_section_header(
         "",
-        "Notice detail",
+        "Tender summary",
     )
     if not notice_id:
         st.info("Choose a tender from the Results view first.")
@@ -1107,7 +1106,7 @@ def _render_notice_detail_workspace() -> None:
         options = fallback_payload["items"]
     if options:
         selected = st.selectbox(
-            "Choose a tender to review",
+            "Choose a tender",
             options=options,
             format_func=_notice_option_label,
             index=next(
@@ -1129,11 +1128,11 @@ def main() -> None:
 
     views = ["Dashboard", "Live Scan", "Historical Backfill", "Results", "Notice Detail"]
     view_labels = {
-        "Dashboard": "📊 Dashboard",
-        "Live Scan": "🔎 Live Scan",
-        "Historical Backfill": "🗂 Historical Backfill",
-        "Results": "📋 Results",
-        "Notice Detail": "📘 Notice Detail",
+        "Dashboard": "🏠 Home",
+        "Live Scan": "✨ Search",
+        "Historical Backfill": "🕘 Past Notices",
+        "Results": "✅ Shortlist",
+        "Notice Detail": "📄 Summary",
     }
     inverse_view_labels = {label: key for key, label in view_labels.items()}
     active_view = st.session_state.get("active_view", "Dashboard")
