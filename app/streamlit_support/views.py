@@ -201,92 +201,95 @@ def render_result_card(
     open_notice_detail: Callable[[str], None],
     resolve_official_notice_url: Callable[[dict[str, Any]], str | None],
 ) -> None:
-    fit_label = display_value(notice.get("fit_label"))
-    confidence = display_value(notice.get("confidence_indicator"))
+    raw_fit_label = str(display_value(notice.get("fit_label")))
+    fit_label = {
+        "YES": "Strong fit",
+        "CONDITIONAL": "Worth a look",
+        "NO": "Lower fit",
+    }.get(raw_fit_label.upper(), raw_fit_label)
+    confidence = str(display_value(notice.get("confidence_indicator")))
     card_class = card_tone_class(notice)
 
-    top_line_badges = [
-        render_pill(notice_source_label(notice), "source"),
-        render_pill(fit_label, "fit"),
-    ]
+    top_line_badges = [render_pill(fit_label, "fit")]
     if notice.get("hard_lock_detected"):
-        top_line_badges.append(render_pill("Blocked", "alert"))
-        status_title = "Blocked"
-        status_note = "There may be a major issue to check first."
+        top_line_badges.append(render_pill("Needs caution", "alert"))
+        status_title = "Needs caution"
+        status_note = "A key requirement may need checking first."
     elif notice.get("viable_timing"):
-        top_line_badges.append(render_pill("Open now", "good"))
-        status_title = "Open now"
-        status_note = "Good timing for review."
+        top_line_badges.append(render_pill("Ready to review", "good"))
+        status_title = "Ready to review"
+        status_note = "The timing still looks workable."
     else:
-        top_line_badges.append(render_pill("Check timing", "watch"))
-        status_title = "Check timing"
-        status_note = "Review the dates before spending time here."
+        top_line_badges.append(render_pill("Timing check", "watch"))
+        status_title = "Timing check"
+        status_note = "Check the closing date before going deeper."
 
     buyer = notice.get("buyer") or "Unknown buyer"
     country = notice.get("buyer_country") or "N/A"
+    source_label = notice_source_label(notice)
     publication = notice.get("publication_number") or "Unknown publication"
     deadline = format_datetime(notice.get("deadline"), ui_timezone)
     publication_date = format_date(notice.get("publication_date"))
     title = notice.get("title") or "Untitled notice"
     summary_text = truncate_text(
         notice.get("reasoning") or notice.get("summary") or "Open the summary to see the full tender details and evidence.",
-        limit=220,
+        limit=180,
     )
-    keyword_labels = notice_keyword_labels(notice, limit=3)
+    keyword_labels = notice_keyword_labels(notice, limit=2)
     keyword_chips = "".join(render_chip(label) for label in keyword_labels)
     if not keyword_chips:
-        keyword_chips = render_chip("No quick keywords yet")
-    meta_parts = [
-        buyer,
-        country,
-        f"Published {publication_date}",
-        f"Deadline {deadline}",
-        f"Confidence {confidence}",
-    ]
+        keyword_chips = render_chip("More details inside")
+
+    quick_facts_html = "".join(
+        [
+            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Buyer</div><div class="cb-result-quickfact-value">{html.escape(str(buyer))}</div></div>',
+            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Deadline</div><div class="cb-result-quickfact-value">{html.escape(str(deadline))}</div></div>',
+            f'<div class="cb-result-quickfact"><div class="cb-result-quickfact-label">Confidence</div><div class="cb-result-quickfact-value">{html.escape(confidence)}</div></div>',
+        ]
+    )
 
     with st.container(border=True):
         st.markdown(
             f"""
             <div class="cb-result-shell cb-flow-surface {card_class}" style="--cb-enter-delay: {min(card_index * 45, 360)}ms;">
-              <div class="cb-result-head">
+              <div class="cb-result-toprow">
                 <div class="cb-result-score-block">
                   <div class="cb-result-score">{format_score_out_of_ten(notice['score'])}</div>
-                  <div class="cb-result-score-label">Match score</div>
+                  <div class="cb-result-score-label">Match</div>
                 </div>
                 <div class="cb-result-main">
                   <div class="cb-dossier-topline">{''.join(top_line_badges)}</div>
                   <div class="cb-result-title">{html.escape(title)}</div>
-                  <div class="cb-result-meta">{html.escape(publication)} • {html.escape(' • '.join(meta_parts))}</div>
+                  <div class="cb-result-meta">{html.escape(buyer)} • {html.escape(country)} • {html.escape(source_label)}</div>
                   <div class="cb-result-summary">{html.escape(summary_text)}</div>
-                  <div class="cb-chip-row">{keyword_chips}</div>
-                </div>
-                <div class="cb-result-status-card">
-                  <div class="cb-result-status-title">{html.escape(status_title)}</div>
-                  <div class="cb-result-status-note">{html.escape(status_note)}</div>
                 </div>
               </div>
+              <div class="cb-result-quickfacts">{quick_facts_html}</div>
+              <div class="cb-chip-row">{keyword_chips}</div>
+              <div class="cb-result-helper"><span class="cb-result-helper-title">{html.escape(status_title)}:</span><span>{html.escape(status_note)}</span></div>
+              <div class="cb-result-reference">Reference {html.escape(publication)} • Published {html.escape(publication_date)}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        action_cols = st.columns([1, 1], gap="small")
-        official_url = resolve_official_notice_url(notice)
-        if official_url:
-            action_cols[0].link_button("View source", official_url, width="stretch")
-        elif notice.get("is_demo_record"):
-            action_cols[0].caption("No live source link")
-        else:
-            action_cols[0].caption("No official source link")
-
-        if action_cols[1].button(
-            "View details",
+        action_cols = st.columns([1.1, 1], gap="small")
+        if action_cols[0].button(
+            "Open summary",
             key=f"review_notice_{card_index}_{notice['id']}",
             type="primary",
             width="stretch",
         ):
             open_notice_detail(notice["id"])
             st.rerun()
+
+        official_url = resolve_official_notice_url(notice)
+        if official_url:
+            action_cols[1].link_button("Official notice", official_url, width="stretch")
+        elif notice.get("is_demo_record"):
+            action_cols[1].caption("No live source link")
+        else:
+            action_cols[1].caption("No official source link")
 
 
 def notice_source_label(item: dict[str, Any]) -> str:

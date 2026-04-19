@@ -709,74 +709,101 @@
             color: var(--cb-text-dim);
         }
         .cb-result-shell {
-            padding: 0.15rem 0.1rem 0.35rem 0.1rem;
+            padding: 0.3rem 0.12rem 0.2rem 0.12rem;
             animation: cb-fade-up var(--cb-motion-base) var(--cb-ease-fluid) both;
             animation-delay: var(--cb-enter-delay, 0ms);
         }
-        .cb-result-head {
+        .cb-result-toprow {
             display: grid;
-            grid-template-columns: 84px minmax(0, 1fr) 160px;
-            gap: 1rem;
+            grid-template-columns: 78px minmax(0, 1fr);
+            gap: 0.95rem;
             align-items: start;
         }
         .cb-result-score-block {
-            background: #f6f3ff;
-            border: 1px solid #ddd5ef;
-            border-radius: 14px;
-            padding: 0.8rem 0.7rem;
+            background: linear-gradient(180deg, #f8f5ff 0%, #f4f8ff 100%);
+            border: 1px solid #d9deef;
+            border-radius: 16px;
+            padding: 0.78rem 0.55rem;
             text-align: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
         }
         .cb-result-score {
             color: var(--cb-text);
             font-family: "IBM Plex Sans", sans-serif;
-            font-size: 1.8rem;
+            font-size: 1.7rem;
             font-weight: 700;
             line-height: 1;
         }
         .cb-result-score-label {
             color: var(--cb-text-dim);
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             text-transform: none;
             letter-spacing: 0.01em;
-            margin-top: 0.25rem;
+            margin-top: 0.22rem;
         }
         .cb-result-main {
             min-width: 0;
-        }
-        .cb-result-status-card {
-            border: 1px solid #e5def2;
-            background: #faf8fe;
-            border-radius: 14px;
-            padding: 0.8rem;
-        }
-        .cb-result-status-title {
-            color: var(--cb-text);
-            font-size: 0.92rem;
-            font-weight: 700;
-            margin-bottom: 0.2rem;
-        }
-        .cb-result-status-note {
-            color: var(--cb-text-soft);
-            font-size: 0.82rem;
-            line-height: 1.45;
         }
         .cb-result-title {
             color: var(--cb-text);
             font-family: "IBM Plex Sans", sans-serif;
             font-size: 1.08rem;
-            line-height: 1.28;
-            margin: 0.35rem 0 0.35rem 0;
+            line-height: 1.3;
+            margin: 0.3rem 0 0.28rem 0;
         }
         .cb-result-meta {
             color: var(--cb-text-dim);
-            font-size: 0.85rem;
-            line-height: 1.55;
+            font-size: 0.84rem;
+            line-height: 1.5;
         }
         .cb-result-summary {
             color: var(--cb-text-soft);
-            font-size: 0.94rem;
-            line-height: 1.6;
-            margin-top: 0.55rem;
+            font-size: 0.93rem;
+            line-height: 1.58;
+            margin-top: 0.5rem;
+        }
+        .cb-result-quickfacts {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.55rem;
+            margin-top: 0.8rem;
+        }
+        .cb-result-quickfact {
+            background: #f7f9fc;
+            border: 1px solid #e3ebf4;
+            border-radius: 12px;
+            padding: 0.55rem 0.7rem;
+        }
+        .cb-result-quickfact-label {
+            color: var(--cb-text-dim);
+            font-size: 0.72rem;
+            margin-bottom: 0.12rem;
+        }
+        .cb-result-quickfact-value {
+            color: var(--cb-text);
+            font-size: 0.86rem;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+        .cb-result-helper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.28rem;
+            align-items: center;
+            margin-top: 0.72rem;
+            color: var(--cb-text-soft);
+            font-size: 0.86rem;
+            line-height: 1.5;
+        }
+        .cb-result-helper-title {
+            color: var(--cb-text);
+            font-weight: 700;
+        }
+        .cb-result-reference {
+            margin-top: 0.48rem;
+            color: var(--cb-text-dim);
+            font-size: 0.77rem;
+            line-height: 1.4;
         }
         .cb-flow-surface:hover,
         .cb-dossier:hover,
@@ -808,7 +835,8 @@
         @media (max-width: 980px) {
             .cb-shell-grid,
             .cb-dossier-grid,
-            .cb-result-head {
+            .cb-result-toprow,
+            .cb-result-quickfacts {
                 grid-template-columns: 1fr;
             }
             .cb-dossier-rail {
