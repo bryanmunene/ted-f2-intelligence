@@ -51,8 +51,8 @@
         [data-testid="stSidebar"] {
             background: linear-gradient(180deg, #fbf8ff 0%, #f5f1fb 100%);
             border-right: 1px solid #e8e0f1;
-            min-width: 260px !important;
-            max-width: 260px !important;
+            min-width: 244px !important;
+            max-width: 244px !important;
         }
         [data-testid="stSidebar"],
         [data-testid="stSidebar"] p,
@@ -84,15 +84,14 @@
         [data-testid="stSidebar"] [data-testid="stRadio"] label {
             background: rgba(255, 255, 255, 0.92);
             border: 1px solid #e2d9ee;
-            border-radius: 14px;
-            padding: 0.5rem 0.7rem;
-            margin-bottom: 0.38rem;
-            transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+            border-radius: 10px;
+            padding: 0.42rem 0.62rem;
+            margin-bottom: 0.24rem;
+            transition: background 160ms ease, border-color 160ms ease;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
             background: #ffffff;
             border-color: #cfc2ea;
-            transform: translateX(1px);
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label p {
             color: #2e3550 !important;
@@ -443,36 +442,38 @@
         }
         .cb-sidebar-brand {
             position: relative;
-            padding: 0.3rem 0 0.8rem 0;
-            margin-bottom: 0.75rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.15rem 0 0.7rem 0;
+            margin-bottom: 0.55rem;
+            border-bottom: 1px solid #e6deef;
         }
         .cb-sidebar-mark {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 2.5rem;
-            height: 2.5rem;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #eee8ff 0%, #d9d0ff 100%);
+            min-width: 3.1rem;
+            height: 1.65rem;
+            padding: 0 0.6rem;
+            border-radius: 999px;
+            background: #ede8ff;
             color: #5446d8;
-            font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
-            font-size: 0.8rem;
+            font-family: "IBM Plex Sans", sans-serif;
+            font-size: 0.72rem;
             font-weight: 700;
-            margin-bottom: 0.55rem;
-            box-shadow: 0 0 0 6px rgba(139, 125, 255, 0.08);
+            margin-bottom: 0.45rem;
+            box-shadow: none;
         }
         .cb-sidebar-title {
             color: #2f3753;
             font-family: "IBM Plex Sans", sans-serif;
-            font-size: 0.95rem;
-            line-height: 1.08;
-            margin-bottom: 0;
+            font-size: 0.92rem;
+            line-height: 1.15;
+            margin-bottom: 0.08rem;
+            font-weight: 700;
         }
         .cb-sidebar-subtitle {
             color: #6d7690;
-            font-size: 0.78rem;
-            line-height: 1.35;
+            font-size: 0.76rem;
+            line-height: 1.4;
         }
         .cb-badge {
             display: inline-flex;

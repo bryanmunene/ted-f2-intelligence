@@ -282,10 +282,9 @@ def _render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
         <div class="cb-sidebar-brand">
-          <div class="cb-sidebar-line">cBrain</div>
-          <div class="cb-sidebar-mark">F2</div>
-          <div class="cb-sidebar-title">TED F2 Intelligence</div>
-          <div class="cb-sidebar-subtitle">Official TED review workspace for F2 teams.</div>
+          <div class="cb-sidebar-mark">TED</div>
+          <div class="cb-sidebar-title">Tender workspace</div>
+          <div class="cb-sidebar-subtitle">Simple navigation and focused review tools.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -902,9 +901,8 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     if not render_sidebar:
         return _load_notices_for_filter_state(filter_state)
 
-    st.sidebar.markdown("### Narrow results")
-    st.sidebar.caption("Use a few simple filters to find the tenders you want.")
-    st.sidebar.info("Current opportunities are shown first so the list stays useful and up to date.")
+    st.sidebar.markdown("### Shortlist filters")
+    st.sidebar.caption("Start with just a few simple filters.")
     country_options = _country_filter_options()
     country_labels = ["Any"] + [label for label, _ in country_options]
     country_code_by_label = {"Any": ""}
@@ -929,51 +927,47 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     st.session_state.setdefault("results_saved_only", bool(filter_state.get("saved_only")))
     st.session_state.setdefault("results_include_dismissed", bool(filter_state.get("include_dismissed")))
 
-    selected_country_label = st.sidebar.selectbox(
-        "Country",
-        options=country_labels,
-        index=country_labels.index(st.session_state.get("results_country_label", "Any")),
-        key="results_country_label",
-    )
-    countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
-    search = (
-        st.sidebar.text_input(
-            "Search",
-            key="results_search",
-            placeholder="Type a topic or buyer name",
-        ).strip()
-        or None
-    )
-
-    minimum_score_ten = st.sidebar.slider(
-        "Minimum match score",
-        min_value=0.0,
-        max_value=10.0,
-        value=float(st.session_state.get("results_minimum_score_ten", score_min_ten_default)),
-        step=0.5,
-        key="results_minimum_score_ten",
-    )
-    filter_action_cols = st.sidebar.columns(2, gap="small")
-    if filter_action_cols[0].button("Reset", use_container_width=True, type="secondary"):
-        st.session_state["results_minimum_score_ten"] = 0.0
-        st.rerun()
-    if filter_action_cols[1].button("Clear all", use_container_width=True, type="secondary"):
-        default_state = _default_filter_state()
-        st.session_state["results_filter_state"] = dict(default_state)
-        st.session_state["results_country_label"] = "Any"
-        st.session_state["results_search"] = ""
-        st.session_state["results_minimum_score_ten"] = 0.0
-        st.session_state["results_relevant_only"] = bool(default_state.get("relevant_only"))
-        st.session_state["results_fit_label"] = "Any"
-        st.session_state["results_priority_bucket"] = "Any"
-        st.session_state["results_confidence_indicator"] = "Any"
-        st.session_state["results_min_days_remaining"] = int(default_state.get("min_days_remaining") or 0)
-        st.session_state["results_hard_lock_only"] = bool(default_state.get("hard_lock_only"))
-        st.session_state["results_saved_only"] = bool(default_state.get("saved_only"))
-        st.session_state["results_include_dismissed"] = bool(default_state.get("include_dismissed"))
-        st.cache_data.clear()
-        st.rerun()
-    relevant_only = st.sidebar.checkbox("Show strongest matches only", key="results_relevant_only")
+    with st.sidebar.expander("Quick filters", expanded=True):
+        selected_country_label = st.selectbox(
+            "Country",
+            options=country_labels,
+            index=country_labels.index(st.session_state.get("results_country_label", "Any")),
+            key="results_country_label",
+        )
+        countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
+        search = (
+            st.text_input(
+                "Search",
+                key="results_search",
+                placeholder="Topic or buyer name",
+            ).strip()
+            or None
+        )
+        minimum_score_ten = st.slider(
+            "Minimum match score",
+            min_value=0.0,
+            max_value=10.0,
+            value=float(st.session_state.get("results_minimum_score_ten", score_min_ten_default)),
+            step=0.5,
+            key="results_minimum_score_ten",
+        )
+        relevant_only = st.checkbox("Recommended matches only", key="results_relevant_only")
+        if st.button("Clear filters", use_container_width=True, type="secondary"):
+            default_state = _default_filter_state()
+            st.session_state["results_filter_state"] = dict(default_state)
+            st.session_state["results_country_label"] = "Any"
+            st.session_state["results_search"] = ""
+            st.session_state["results_minimum_score_ten"] = 0.0
+            st.session_state["results_relevant_only"] = bool(default_state.get("relevant_only"))
+            st.session_state["results_fit_label"] = "Any"
+            st.session_state["results_priority_bucket"] = "Any"
+            st.session_state["results_confidence_indicator"] = "Any"
+            st.session_state["results_min_days_remaining"] = int(default_state.get("min_days_remaining") or 0)
+            st.session_state["results_hard_lock_only"] = bool(default_state.get("hard_lock_only"))
+            st.session_state["results_saved_only"] = bool(default_state.get("saved_only"))
+            st.session_state["results_include_dismissed"] = bool(default_state.get("include_dismissed"))
+            st.cache_data.clear()
+            st.rerun()
 
     advanced_filters_active = any(
         [
@@ -987,21 +981,37 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         ]
     )
 
+    fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
+    fit_option_labels = {
+        "Any": "Any",
+        "YES": "Strong fit",
+        "CONDITIONAL": "Worth a look",
+        "NO": "Lower fit",
+    }
+    priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
+    priority_option_labels = {
+        "Any": "Any",
+        "HIGH": "Top priority",
+        "GOOD": "Good option",
+        "WATCHLIST": "Keep an eye on it",
+        "IGNORE": "Low priority",
+    }
+    confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
+
     with st.sidebar.expander("More options", expanded=advanced_filters_active):
-        fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
-        priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
-        confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
         fit_label = st.selectbox(
             "Match",
             fit_options,
             index=fit_options.index(st.session_state.get("results_fit_label", "Any")),
             key="results_fit_label",
+            format_func=lambda value: fit_option_labels[value],
         )
         priority_bucket = st.selectbox(
-            "Attention level",
+            "Priority",
             priority_options,
             index=priority_options.index(st.session_state.get("results_priority_bucket", "Any")),
             key="results_priority_bucket",
+            format_func=lambda value: priority_option_labels[value],
         )
         confidence_indicator = st.selectbox(
             "Confidence",
@@ -1017,9 +1027,9 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
             step=1,
             key="results_min_days_remaining",
         )
-        hard_lock_only = st.checkbox("Show blockers only", key="results_hard_lock_only")
+        hard_lock_only = st.checkbox("Show cautions only", key="results_hard_lock_only")
         saved_only = st.checkbox("Saved only", key="results_saved_only")
-        include_dismissed = st.checkbox("Include dismissed", key="results_include_dismissed")
+        include_dismissed = st.checkbox("Show dismissed too", key="results_include_dismissed")
 
     filter_state = {
         "countries": countries,
@@ -1198,11 +1208,11 @@ def main() -> None:
 
     views = ["Dashboard", "Live Scan", "Historical Backfill", "Results", "Notice Detail"]
     view_labels = {
-        "Dashboard": "🏠 Home",
-        "Live Scan": "✨ Search",
-        "Historical Backfill": "🕘 Past Notices",
-        "Results": "✅ Shortlist",
-        "Notice Detail": "📄 Summary",
+        "Dashboard": "Home",
+        "Live Scan": "Search",
+        "Historical Backfill": "History",
+        "Results": "Shortlist",
+        "Notice Detail": "Summary",
     }
     inverse_view_labels = {label: key for key, label in view_labels.items()}
     active_view = st.session_state.get("active_view", "Dashboard")
@@ -1210,7 +1220,7 @@ def main() -> None:
         active_view = "Dashboard"
 
     _render_sidebar_brand()
-    st.sidebar.markdown("## Workspaces")
+    st.sidebar.markdown("### Navigate")
     selected_label = st.sidebar.radio(
         "Workspace",
         options=[view_labels[view] for view in views],
@@ -1219,6 +1229,7 @@ def main() -> None:
     )
     current_view = inverse_view_labels[selected_label]
     st.session_state["active_view"] = current_view
+    st.sidebar.markdown("---")
     if current_view == "Dashboard":
         _render_dashboard()
     elif current_view == "Live Scan":
