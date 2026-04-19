@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
@@ -115,7 +116,7 @@ class NoticeRepository:
         )
         return self.session.scalar(stmt)
 
-    def predictive_history(self, *, limit: int = 500) -> list[Notice]:
+    def predictive_history(self, *, limit: int = 500) -> builtins.list[Notice]:
         stmt = (
             select(Notice)
             .join(Notice.analysis)
@@ -200,9 +201,20 @@ class NoticeRepository:
         if filters.max_score is not None:
             stmt = stmt.where(NoticeAnalysis.score <= filters.max_score)
         if filters.min_days_remaining is not None:
-            minimum_deadline = datetime.now(tz=UTC) + timedelta(days=filters.min_days_remaining)
+            now = datetime.now(tz=UTC)
+            minimum_deadline = now + timedelta(days=filters.min_days_remaining)
+            stale_publication_cutoff = now.date() - timedelta(days=90)
             if filters.min_days_remaining == 0:
-                stmt = stmt.where((Notice.deadline.is_(None)) | (Notice.deadline >= minimum_deadline))
+                stmt = stmt.where(
+                    (Notice.deadline.is_not(None) & (Notice.deadline >= minimum_deadline))
+                    | (
+                        Notice.deadline.is_(None)
+                        & (
+                            Notice.publication_date.is_(None)
+                            | (Notice.publication_date >= stale_publication_cutoff)
+                        )
+                    )
+                )
             else:
                 stmt = stmt.where(Notice.deadline.is_not(None), Notice.deadline >= minimum_deadline)
         if filters.hard_lock_only:
@@ -233,7 +245,7 @@ class NoticeRepository:
             )
         return stmt
 
-    def _country_variants(self, value: str | list[str] | None) -> list[str]:
+    def _country_variants(self, value: str | builtins.list[str] | None) -> builtins.list[str]:
         if value is None:
             return []
 

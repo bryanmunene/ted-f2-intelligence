@@ -417,7 +417,7 @@ def run_live_scan(
             date_from=None,
             date_to=None,
             include_conditional=True,
-            exclude_old=False,
+            exclude_old=True,
             include_soft_locks=True,
             page_size=settings.ted_default_page_size,
             max_pages=_default_live_scan_max_pages(country),
@@ -600,7 +600,7 @@ def _render_live_scan() -> None:
             st.caption("Overall scans use a deeper TED pull across multiple result pages.")
         st.caption("Scan uses the default review settings.")
 
-        submitted = st.form_submit_button("Run live TED scan", width="stretch")
+        submitted = st.form_submit_button("Run live TED scan", type="primary", width="stretch")
 
     if not submitted:
         return
@@ -687,7 +687,7 @@ def _render_historical_backfill() -> None:
             )
 
         st.caption("Backfill runs in monthly windows with a deeper historical pull to stay polite to TED and preserve traceability.")
-        submitted = st.form_submit_button("Run historical TED backfill", width="stretch")
+        submitted = st.form_submit_button("Run historical TED backfill", type="primary", width="stretch")
 
     if not submitted:
         return

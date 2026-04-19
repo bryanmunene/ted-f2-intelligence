@@ -128,6 +128,34 @@ def test_notice_repository_default_review_queue_is_broader_but_can_be_narrowed(
     assert strict_ids == {seeded_notice}
 
 
+def test_notice_repository_default_queue_hides_stale_no_deadline_notices(db_session, seeded_notice: str) -> None:
+    repository = NoticeRepository(db_session)
+    stale_notice_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "44444-2024",
+            "notice-title": "Legacy document platform refresh",
+            "buyer-name": "Historic Records Office",
+            "buyer-country": "DK",
+            "publication-date": "2024-08-23",
+            "deadline": None,
+            "additional-information": "Document management and records migration scope with no published deadline.",
+        },
+    )
+
+    default_notices, default_total = repository.list(NoticeListFilters(), page=1, page_size=25)
+    relaxed_notices, relaxed_total = repository.list(
+        NoticeListFilters(min_days_remaining=None),
+        page=1,
+        page_size=25,
+    )
+
+    assert stale_notice_id not in {notice.id for notice in default_notices}
+    assert default_total == 1
+    assert stale_notice_id in {notice.id for notice in relaxed_notices}
+    assert relaxed_total == 2
+
+
 def test_notice_repository_supports_score_confidence_and_date_filters(db_session, seeded_notice: str) -> None:
     repository = NoticeRepository(db_session)
     notice = repository.get_by_id(seeded_notice)
