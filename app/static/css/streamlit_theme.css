@@ -165,11 +165,18 @@
         .stButton > button,
         .stButton > button[kind],
         .stDownloadButton > button,
+        .stFormSubmitButton button,
+        button[kind="primaryFormSubmit"],
+        button[kind="secondaryFormSubmit"],
+        button[kind="tertiaryFormSubmit"],
         [data-testid="stBaseButton-primary"],
         [data-testid="stBaseButton-primary"] > button,
         [data-testid="stBaseButton-secondary"],
         [data-testid="stBaseButton-secondary"] > button,
-        [data-testid="stFormSubmitButton"] > button {
+        [data-testid="stBaseButton-primaryFormSubmit"],
+        [data-testid="stBaseButton-secondaryFormSubmit"],
+        [data-testid="stBaseButton-tertiaryFormSubmit"],
+        [data-testid="stFormSubmitButton"] button {
             background: var(--cb-accent) !important;
             color: #f7fbff !important;
             border: 1px solid #2a59bb !important;
@@ -198,15 +205,27 @@
         .stButton > button span,
         .stDownloadButton > button span,
         .stLinkButton a span,
+        .stFormSubmitButton button span,
+        .stFormSubmitButton button p,
+        .stFormSubmitButton button div,
         [data-testid="stBaseButton-primary"] span,
         [data-testid="stBaseButton-primary"] p,
         [data-testid="stBaseButton-primary"] div,
         [data-testid="stBaseButton-secondary"] span,
         [data-testid="stBaseButton-secondary"] p,
         [data-testid="stBaseButton-secondary"] div,
-        [data-testid="stFormSubmitButton"] > button span,
-        [data-testid="stFormSubmitButton"] > button p,
-        [data-testid="stFormSubmitButton"] > button div {
+        [data-testid="stBaseButton-primaryFormSubmit"] span,
+        [data-testid="stBaseButton-primaryFormSubmit"] p,
+        [data-testid="stBaseButton-primaryFormSubmit"] div,
+        [data-testid="stBaseButton-secondaryFormSubmit"] span,
+        [data-testid="stBaseButton-secondaryFormSubmit"] p,
+        [data-testid="stBaseButton-secondaryFormSubmit"] div,
+        [data-testid="stBaseButton-tertiaryFormSubmit"] span,
+        [data-testid="stBaseButton-tertiaryFormSubmit"] p,
+        [data-testid="stBaseButton-tertiaryFormSubmit"] div,
+        [data-testid="stFormSubmitButton"] button span,
+        [data-testid="stFormSubmitButton"] button p,
+        [data-testid="stFormSubmitButton"] button div {
             color: inherit !important;
             opacity: 1 !important;
             -webkit-text-fill-color: currentColor !important;
@@ -217,18 +236,26 @@
         .stDownloadButton > button p,
         .stDownloadButton > button div,
         .stDownloadButton > button svg,
+        .stFormSubmitButton button svg,
         [data-testid="stBaseButton-primary"] svg,
         [data-testid="stBaseButton-secondary"] svg,
-        [data-testid="stFormSubmitButton"] > button svg {
+        [data-testid="stBaseButton-primaryFormSubmit"] svg,
+        [data-testid="stBaseButton-secondaryFormSubmit"] svg,
+        [data-testid="stBaseButton-tertiaryFormSubmit"] svg,
+        [data-testid="stFormSubmitButton"] button svg {
             color: inherit !important;
             fill: currentColor !important;
             opacity: 1 !important;
         }
         .stButton > button:disabled,
         .stDownloadButton > button:disabled,
+        .stFormSubmitButton button:disabled,
         [data-testid="stBaseButton-primary"]:disabled,
         [data-testid="stBaseButton-secondary"]:disabled,
-        [data-testid="stFormSubmitButton"] > button:disabled {
+        [data-testid="stBaseButton-primaryFormSubmit"]:disabled,
+        [data-testid="stBaseButton-secondaryFormSubmit"]:disabled,
+        [data-testid="stBaseButton-tertiaryFormSubmit"]:disabled,
+        [data-testid="stFormSubmitButton"] button:disabled {
             background: #d8e4f5 !important;
             color: #526a86 !important;
             border-color: #c4d4eb !important;
