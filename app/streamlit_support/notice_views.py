@@ -297,7 +297,7 @@ def render_notice_detail_layout(
 
     render_download_controls_fn(detail)
     overview_tab, checklist_tab, keywords_tab, audit_tab, raw_tab = st.tabs(
-        ["Overview", "Checklist", "Eligibility Keywords", "Audit Trail", "Raw TED"]
+        ["Overview", "Checklist", "Why it matches", "Notes & audit", "Source record"]
     )
 
     with overview_tab:

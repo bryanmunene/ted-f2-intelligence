@@ -509,24 +509,24 @@ def _render_banner(current_view: str) -> None:
     purged_demo_notices = storage_state.get("purged_demo_notices", 0)
     view_copy = {
         "Dashboard": {
-            "kicker": "Opportunity Briefing",
+            "kicker": "Overview",
             "title": "Dashboard",
-            "copy": "Live TED opportunity picture for F2 review.",
+            "copy": "A clear snapshot of the most relevant TED opportunities for your team.",
         },
         "Live Scan": {
-            "kicker": "Acquisition Workspace",
+            "kicker": "Explore Opportunities",
             "title": "Live TED Scan",
-            "copy": "Run an official TED search and refresh the review queue.",
+            "copy": "Find fresh public tenders and send the best matches into your review queue.",
         },
         "Results": {
-            "kicker": "Signal Board",
+            "kicker": "Review Queue",
             "title": "Results",
-            "copy": "Review scored notices.",
+            "copy": "Browse the most relevant opportunities with simple, guided filtering.",
         },
         "Notice Detail": {
-            "kicker": "Opportunity Dossier",
+            "kicker": "Tender Summary",
             "title": "Notice Detail",
-            "copy": "Inspect one tender in depth.",
+            "copy": "Review one opportunity with the key facts, evidence, and notes in one place.",
         },
     }.get(
         current_view,
@@ -790,7 +790,7 @@ def _render_dashboard() -> None:
         f"Expiring soon: {metrics['expiring_soon']} | Hard locks: {metrics['hard_lock']}"
     )
 
-    scans_tab, queue_tab, forecast_tab = st.tabs(["Recent scan runs", "Immediate attention", "Predictive outlook"])
+    scans_tab, queue_tab, forecast_tab = st.tabs(["Recent activity", "Top opportunities", "Outlook"])
     with scans_tab:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
@@ -833,7 +833,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     if not render_sidebar:
         return _load_notices_for_filter_state(filter_state)
 
-    st.sidebar.markdown("### Signal Filters")
+    st.sidebar.markdown("### Refine results")
     st.sidebar.caption("Use a few simple filters to narrow the review queue.")
     st.sidebar.info("Active tenders are prioritised by default so the review queue stays current and actionable.")
     country_options = _country_filter_options()
