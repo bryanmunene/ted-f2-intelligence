@@ -163,19 +163,12 @@
             color: var(--cb-text) !important;
         }
         .stButton > button,
-        .stDownloadButton > button {
-            background: var(--cb-accent);
-            color: #f7fbff;
-            border: 1px solid #2a59bb;
-            border-radius: 10px;
-            min-height: 2.6rem;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            box-shadow: none;
-        }
-        /* Streamlit sometimes renders submit/actions as stBaseButton-* instead of .stButton */
+        .stButton > button[kind],
+        .stDownloadButton > button,
         [data-testid="stBaseButton-primary"],
+        [data-testid="stBaseButton-primary"] > button,
         [data-testid="stBaseButton-secondary"],
+        [data-testid="stBaseButton-secondary"] > button,
         [data-testid="stFormSubmitButton"] > button {
             background: var(--cb-accent) !important;
             color: #f7fbff !important;
@@ -184,7 +177,11 @@
             min-height: 2.6rem !important;
             font-weight: 700 !important;
             letter-spacing: 0.01em !important;
+            box-shadow: none !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: currentColor !important;
         }
+        /* Streamlit sometimes renders submit/actions as alternate button DOM structures */
         .stButton > button:hover,
         .stDownloadButton > button:hover {
             background: #2556bb;
@@ -200,24 +197,43 @@
         }
         .stButton > button span,
         .stDownloadButton > button span,
-        .stLinkButton a span {
+        .stLinkButton a span,
+        [data-testid="stBaseButton-primary"] span,
+        [data-testid="stBaseButton-primary"] p,
+        [data-testid="stBaseButton-primary"] div,
+        [data-testid="stBaseButton-secondary"] span,
+        [data-testid="stBaseButton-secondary"] p,
+        [data-testid="stBaseButton-secondary"] div,
+        [data-testid="stFormSubmitButton"] > button span,
+        [data-testid="stFormSubmitButton"] > button p,
+        [data-testid="stFormSubmitButton"] > button div {
             color: inherit !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: currentColor !important;
         }
         .stButton > button p,
         .stButton > button div,
         .stButton > button svg,
         .stDownloadButton > button p,
         .stDownloadButton > button div,
-        .stDownloadButton > button svg {
+        .stDownloadButton > button svg,
+        [data-testid="stBaseButton-primary"] svg,
+        [data-testid="stBaseButton-secondary"] svg,
+        [data-testid="stFormSubmitButton"] > button svg {
             color: inherit !important;
             fill: currentColor !important;
+            opacity: 1 !important;
         }
         .stButton > button:disabled,
-        .stDownloadButton > button:disabled {
-            background: #d8e4f5;
-            color: #526a86;
-            border-color: #c4d4eb;
-            opacity: 1;
+        .stDownloadButton > button:disabled,
+        [data-testid="stBaseButton-primary"]:disabled,
+        [data-testid="stBaseButton-secondary"]:disabled,
+        [data-testid="stFormSubmitButton"] > button:disabled {
+            background: #d8e4f5 !important;
+            color: #526a86 !important;
+            border-color: #c4d4eb !important;
+            opacity: 1 !important;
+            -webkit-text-fill-color: currentColor !important;
         }
         .stLinkButton a {
             background: #ffffff;
