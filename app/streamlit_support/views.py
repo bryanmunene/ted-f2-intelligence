@@ -236,7 +236,12 @@ def render_result_card(
     else:
         action_cols[0].caption("No official TED URL")
 
-    if action_cols[1].button("Review notice", key=f"review_notice_{card_index}_{notice['id']}", width="stretch"):
+    if action_cols[1].button(
+        "Review notice",
+        key=f"review_notice_{card_index}_{notice['id']}",
+        type="primary",
+        width="stretch",
+    ):
         open_notice_detail(notice["id"])
         st.rerun()
 

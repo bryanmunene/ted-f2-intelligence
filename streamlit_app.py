@@ -915,7 +915,7 @@ def _render_results() -> list[dict[str, Any]]:
     results_return_view = st.session_state.get("results_return_view")
     if results_return_view in {"Live Scan", "Historical Backfill"}:
         back_label = "Back to Scan" if results_return_view == "Live Scan" else "Back to Backfill"
-        if nav_cols[0].button(back_label, key="results_back_to_source", width="stretch"):
+        if nav_cols[0].button(back_label, key="results_back_to_source", type="secondary", width="stretch"):
             _go_to_view(results_return_view)
             st.rerun()
 
@@ -973,7 +973,12 @@ def _render_keyword_evidence_module(detail: dict[str, Any]) -> None:
 def _render_notice_detail(notice_id: str | None) -> None:
     return_view = st.session_state.get("detail_return_view", "Results")
     nav_cols = st.columns([0.2, 0.8], gap="small")
-    if nav_cols[0].button(f"Back to {return_view if return_view != 'Notice Detail' else 'Results'}", key="detail_back_button", width="stretch"):
+    if nav_cols[0].button(
+        f"Back to {return_view if return_view != 'Notice Detail' else 'Results'}",
+        key="detail_back_button",
+        type="secondary",
+        width="stretch",
+    ):
         _go_to_view(return_view if return_view != "Notice Detail" else "Results")
         st.rerun()
 
