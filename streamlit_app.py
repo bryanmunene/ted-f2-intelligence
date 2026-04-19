@@ -793,38 +793,36 @@ def _render_dashboard() -> None:
     _render_section_header(
         "",
         "Home",
-    )
-    st.info(
-        "Tap any card below to jump straight to the right shortlist or next action."
+        "Pick a simple next step below and keep moving.",
     )
 
     summary_cols = st.columns(4, gap="medium")
     quick_cards = [
         {
-            "label": "Saved tenders",
+            "label": "Saved for later",
             "value": str(metrics.get("saved_count", 0)),
-            "note": "Opportunities you have marked to return to",
+            "note": "Tenders you wanted to come back to",
             "button": "Open saved",
             "button_type": "secondary",
         },
         {
-            "label": "All tenders",
+            "label": "Ready for you",
             "value": str(metrics["total_notices"]),
-            "note": "Everything currently in your shortlist",
+            "note": "Everything currently waiting in your shortlist",
             "button": "Open shortlist",
             "button_type": "primary",
         },
         {
-            "label": "Strong matches",
+            "label": "Best options",
             "value": str(metrics["high_fit"]),
-            "note": "The best-fit opportunities to review first",
-            "button": "See best matches",
+            "note": "The clearest matches to start with",
+            "button": "See best options",
             "button_type": "secondary",
         },
         {
-            "label": "Needs review",
+            "label": "Needs a check",
             "value": str(metrics["conditional"]),
-            "note": "Relevant tenders that may need a closer look",
+            "note": "Worth reviewing before you decide",
             "button": "Review now",
             "button_type": "secondary",
         },
@@ -855,15 +853,15 @@ def _render_dashboard() -> None:
                     st.rerun()
 
     st.caption(
-        f"Last update: {format_datetime(metrics['scan_freshness'], settings.ui_timezone)} • Closing soon: {metrics['expiring_soon']} • Hard locks: {metrics['hard_lock']}"
+        f"Updated {format_datetime(metrics['scan_freshness'], settings.ui_timezone)} • {metrics['expiring_soon']} closing soon • {metrics['hard_lock']} may need extra care"
     )
 
-    scans_tab, queue_tab, forecast_tab = st.tabs(["Latest updates", "Best matches", "Trends"])
+    scans_tab, queue_tab, forecast_tab = st.tabs(["Recent activity", "Start here", "Helpful hints"])
     with scans_tab:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
         else:
-            st.info("No scan history is available yet. Run a live TED scan to start building the workspace.")
+            st.info("Nothing has been searched yet. Run a quick search to start filling your workspace.")
 
     with queue_tab:
         if top_notices:
@@ -885,7 +883,7 @@ def _render_dashboard() -> None:
                     if official_url:
                         action_cols[2].link_button("TED notice", official_url, width="stretch")
         else:
-            st.info("No notices are ready for review yet. Run a live scan or widen the filters to surface opportunities.")
+            st.info("No shortlist items are ready yet. Run a search or widen the filters to bring in more options.")
 
     with forecast_tab:
         _render_predictive_outlook(predictive_outlook)
@@ -1078,8 +1076,8 @@ def _render_results() -> list[dict[str, Any]]:
         st.warning("No notices match the current filters. Clear a filter or lower the minimum score to widen the review queue.")
         return notices
 
-    st.caption(f"Showing {len(notices)} of {total_matches} ranked notices for the current review posture.")
-    st.info("Open the official notice for the public source, or open the summary for the guided internal view.")
+    st.caption(f"Showing {len(notices)} of {total_matches} opportunities matching your current view.")
+    st.info("Open the summary for the easy guided view, or use the official notice when you need the original source.")
 
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:

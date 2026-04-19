@@ -71,9 +71,9 @@ def render_recent_scan_cards(
     for index, scan in enumerate(recent_scans):
         added = int(scan.get("total_notices_ingested") or 0)
         strong_matches = int(scan.get("total_high_fit") or 0)
-        headline = "New tenders added" if added else "No new tenders this time"
+        headline = "Your shortlist was updated" if added else "This search did not add anything new"
         helper_text = (
-            "Your updated shortlist is ready to review."
+            f"{added} new items were added, including {strong_matches} strong options."
             if added
             else "Try another search if you want more options."
         )
@@ -82,18 +82,14 @@ def render_recent_scan_cards(
             st.markdown(
                 f"""
                 <div class="cb-note-title">{html.escape(headline)}</div>
-                <div class="cb-note-copy">{html.escape(helper_text)} Started {html.escape(format_datetime(scan['started_at'], ui_timezone))}</div>
+                <div class="cb-note-copy">{html.escape(helper_text)} Updated {html.escape(format_datetime(scan['started_at'], ui_timezone))}</div>
                 """,
                 unsafe_allow_html=True,
             )
-            detail_cols = st.columns(3, gap="small")
-            detail_cols[0].metric("Added", added)
-            detail_cols[1].metric("Strong matches", strong_matches)
-            detail_cols[2].metric("Searches", scan["request_count"])
 
             action_cols = st.columns(2, gap="small")
             if action_cols[0].button(
-                "View shortlist",
+                "Open shortlist",
                 key=f"recent_scan_shortlist_{scan.get('id', index)}",
                 type="secondary",
                 width="stretch",
@@ -102,7 +98,7 @@ def render_recent_scan_cards(
                     open_shortlist_view()
                     st.rerun()
             if action_cols[1].button(
-                "Run another search",
+                "Search again",
                 key=f"recent_scan_search_{scan.get('id', index)}",
                 type="secondary",
                 width="stretch",
@@ -112,18 +108,18 @@ def render_recent_scan_cards(
                     st.rerun()
 
             if scan["rate_limit_events"]:
-                st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
+                st.caption("The source was briefly busy during this search.")
 
 
 def render_predictive_outlook(outlook: dict[str, Any]) -> None:
     if not outlook or not outlook.get("sample_size"):
-        st.info("Predictive outlook will appear once the app has enough relevant TED history to learn from.")
+        st.info("Helpful planning hints will appear once the app has seen enough matching notices.")
         return
 
     render_section_header(
         "",
-        "Predictive Outlook",
-        "Historical patterns from relevant TED notices to help anticipate where and when similar opportunities appear.",
+        "Helpful hints",
+        "A few simple patterns from past notices to help you plan your next search.",
     )
 
     next_window = outlook.get("next_expected_window") or {}
@@ -131,66 +127,66 @@ def render_predictive_outlook(outlook: dict[str, Any]) -> None:
     render_stat_cards(
         [
             {
-                "label": "Relevant History",
+                "label": "Past examples",
                 "value": str(outlook.get("sample_size", 0)),
-                "note": f"{outlook.get('confidence', 'Low')} confidence sample",
+                "note": "Matching notices the app has learned from",
             },
             {
-                "label": "Typical Lead Time",
+                "label": "Usual time left",
                 "value": str(outlook.get("median_lead_days") or "Unknown"),
-                "note": "Median days from publication to deadline",
+                "note": "Typical days between notice and deadline",
             },
             {
-                "label": "Budget Range",
+                "label": "Typical budget",
                 "value": str(budget_summary.get("range_display") or "Unknown"),
-                "note": str(budget_summary.get("note") or "No budget pattern available"),
+                "note": str(budget_summary.get("note") or "Budget clues are still limited"),
             },
             {
-                "label": "Next Likely Window",
+                "label": "Next likely window",
                 "value": str(next_window.get("label") or "Unknown"),
-                "note": str(next_window.get("reason") or "Not enough month history yet"),
+                "note": str(next_window.get("reason") or "More history is needed for a stronger signal"),
             },
         ]
     )
-    st.caption(
-        f"Historical span: {format_date(outlook.get('publication_span_start'))} to {format_date(outlook.get('publication_span_end'))} | "
-        f"Average score: {outlook.get('average_score_ten', 0.0):.1f}/10"
-    )
-    st.info(str(outlook.get("forecast_summary") or "No forecast summary available yet."))
+    st.info(str(outlook.get("forecast_summary") or "No planning summary is available yet."))
 
-    top_left, top_right = st.columns(2, gap="medium")
-    with top_left:
-        render_ranked_signal_list(
-            "Peak Release Months",
-            outlook.get("peak_release_months", []),
-            empty_message="No publication-month pattern available yet.",
+    with st.expander("Show deeper pattern details", expanded=False):
+        st.caption(
+            f"Based on notices from {format_date(outlook.get('publication_span_start'))} to {format_date(outlook.get('publication_span_end'))}"
         )
-        render_ranked_signal_list(
-            "Top Countries",
-            outlook.get("top_countries", []),
-            empty_message="No country concentration visible yet.",
-        )
-        render_ranked_signal_list(
-            "Common Procedures",
-            outlook.get("top_procedures", []),
-            empty_message="No procedure pattern available yet.",
-        )
-    with top_right:
-        render_ranked_signal_list(
-            "Peak Release Weekdays",
-            outlook.get("peak_release_weekdays", []),
-            empty_message="No weekday publication pattern available yet.",
-        )
-        render_ranked_signal_list(
-            "Repeat Buyers",
-            outlook.get("top_buyers", []),
-            empty_message="No repeat-buyer pattern available yet.",
-        )
-        render_ranked_signal_list(
-            "Common CPV Families",
-            outlook.get("top_cpv_families", []),
-            empty_message="No CPV-family pattern available yet.",
-        )
+        top_left, top_right = st.columns(2, gap="medium")
+        with top_left:
+            render_ranked_signal_list(
+                "Busy months",
+                outlook.get("peak_release_months", []),
+                empty_message="No month pattern is available yet.",
+            )
+            render_ranked_signal_list(
+                "Common countries",
+                outlook.get("top_countries", []),
+                empty_message="No country pattern is visible yet.",
+            )
+            render_ranked_signal_list(
+                "Common procedures",
+                outlook.get("top_procedures", []),
+                empty_message="No procedure pattern is available yet.",
+            )
+        with top_right:
+            render_ranked_signal_list(
+                "Busy weekdays",
+                outlook.get("peak_release_weekdays", []),
+                empty_message="No weekday pattern is available yet.",
+            )
+            render_ranked_signal_list(
+                "Repeat buyers",
+                outlook.get("top_buyers", []),
+                empty_message="No buyer pattern is available yet.",
+            )
+            render_ranked_signal_list(
+                "Common categories",
+                outlook.get("top_cpv_families", []),
+                empty_message="No category pattern is available yet.",
+            )
 
 
 def render_result_card(

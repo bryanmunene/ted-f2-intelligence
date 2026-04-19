@@ -78,7 +78,7 @@ def render_ranked_signal_list(title: str, items: list[dict[str, Any]], *, empty_
             st.caption(empty_message)
             return
         for item in items:
-            st.markdown(f"- `{item['count']}` {item['label']} ({item['share']:.1f}%)")
+            st.markdown(f"- {item['label']} — seen often in past matches")
 
 
 def render_checklist_table(items: list[dict[str, Any]]) -> None:
