@@ -197,6 +197,7 @@ def render_result_card(
     open_notice_detail: Callable[[str], None],
     resolve_official_notice_url: Callable[[dict[str, Any]], str | None],
 ) -> None:
+    del card_index
     raw_fit_label = str(display_value(notice.get("fit_label")))
     fit_label = {
         "YES": "Strong fit",
@@ -204,7 +205,6 @@ def render_result_card(
         "NO": "Lower fit",
     }.get(raw_fit_label.upper(), raw_fit_label)
     confidence = str(display_value(notice.get("confidence_indicator")))
-    card_class = card_tone_class(notice)
     score_value = max(0, min(100, int(round(float(notice.get("score") or 0)))))
 
     if notice.get("hard_lock_detected"):
@@ -237,46 +237,31 @@ def render_result_card(
     title = notice.get("title") or "Untitled notice"
     summary_text = truncate_text(
         notice.get("reasoning") or notice.get("summary") or "Open the summary to see the full tender details and evidence.",
-        limit=150,
+        limit=135,
     )
     keyword_labels = notice_keyword_labels(notice, limit=2)
-    why_it_matches = " • ".join(keyword_labels)
-    if not why_it_matches:
-        why_it_matches = f"Confidence: {confidence}"
+    why_it_matches = " • ".join(keyword_labels) if keyword_labels else f"Confidence: {confidence}"
 
     with st.container(border=True):
-        st.markdown(
-            f"""
-            <div class="cb-result-shell cb-flow-surface {card_class}" style="--cb-enter-delay: {min(card_index * 45, 360)}ms;">
-              <div class="cb-result-toprow">
-                <div class="cb-result-main">
-                  <div class="cb-dossier-topline">{''.join(top_line_badges)}</div>
-                  <div class="cb-result-title">{html.escape(title)}</div>
-                  <div class="cb-result-meta">{html.escape(str(buyer))} • {html.escape(str(country))} • Deadline {html.escape(str(deadline))}</div>
-                  <div class="cb-result-summary">{html.escape(summary_text)}</div>
-                  <div class="cb-result-matchline">Why it matches: {html.escape(why_it_matches)}</div>
-                  <div class="cb-result-reference">Reference {html.escape(publication)} • Published {html.escape(publication_date)}</div>
-                </div>
-                <div class="cb-result-meter-card">
-                  <div class="cb-result-meter-label">
-                    <span class="cb-result-meter-title">Match</span>
-                    <span class="cb-result-meter-value">{format_score_out_of_ten(notice['score'])}</span>
-                  </div>
-                  <div class="cb-result-meter">
-                    <div class="cb-result-meter-fill cb-result-meter-fill-{status_tone}" style="width: {score_value}%;"></div>
-                  </div>
-                  <div class="cb-result-meter-note">{html.escape(fit_label)} • {html.escape(status_note)}</div>
-                </div>
-              </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown("<div class='cb-dossier-topline'>" + "".join(top_line_badges) + "</div>", unsafe_allow_html=True)
+
+        head_cols = st.columns([0.78, 0.22], gap="medium")
+        with head_cols[0]:
+            st.markdown(f"<div class='cb-result-title'>{html.escape(title)}</div>", unsafe_allow_html=True)
+            st.caption(f"{buyer} • {country} • Deadline {deadline}")
+        with head_cols[1]:
+            st.metric("Match", format_score_out_of_ten(notice["score"]))
+
+        st.progress(score_value / 100.0)
+        st.caption(f"{fit_label} • {status_note}")
+        st.markdown(f"<div class='cb-result-summary'>{html.escape(summary_text)}</div>", unsafe_allow_html=True)
+        st.caption(f"Why it matches: {why_it_matches}")
+        st.caption(f"Reference {publication} • Published {publication_date}")
 
         action_cols = st.columns([1.1, 1], gap="small")
         if action_cols[0].button(
             "Open summary",
-            key=f"review_notice_{card_index}_{notice['id']}",
+            key=f"review_notice_{notice['id']}",
             type="primary",
             width="stretch",
         ):
