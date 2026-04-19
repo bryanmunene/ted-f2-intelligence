@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 from functools import lru_cache
-from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.config import Settings, get_settings
+from app.config import get_settings
 
 
 @lru_cache(maxsize=1)

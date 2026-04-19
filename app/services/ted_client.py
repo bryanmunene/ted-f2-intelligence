@@ -11,9 +11,9 @@ from email.utils import parsedate_to_datetime
 from typing import Any
 
 import httpx
-from cachetools import TTLCache
+from cachetools import TTLCache  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
-from tenacity import Retrying, RetryCallState, retry_if_exception_type, stop_after_attempt
+from tenacity import RetryCallState, Retrying, retry_if_exception_type, stop_after_attempt
 
 from app.config import Settings
 from app.services.query_builder import TED_CANONICAL_FIELDS

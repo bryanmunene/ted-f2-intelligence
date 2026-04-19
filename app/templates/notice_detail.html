@@ -26,6 +26,11 @@
           Download Notice PDF
         </a>
       {% endif %}
+      {% if tender_documents %}
+        <a href="#tender-documents" class="button button-secondary">
+          Tender Documents ({{ tender_documents | length }})
+        </a>
+      {% endif %}
     {% endif %}
   </div>
 </section>
@@ -124,6 +129,29 @@
         <li>{{ question }}</li>
       {% endfor %}
     </ul>
+  </article>
+
+  <article class="panel" id="tender-documents">
+    <div class="panel-header">
+      <h2>Tender Documents</h2>
+    </div>
+    {% if notice.is_demo_record %}
+      <p class="empty-state">Tender document downloads are unavailable for demo records.</p>
+    {% elif tender_documents %}
+      <div class="note-list">
+        {% for document in tender_documents %}
+          <article class="note-card">
+            <div class="note-meta">Document {{ loop.index }}</div>
+            <div>{{ document.filename }}</div>
+            <div class="action-row">
+              <a href="{{ document.url }}" class="button button-secondary">Download</a>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">No downloadable tender documents were found in the TED payload for this notice.</p>
+    {% endif %}
   </article>
 
   <article class="panel">

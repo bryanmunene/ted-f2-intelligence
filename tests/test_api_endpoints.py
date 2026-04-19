@@ -4,8 +4,8 @@ import httpx
 import respx
 from fastapi.testclient import TestClient
 
-from app.deps import get_db, get_scan_service
 from app.database import get_db_session
+from app.deps import get_db, get_scan_service
 from app.main import create_app
 from app.repositories.notices import NoticeRepository
 from app.services.scan_service import ScanOutcome
@@ -80,6 +80,41 @@ def test_official_ted_actions(db_session, seeded_notice: str) -> None:
     assert download_response.content.startswith(b"%PDF")
 
 
+@respx.mock
+def test_tender_document_actions(db_session, seeded_notice: str) -> None:
+    app = create_app()
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+
+    detail_response = client.get(f"/results/{seeded_notice}")
+    assert detail_response.status_code == 200
+    assert "Tender Documents" in detail_response.text
+    assert "/download/tender/0" in detail_response.text
+
+    respx.get("https://buyer.example.org/tender/12345/specifications.pdf").mock(
+        return_value=httpx.Response(
+            200,
+            content=b"%PDF-1.7 tender spec",
+            headers={"content-type": "application/pdf"},
+        )
+    )
+
+    download_response = client.get(f"/results/{seeded_notice}/download/tender/0")
+    assert download_response.status_code == 200
+    assert download_response.headers["content-type"] == "application/pdf"
+    assert "specifications.pdf" in download_response.headers["content-disposition"]
+    assert download_response.headers["x-download-source"] == "tender-document"
+    assert download_response.content.startswith(b"%PDF")
+
+
 def test_demo_notice_disables_live_ted_redirect(db_session, seeded_notice: str) -> None:
     app = create_app()
 
@@ -101,6 +136,36 @@ def test_demo_notice_disables_live_ted_redirect(db_session, seeded_notice: str) 
     redirect_response = client.get(f"/results/{seeded_notice}/open-ted", follow_redirects=False)
     assert redirect_response.status_code == 404
     assert "not linked to a corresponding live ted notice" in redirect_response.json()["detail"].lower()
+
+
+def test_tender_document_blocks_private_hosts(db_session, seeded_notice: str) -> None:
+    app = create_app()
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+
+    notice = NoticeRepository(db_session).get_by_id(seeded_notice)
+    assert notice is not None
+    notice.raw_payload_json = {
+        "procurement-documents": [
+            {
+                "title": "Local Test",
+                "url": "http://127.0.0.1/private.pdf",
+            }
+        ]
+    }
+    db_session.commit()
+
+    response = client.get(f"/results/{seeded_notice}/download/tender/0")
+    assert response.status_code == 403
+    assert "local/private hosts are not allowed" in response.json()["detail"].lower()
 
 
 def test_api_notice_filters_support_score_and_date_windows(db_session, seeded_notice: str) -> None:
@@ -141,6 +206,29 @@ def test_api_notice_filters_support_score_and_date_windows(db_session, seeded_no
     too_strict = client.get("/api/v1/notices", params={"max_score": notice.analysis.score - 1})
     assert too_strict.status_code == 200
     assert too_strict.json() == []
+
+
+def test_api_paged_notices_response_shape(db_session, seeded_notice: str) -> None:
+    app = create_app()
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            pass
+
+    app.dependency_overrides[get_db_session] = override_get_db
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+
+    response = client.get("/api/v1/notices/paged", params={"page": 1, "page_size": 10})
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["page"] == 1
+    assert payload["page_size"] == 10
+    assert payload["total"] >= 1
+    assert len(payload["items"]) >= 1
+    assert payload["items"][0]["id"] == seeded_notice
 
 
 def test_historical_backfill_endpoint_aggregates_windows(db_session) -> None:

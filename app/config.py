@@ -4,7 +4,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Literal
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -182,10 +182,12 @@ class Settings(BaseSettings):
     ui_timezone: str = "Europe/Copenhagen"
     database_url: str = "sqlite+pysqlite:///./ted_app.db"
     sqlalchemy_echo: bool = False
-    auto_create_schema: bool = True
+    auto_create_schema: bool = False
     ted_api_base_url: str = "https://api.ted.europa.eu"
     ted_search_path: str = "/v3/notices/search"
     ted_request_timeout_seconds: int = 30
+    ted_document_max_download_bytes: int = 25 * 1024 * 1024
+    ted_document_allow_private_hosts: bool = False
     ted_retry_attempts: int = 4
     ted_requests_per_minute: int = 60
     ted_cache_ttl_seconds: int = 300
@@ -249,6 +251,20 @@ def load_search_profiles(path: Path) -> SearchProfileRegistry:
 
 def load_tender_checklist_template(path: Path) -> TenderChecklistTemplate:
     return TenderChecklistTemplate.model_validate(_read_yaml(path))
+
+
+def validate_runtime_settings(settings: Settings) -> None:
+    if not settings.is_production:
+        return
+
+    if settings.secret_key in {"", "change-me", "change-me-in-production"}:
+        raise ValueError("APP_SECRET_KEY must be set to a strong non-default value in production.")
+    if not settings.session_https_only:
+        raise ValueError("APP_SESSION_HTTPS_ONLY must be true in production.")
+    if not settings.auth_enabled:
+        raise ValueError("APP_AUTH_ENABLED must be true in production.")
+    if settings.auto_create_schema:
+        raise ValueError("APP_AUTO_CREATE_SCHEMA must be false in production. Use Alembic migrations.")
 
 
 @lru_cache(maxsize=1)

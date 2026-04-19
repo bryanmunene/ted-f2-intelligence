@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
-from fastapi import APIRouter, Depends
 
 from app.config import Settings, get_settings
 from app.database import get_db_session

@@ -441,10 +441,10 @@ class ScoringEngine:
                 labels.extend(self._stringify_cpv_labels(nested))
             return labels
         if isinstance(value, list):
-            labels: list[str] = []
+            labels_list: list[str] = []
             for item in value:
-                labels.extend(self._stringify_cpv_labels(item))
-            return labels
+                labels_list.extend(self._stringify_cpv_labels(item))
+            return labels_list
         return []
 
     def _match_terms(self, context: MatchContext, terms: tuple[str, ...] | list[str], *, scopes: tuple[str, ...]) -> list[TermMatch]:

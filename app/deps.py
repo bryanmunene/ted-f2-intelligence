@@ -1,13 +1,20 @@
 from __future__ import annotations
 
+from collections.abc import Generator
 from functools import lru_cache
-from typing import Generator
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.auth import ActorContext
-from app.config import KeywordPack, SearchProfileRegistry, Settings, get_settings, load_keyword_pack, load_search_profiles
+from app.config import (
+    KeywordPack,
+    SearchProfileRegistry,
+    Settings,
+    get_settings,
+    load_keyword_pack,
+    load_search_profiles,
+)
 from app.database import get_db_session
 from app.services.scan_service import ScanService
 from app.services.ted_client import TedApiClient
@@ -60,6 +67,14 @@ def get_actor_context(
         display_name=settings.default_user_name,
         auth_provider="internal-default",
     )
+
+
+def require_mutation_auth(settings: Settings = Depends(get_settings)) -> None:
+    if settings.is_production and not settings.auth_enabled:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Mutation endpoints require APP_AUTH_ENABLED=true in production.",
+        )
 
 
 def get_scan_service(

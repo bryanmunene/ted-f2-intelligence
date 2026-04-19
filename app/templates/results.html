@@ -47,7 +47,7 @@
     </label>
     <label>
       <span>Minimum Score</span>
-      <input type="number" name="min_score" min="0" max="100" value="{{ filters.min_score or '' }}">
+      <input type="number" name="min_score" min="0" max="100" value="{{ filters.min_score if filters.min_score is not none else '' }}">
     </label>
     <label>
       <span>Deadline Window (Days)</span>

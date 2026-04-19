@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from datetime import UTC, datetime
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any
 
 from app.config import (
     Settings,
@@ -12,7 +13,6 @@ from app.config import (
     load_tender_checklist_template,
 )
 from app.utils.time import format_datetime
-
 
 CHECKLIST_STATUS_FILLED = "filled"
 CHECKLIST_STATUS_INFERRED = "inferred"
@@ -406,10 +406,10 @@ class TenderChecklistService:
                 flattened.extend(self._flatten_strings(nested))
             return flattened
         if isinstance(value, Iterable) and not isinstance(value, (bytes, bytearray)):
-            flattened: list[str] = []
+            flattened_items: list[str] = []
             for nested in value:
-                flattened.extend(self._flatten_strings(nested))
-            return flattened
+                flattened_items.extend(self._flatten_strings(nested))
+            return flattened_items
         scalar = self._stringify_scalar(value)
         return [scalar] if scalar else []
 

@@ -28,6 +28,16 @@
           "format": "XML",
           "url": "https://ted.europa.eu/en/notice/12345-2026/xml"
         }
+      ],
+      "procurement-documents": [
+        {
+          "title": "Tender Specifications",
+          "url": "https://buyer.example.org/tender/12345/specifications.pdf"
+        },
+        {
+          "title": "Pricing Template",
+          "url": "https://buyer.example.org/tender/12345/pricing-template.xlsx"
+        }
       ]
     },
     {

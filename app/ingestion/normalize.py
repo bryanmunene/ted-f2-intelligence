@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from app.ingestion.models import NormalizedNotice
 from app.utils.time import parse_ted_date, parse_ted_datetime
@@ -206,10 +207,10 @@ def _stringify_values(value: Any) -> list[str]:
             flattened.extend(_stringify_values(nested))
         return flattened
     if isinstance(value, Iterable) and not isinstance(value, (bytes, bytearray)):
-        flattened: list[str] = []
+        flattened_items: list[str] = []
         for item in value:
-            flattened.extend(_stringify_values(item))
-        return flattened
+            flattened_items.extend(_stringify_values(item))
+        return flattened_items
     return []
 
 

@@ -55,6 +55,13 @@ class NoticeSummaryResponse(BaseModel):
     dismissed: bool
 
 
+class NoticeListResponse(BaseModel):
+    items: list[NoticeSummaryResponse]
+    total: int
+    page: int
+    page_size: int
+
+
 class NoticeDetailResponse(NoticeSummaryResponse):
     ted_notice_id: str | None
     place_of_performance: str | None

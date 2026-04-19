@@ -3,7 +3,6 @@ from __future__ import annotations
 from datetime import date
 
 import httpx
-
 from fastapi import APIRouter, Depends, Form, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse, Response
 from fastapi.templating import Jinja2Templates
@@ -20,9 +19,9 @@ from app.repositories.scan_runs import ScanRunRepository
 from app.repositories.settings import SettingsRepository
 from app.repositories.users import UserRepository
 from app.services.scan_service import ScanService
-from app.services.ted_documents import TedDocumentService
+from app.services.ted_documents import DocumentDownloadAccessError, TedDocumentService
 from app.utils.csrf import get_csrf_token, validate_csrf
-from app.utils.time import format_date, format_datetime
+from app.utils.time import format_date, format_datetime, parse_ted_date
 
 settings = get_settings()
 templates = Jinja2Templates(directory=str(settings.templates_dir))
@@ -95,10 +94,12 @@ def run_scan_page(
     scan_service: ScanService = Depends(get_scan_service),
 ):
     validate_csrf(request, csrf_token)
+    parsed_date_from = parse_ted_date(date_from) if date_from else None
+    parsed_date_to = parse_ted_date(date_to) if date_to else None
     payload = ScanRequestPayload(
         profile_name=profile_name,
-        date_from=date_from or None,
-        date_to=date_to or None,
+        date_from=parsed_date_from,
+        date_to=parsed_date_to,
         country=country or None,
         cpv=cpv or None,
         keyword_override=keyword_override or None,
@@ -177,10 +178,19 @@ def results_page(
 @router.get("/results/{notice_id}")
 def notice_detail_page(request: Request, notice_id: str, session: Session = Depends(get_db)):
     notice = _get_notice_or_404(session, notice_id)
+    document_service = TedDocumentService(settings=settings)
+    tender_documents = [
+        {
+            "index": index,
+            "filename": spec.filename,
+            "url": f"/results/{notice.id}/download/tender/{index}",
+        }
+        for index, spec in enumerate(document_service.list_tender_documents(notice))
+    ]
     return templates.TemplateResponse(
         request,
         "notice_detail.html",
-        _base_context(request) | {"notice": notice_to_detail_dict(notice)},
+        _base_context(request) | {"notice": notice_to_detail_dict(notice), "tender_documents": tender_documents},
     )
 
 
@@ -204,12 +214,35 @@ def download_notice_artifact(notice_id: str, artifact: str, session: Session = D
         payload, media_type = document_service.fetch_download(spec)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except DocumentDownloadAccessError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
     except httpx.HTTPError as exc:
         raise HTTPException(status_code=502, detail=f"Failed to download official TED {artifact.upper()} document.") from exc
 
     headers = {
         "Content-Disposition": f'attachment; filename="{spec.filename}"',
         "X-Download-Source": "official-ted",
+    }
+    return Response(content=payload, media_type=media_type, headers=headers)
+
+
+@router.get("/results/{notice_id}/download/tender/{document_index}")
+def download_tender_document(notice_id: str, document_index: int, session: Session = Depends(get_db)):
+    notice = _get_notice_or_404(session, notice_id)
+    document_service = TedDocumentService(settings=settings)
+    try:
+        spec = document_service.resolve_tender_document_download(notice, document_index=document_index)
+        payload, media_type = document_service.fetch_download(spec)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except DocumentDownloadAccessError as exc:
+        raise HTTPException(status_code=403, detail=str(exc)) from exc
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Failed to download tender document.") from exc
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="{spec.filename}"',
+        "X-Download-Source": "tender-document",
     }
     return Response(content=payload, media_type=media_type, headers=headers)
 

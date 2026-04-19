@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from streamlit_app import _build_results_metrics, _default_filter_state, _default_live_scan_max_pages, settings
+from streamlit_app import (
+    _build_results_metrics,
+    _default_filter_state,
+    _default_live_scan_max_pages,
+    settings,
+)
 
 
 def test_results_metrics_handle_naive_and_string_dates() -> None:

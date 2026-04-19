@@ -11,13 +11,14 @@ from app.api.schemas import (
     HistoricalBackfillRequestPayload,
     HistoricalBackfillResponse,
     NoticeDetailResponse,
-    PredictiveOutlookResponse,
+    NoticeListResponse,
     NoticeSummaryResponse,
+    PredictiveOutlookResponse,
     ScanRequestPayload,
     ScanRunResponse,
     TenderChecklistResponse,
 )
-from app.deps import get_db, get_scan_service
+from app.deps import get_db, get_scan_service, require_mutation_auth
 from app.repositories.notices import NoticeListFilters, NoticeRepository
 from app.repositories.scan_runs import ScanRunRepository
 from app.services.historical_backfill import HistoricalBackfillService
@@ -42,7 +43,11 @@ def predictive_outlook(session: Session = Depends(get_db)) -> PredictiveOutlookR
 
 
 @router.post("/scans", response_model=ScanRunResponse, status_code=status.HTTP_201_CREATED)
-def run_scan(payload: ScanRequestPayload, scan_service: ScanService = Depends(get_scan_service)) -> ScanRunResponse:
+def run_scan(
+    payload: ScanRequestPayload,
+    scan_service: ScanService = Depends(get_scan_service),
+    _=Depends(require_mutation_auth),
+) -> ScanRunResponse:
     outcome = scan_service.run_manual_scan(payload)
     repository = ScanRunRepository(scan_service.session)
     scan_run = repository.get_by_id(outcome.scan_run_id)
@@ -55,6 +60,7 @@ def run_scan(payload: ScanRequestPayload, scan_service: ScanService = Depends(ge
 def run_historical_backfill(
     payload: HistoricalBackfillRequestPayload,
     scan_service: ScanService = Depends(get_scan_service),
+    _=Depends(require_mutation_auth),
 ) -> HistoricalBackfillResponse:
     service = HistoricalBackfillService(scan_service=scan_service, settings=scan_service.settings)
     outcome = service.run(payload)
@@ -131,6 +137,57 @@ def list_notices(
         page_size=page_size,
     )
     return [NoticeSummaryResponse.model_validate(notice_to_summary_dict(notice)) for notice in notices]
+
+
+@router.get("/notices/paged", response_model=NoticeListResponse)
+def list_notices_paged(
+    country: str | None = None,
+    fit_label: str | None = None,
+    priority_bucket: str | None = None,
+    min_score: int | None = Query(default=None, ge=0, le=100),
+    max_score: int | None = Query(default=None, ge=0, le=100),
+    confidence_indicator: str | None = None,
+    hard_lock_only: bool = False,
+    publication_date_from: date | None = None,
+    publication_date_to: date | None = None,
+    deadline_from: date | None = None,
+    deadline_to: date | None = None,
+    deadline_window_days: int | None = Query(default=None, ge=1, le=365),
+    include_dismissed: bool = False,
+    saved_only: bool = False,
+    search: str | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=25, ge=1, le=100),
+    session: Session = Depends(get_db),
+) -> NoticeListResponse:
+    repository = NoticeRepository(session)
+    notices, total = repository.list(
+        NoticeListFilters(
+            country=country,
+            fit_label=fit_label,
+            priority_bucket=priority_bucket,
+            min_score=min_score,
+            max_score=max_score,
+            confidence_indicator=confidence_indicator,
+            hard_lock_only=hard_lock_only,
+            publication_date_from=publication_date_from,
+            publication_date_to=publication_date_to,
+            deadline_from=deadline_from,
+            deadline_to=deadline_to,
+            deadline_window_days=deadline_window_days,
+            include_dismissed=include_dismissed,
+            saved_only=saved_only,
+            search=search,
+        ),
+        page=page,
+        page_size=page_size,
+    )
+    return NoticeListResponse(
+        items=[NoticeSummaryResponse.model_validate(notice_to_summary_dict(notice)) for notice in notices],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.get("/notices/{notice_id}", response_model=NoticeDetailResponse)

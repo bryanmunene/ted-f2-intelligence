@@ -4,9 +4,10 @@ import json
 import re
 from calendar import month_name
 from collections import Counter
-from datetime import UTC, date, datetime
+from collections.abc import Callable, Iterable, Sequence
+from datetime import date, datetime
 from statistics import median
-from typing import Any, Callable, Iterable, Sequence
+from typing import Any
 
 from app.models import Notice
 from app.models.enums import FitLabel
