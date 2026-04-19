@@ -83,7 +83,7 @@ def render_ranked_signal_list(title: str, items: list[dict[str, Any]], *, empty_
 
 def render_checklist_table(items: list[dict[str, Any]]) -> None:
     if not items:
-        st.info("No checklist items are available for this notice.")
+        st.info("No checklist items are available yet. Run the checklist cross-reference above to generate a structured review table.")
         return
 
     rows: list[str] = []

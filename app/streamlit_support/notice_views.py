@@ -49,7 +49,7 @@ def render_download_controls(
 
     prep_key = f"prepare_pdf_{detail['id']}"
     state_key = f"prepared_pdf_{detail['id']}"
-    if pdf_column.button("Prepare PDF", key=prep_key, width="stretch"):
+    if pdf_column.button("Prepare PDF", key=prep_key, type="secondary", width="stretch"):
         with st.spinner("Fetching official TED PDF document..."):
             try:
                 st.session_state[state_key] = fetch_official_document(
@@ -89,11 +89,16 @@ def render_checklist_cross_reference(
 
     state_key = f"show_checklist_{detail['id']}"
     button_cols = st.columns([0.34, 0.66])
-    if button_cols[0].button("Run checklist cross-reference", key=f"run_checklist_{detail['id']}", width="stretch"):
+    if button_cols[0].button(
+        "Run checklist cross-reference",
+        key=f"run_checklist_{detail['id']}",
+        type="primary",
+        width="stretch",
+    ):
         st.session_state[state_key] = True
 
     if not st.session_state.get(state_key):
-        button_cols[1].caption("Generate a structured checklist cross-reference for this tender.")
+        button_cols[1].caption("Generate a structured checklist cross-reference for this tender in one click.")
         return
 
     service = get_tender_checklist_service()
@@ -291,11 +296,12 @@ def render_notice_detail_layout(
     )
 
     render_download_controls_fn(detail)
-    overview_tab, keywords_tab, checklist_tab, audit_tab, raw_tab = st.tabs(
-        ["Overview", "Eligibility Keywords", "Checklist", "Audit Trail", "Raw TED"]
+    overview_tab, checklist_tab, keywords_tab, audit_tab, raw_tab = st.tabs(
+        ["Overview", "Checklist", "Eligibility Keywords", "Audit Trail", "Raw TED"]
     )
 
     with overview_tab:
+        st.info("Start here for the quickest read of fit, timing, and qualification gaps before diving into the detailed evidence.")
         meta_col, assessment_col = st.columns([0.44, 0.56], gap="large")
         with meta_col:
             with st.container(border=True):
@@ -332,13 +338,13 @@ def render_notice_detail_layout(
                     for question in detail["qualification_questions"]:
                         st.write(f"- {question}")
                 else:
-                    st.caption("No qualification questions were generated for this notice.")
-
-    with keywords_tab:
-        render_keyword_evidence_module_fn(detail)
+                    st.caption("No qualification questions were generated for this notice yet. You can still use the checklist and keyword evidence modules below.")
 
     with checklist_tab:
         render_checklist_cross_reference_fn(detail)
+
+    with keywords_tab:
+        render_keyword_evidence_module_fn(detail)
 
     with audit_tab:
         breakdown_col, notes_col = st.columns([0.6, 0.4], gap="large")
@@ -366,7 +372,7 @@ def render_notice_detail_layout(
                         st.write(note["note_text"])
                         st.caption(f"{note['user_display_name']} | {format_datetime(note['created_at'], ui_timezone)}")
             else:
-                st.info("No analyst notes stored for this notice yet.")
+                st.info("No analyst notes have been stored for this notice yet. Add one after internal review to keep shared context for the team.")
 
     with raw_tab:
         render_section_header(

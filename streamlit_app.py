@@ -280,6 +280,7 @@ def _render_sidebar_brand() -> None:
           <div class="cb-sidebar-line">cBrain</div>
           <div class="cb-sidebar-mark">F2</div>
           <div class="cb-sidebar-title">TED F2 Intelligence</div>
+          <div class="cb-sidebar-subtitle">Official TED review workspace for F2 teams.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -562,6 +563,10 @@ def _render_live_scan() -> None:
         "Live TED Scan",
         "Run an official TED search to refresh the review queue.",
     )
+    st.info(
+        "Quick start: choose a search profile, optionally narrow by country or CPV, then run the scan. "
+        "The results view will rank the strongest live opportunities first."
+    )
 
     with st.form("live_ted_scan_form"):
         profile_name = st.selectbox(
@@ -643,6 +648,9 @@ def _render_historical_backfill() -> None:
         "",
         "Historical Backfill",
         "Import older TED notices to strengthen pattern learning without changing the live review workflow.",
+    )
+    st.info(
+        "Use backfill when you want extra market context or pattern learning. The active review queue still stays focused on current tenders."
     )
     st.caption(
         "This backfill runs official TED Search API windows, scores the notices with the existing F2 logic, "
@@ -731,10 +739,10 @@ def _render_historical_backfill() -> None:
             )
 
     action_cols = st.columns(2, gap="medium")
-    if action_cols[0].button("Open Dashboard", key="backfill_open_dashboard", width="stretch"):
+    if action_cols[0].button("Open Dashboard", key="backfill_open_dashboard", type="secondary", width="stretch"):
         _go_to_view("Dashboard")
         st.rerun()
-    if action_cols[1].button("Open Results", key="backfill_open_results", width="stretch"):
+    if action_cols[1].button("Open Results", key="backfill_open_results", type="primary", width="stretch"):
         st.session_state["results_return_view"] = "Historical Backfill"
         _go_to_view("Results")
         st.rerun()
@@ -750,6 +758,9 @@ def _render_dashboard() -> None:
     _render_section_header(
         "",
         "Dashboard",
+    )
+    st.info(
+        "Suggested workflow: run a live scan, review the top-ranked results, then open a notice detail page for evidence, checklist support, and internal notes."
     )
     _render_stat_cards(
         [
@@ -784,7 +795,7 @@ def _render_dashboard() -> None:
         if recent_scans:
             _render_recent_scan_cards(recent_scans)
         else:
-            st.info("No scan history found.")
+            st.info("No scan history is available yet. Run a live TED scan to start building the workspace.")
 
     with queue_tab:
         if top_notices:
@@ -799,14 +810,14 @@ def _render_dashboard() -> None:
                     )
                     action_cols = st.columns([0.8, 1.2, 1.2], gap="small")
                     action_cols[0].metric("Score", _format_score_out_of_ten(notice["score"], include_suffix=True))
-                    if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", width="stretch"):
+                    if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", type="primary", width="stretch"):
                         _open_notice_detail(notice["id"])
                         st.rerun()
                     official_url = _resolve_official_notice_url(notice)
                     if official_url:
                         action_cols[2].link_button("TED notice", official_url, width="stretch")
         else:
-            st.info("No stored notices available yet.")
+            st.info("No notices are ready for review yet. Run a live scan or widen the filters to surface opportunities.")
 
     with forecast_tab:
         _render_predictive_outlook(predictive_outlook)
@@ -824,6 +835,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
 
     st.sidebar.markdown("### Signal Filters")
     st.sidebar.caption("Use a few simple filters to narrow the review queue.")
+    st.sidebar.info("Active tenders are prioritised by default so the review queue stays current and actionable.")
     country_options = _country_filter_options()
     country_labels = ["Any"] + [label for label, _ in country_options]
     country_code_by_label = {"Any": ""}
@@ -831,58 +843,114 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     selected_country = selected_countries[0] if selected_countries else ""
     selected_country_label = next((label for label, code in country_options if code == selected_country), "Any")
 
-    selected_country_label = st.sidebar.selectbox(
-        "Country",
-        options=country_labels,
-        index=country_labels.index(selected_country_label),
-    )
-    countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
-    search = st.sidebar.text_input("Search", value=filter_state.get("search") or "").strip() or None
     raw_score_min = filter_state.get("score_min")
     score_min_ten_default = 0.0
     if isinstance(raw_score_min, (int, float)):
         score_min_ten_default = max(0.0, min(10.0, float(raw_score_min) / 10.0))
 
+    st.session_state.setdefault("results_country_label", selected_country_label)
+    st.session_state.setdefault("results_search", filter_state.get("search") or "")
+    st.session_state.setdefault("results_minimum_score_ten", score_min_ten_default)
+    st.session_state.setdefault("results_relevant_only", bool(filter_state.get("relevant_only")))
+    st.session_state.setdefault("results_fit_label", filter_state.get("fit_label") or "Any")
+    st.session_state.setdefault("results_priority_bucket", filter_state.get("priority_bucket") or "Any")
+    st.session_state.setdefault("results_confidence_indicator", filter_state.get("confidence_indicator") or "Any")
+    st.session_state.setdefault("results_min_days_remaining", int(filter_state.get("min_days_remaining") or 0))
+    st.session_state.setdefault("results_hard_lock_only", bool(filter_state.get("hard_lock_only")))
+    st.session_state.setdefault("results_saved_only", bool(filter_state.get("saved_only")))
+    st.session_state.setdefault("results_include_dismissed", bool(filter_state.get("include_dismissed")))
+
+    selected_country_label = st.sidebar.selectbox(
+        "Country",
+        options=country_labels,
+        index=country_labels.index(st.session_state.get("results_country_label", "Any")),
+        key="results_country_label",
+    )
+    countries = [country_code_by_label[selected_country_label]] if country_code_by_label[selected_country_label] else []
+    search = (
+        st.sidebar.text_input(
+            "Search title or buyer",
+            key="results_search",
+            placeholder="e.g. document management, ministry, archive",
+        ).strip()
+        or None
+    )
+
     minimum_score_ten = st.sidebar.slider(
         "Minimum Score",
         min_value=0.0,
         max_value=10.0,
-        value=score_min_ten_default,
+        value=float(st.session_state.get("results_minimum_score_ten", score_min_ten_default)),
         step=0.5,
+        key="results_minimum_score_ten",
     )
-    if st.sidebar.button("Reset minimum score to 0", use_container_width=True):
-        minimum_score_ten = 0.0
-    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", value=bool(filter_state.get("relevant_only")))
+    filter_action_cols = st.sidebar.columns(2, gap="small")
+    if filter_action_cols[0].button("Reset score", use_container_width=True, type="secondary"):
+        st.session_state["results_minimum_score_ten"] = 0.0
+        st.rerun()
+    if filter_action_cols[1].button("Clear all", use_container_width=True, type="secondary"):
+        default_state = _default_filter_state()
+        st.session_state["results_filter_state"] = dict(default_state)
+        st.session_state["results_country_label"] = "Any"
+        st.session_state["results_search"] = ""
+        st.session_state["results_minimum_score_ten"] = 0.0
+        st.session_state["results_relevant_only"] = bool(default_state.get("relevant_only"))
+        st.session_state["results_fit_label"] = "Any"
+        st.session_state["results_priority_bucket"] = "Any"
+        st.session_state["results_confidence_indicator"] = "Any"
+        st.session_state["results_min_days_remaining"] = int(default_state.get("min_days_remaining") or 0)
+        st.session_state["results_hard_lock_only"] = bool(default_state.get("hard_lock_only"))
+        st.session_state["results_saved_only"] = bool(default_state.get("saved_only"))
+        st.session_state["results_include_dismissed"] = bool(default_state.get("include_dismissed"))
+        st.cache_data.clear()
+        st.rerun()
+    relevant_only = st.sidebar.checkbox("Relevant to F2 Only", key="results_relevant_only")
 
-    with st.sidebar.expander("More Filters", expanded=False):
+    advanced_filters_active = any(
+        [
+            (filter_state.get("fit_label") or "Any") != "Any",
+            (filter_state.get("priority_bucket") or "Any") != "Any",
+            (filter_state.get("confidence_indicator") or "Any") != "Any",
+            int(filter_state.get("min_days_remaining") or 0) > 0,
+            bool(filter_state.get("hard_lock_only")),
+            bool(filter_state.get("saved_only")),
+            bool(filter_state.get("include_dismissed")),
+        ]
+    )
+
+    with st.sidebar.expander("More Filters", expanded=advanced_filters_active):
         fit_options = ["Any", "YES", "CONDITIONAL", "NO"]
         priority_options = ["Any", "HIGH", "GOOD", "WATCHLIST", "IGNORE"]
         confidence_options = ["Any", "HIGH", "MEDIUM", "LOW"]
         fit_label = st.selectbox(
             "Fit Label",
             fit_options,
-            index=fit_options.index(filter_state.get("fit_label") or "Any"),
+            index=fit_options.index(st.session_state.get("results_fit_label", "Any")),
+            key="results_fit_label",
         )
         priority_bucket = st.selectbox(
             "Priority Bucket",
             priority_options,
-            index=priority_options.index(filter_state.get("priority_bucket") or "Any"),
+            index=priority_options.index(st.session_state.get("results_priority_bucket", "Any")),
+            key="results_priority_bucket",
         )
         confidence_indicator = st.selectbox(
             "Confidence",
             confidence_options,
-            index=confidence_options.index(filter_state.get("confidence_indicator") or "Any"),
+            index=confidence_options.index(st.session_state.get("results_confidence_indicator", "Any")),
+            key="results_confidence_indicator",
         )
         min_days_remaining = st.number_input(
             "Minimum Days Remaining",
             min_value=0,
             max_value=30,
-            value=int(filter_state.get("min_days_remaining") or 0),
+            value=int(st.session_state.get("results_min_days_remaining", filter_state.get("min_days_remaining") or 0)),
             step=1,
+            key="results_min_days_remaining",
         )
-        hard_lock_only = st.checkbox("Hard Lock Only", value=bool(filter_state.get("hard_lock_only")))
-        saved_only = st.checkbox("Saved Only", value=bool(filter_state.get("saved_only")))
-        include_dismissed = st.checkbox("Include Dismissed", value=bool(filter_state.get("include_dismissed")))
+        hard_lock_only = st.checkbox("Hard Lock Only", key="results_hard_lock_only")
+        saved_only = st.checkbox("Saved Only", key="results_saved_only")
+        include_dismissed = st.checkbox("Include Dismissed", key="results_include_dismissed")
 
     filter_state = {
         "countries": countries,
@@ -928,14 +996,15 @@ def _render_results() -> list[dict[str, Any]]:
     total_matches = filter_state["total_matches"]
 
     if not notices:
-        st.warning("No notices match the current filters.")
+        st.warning("No notices match the current filters. Clear a filter or lower the minimum score to widen the review queue.")
         return notices
 
-    st.caption(f"{total_matches} notices match the current filter posture. {len(notices)} are loaded right now.")
+    st.caption(f"Showing {len(notices)} of {total_matches} ranked notices for the current review posture.")
+    st.info("Use Open TED notice for the public source record and Review notice for the internal dossier with evidence, checklist support, and audit detail.")
 
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:
-        with st.expander("Active filters", expanded=False):
+        with st.expander("Active filters", expanded=True):
             st.markdown(
                 "<div class='cb-chip-row'>"
                 + "".join(_render_chip(chip) for chip in active_filter_chips)
@@ -984,6 +1053,7 @@ def _render_notice_detail(notice_id: str | None) -> None:
         _go_to_view(return_view if return_view != "Notice Detail" else "Results")
         st.rerun()
 
+    st.caption(f"{return_view} → Notice detail")
     _render_section_header(
         "",
         "Notice detail",
@@ -1037,7 +1107,7 @@ def _render_notice_detail_workspace() -> None:
         options = fallback_payload["items"]
     if options:
         selected = st.selectbox(
-            "Choose a tender",
+            "Choose a tender to review",
             options=options,
             format_func=_notice_option_label,
             index=next(
@@ -1059,11 +1129,11 @@ def main() -> None:
 
     views = ["Dashboard", "Live Scan", "Historical Backfill", "Results", "Notice Detail"]
     view_labels = {
-        "Dashboard": "Dashboard",
-        "Live Scan": "Scan",
-        "Historical Backfill": "Backfill",
-        "Results": "Results",
-        "Notice Detail": "Detail",
+        "Dashboard": "📊 Dashboard",
+        "Live Scan": "🔎 Live Scan",
+        "Historical Backfill": "🗂 Historical Backfill",
+        "Results": "📋 Results",
+        "Notice Detail": "📘 Notice Detail",
     }
     inverse_view_labels = {label: key for key, label in view_labels.items()}
     active_view = st.session_state.get("active_view", "Dashboard")

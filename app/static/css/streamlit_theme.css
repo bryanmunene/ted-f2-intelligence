@@ -358,6 +358,11 @@
             line-height: 1.14;
             margin: 0;
         }
+        .cb-signal-card:hover,
+        .cb-dossier:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+        }
         .cb-signal-card {
             min-height: 7rem;
             padding: 0.85rem 0.95rem;
