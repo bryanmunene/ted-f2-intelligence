@@ -202,21 +202,25 @@ def render_result_card(
     resolve_official_notice_url: Callable[[dict[str, Any]], str | None],
 ) -> None:
     fit_label = display_value(notice.get("fit_label"))
-    priority_bucket = display_value(notice.get("priority_bucket"))
     confidence = display_value(notice.get("confidence_indicator"))
-
     card_class = card_tone_class(notice)
+
     top_line_badges = [
         render_pill(notice_source_label(notice), "source"),
         render_pill(fit_label, "fit"),
-        render_pill(priority_bucket, "priority"),
     ]
     if notice.get("hard_lock_detected"):
-        top_line_badges.append(render_pill("Hard lock", "alert"))
+        top_line_badges.append(render_pill("Blocked", "alert"))
+        status_title = "Blocked"
+        status_note = "There may be a major issue to check first."
     elif notice.get("viable_timing"):
-        top_line_badges.append(render_pill("Timing viable", "good"))
+        top_line_badges.append(render_pill("Open now", "good"))
+        status_title = "Open now"
+        status_note = "Good timing for review."
     else:
-        top_line_badges.append(render_pill("Timing review", "watch"))
+        top_line_badges.append(render_pill("Check timing", "watch"))
+        status_title = "Check timing"
+        status_note = "Review the dates before spending time here."
 
     buyer = notice.get("buyer") or "Unknown buyer"
     country = notice.get("buyer_country") or "N/A"
@@ -225,14 +229,14 @@ def render_result_card(
     publication_date = format_date(notice.get("publication_date"))
     title = notice.get("title") or "Untitled notice"
     summary_text = truncate_text(
-        notice.get("reasoning") or notice.get("summary") or "No summary available.",
-        limit=240,
+        notice.get("reasoning") or notice.get("summary") or "Open the summary to see the full tender details and evidence.",
+        limit=220,
     )
-    keyword_chips = "".join(render_chip(label) for label in notice_keyword_labels(notice))
+    keyword_labels = notice_keyword_labels(notice, limit=3)
+    keyword_chips = "".join(render_chip(label) for label in keyword_labels)
     if not keyword_chips:
-        keyword_chips = render_chip("No keyword evidence captured yet")
+        keyword_chips = render_chip("No quick keywords yet")
     meta_parts = [
-        publication,
         buyer,
         country,
         f"Published {publication_date}",
@@ -240,46 +244,49 @@ def render_result_card(
         f"Confidence {confidence}",
     ]
 
-    st.markdown(
-        f"""
-                <div class="cb-result-card cb-flow-surface {card_class}" style="--cb-enter-delay: {min(card_index * 45, 360)}ms;">
-          <div class="cb-result-head">
-            <div class="cb-result-score-block">
-              <div class="cb-result-score">{format_score_out_of_ten(notice['score'])}</div>
-              <div class="cb-result-score-label">Score / 10</div>
-            </div>
-            <div class="cb-result-main">
-              <div class="cb-dossier-topline">
-              {''.join(top_line_badges)}
+    with st.container(border=True):
+        st.markdown(
+            f"""
+            <div class="cb-result-shell cb-flow-surface {card_class}" style="--cb-enter-delay: {min(card_index * 45, 360)}ms;">
+              <div class="cb-result-head">
+                <div class="cb-result-score-block">
+                  <div class="cb-result-score">{format_score_out_of_ten(notice['score'])}</div>
+                  <div class="cb-result-score-label">Match score</div>
+                </div>
+                <div class="cb-result-main">
+                  <div class="cb-dossier-topline">{''.join(top_line_badges)}</div>
+                  <div class="cb-result-title">{html.escape(title)}</div>
+                  <div class="cb-result-meta">{html.escape(publication)} • {html.escape(' • '.join(meta_parts))}</div>
+                  <div class="cb-result-summary">{html.escape(summary_text)}</div>
+                  <div class="cb-chip-row">{keyword_chips}</div>
+                </div>
+                <div class="cb-result-status-card">
+                  <div class="cb-result-status-title">{html.escape(status_title)}</div>
+                  <div class="cb-result-status-note">{html.escape(status_note)}</div>
+                </div>
               </div>
-              <div class="cb-result-title">{html.escape(title)}</div>
-              <div class="cb-result-meta">{html.escape(' | '.join(meta_parts))}</div>
-              <div class="cb-result-summary">{html.escape(summary_text)}</div>
-              <div class="cb-chip-row">{keyword_chips}</div>
             </div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+            """,
+            unsafe_allow_html=True,
+        )
 
-    action_cols = st.columns([1, 1], gap="small")
-    official_url = resolve_official_notice_url(notice)
-    if official_url:
-        action_cols[0].link_button("Official notice", official_url, width="stretch")
-    elif notice.get("is_demo_record"):
-        action_cols[0].caption("No live TED link")
-    else:
-        action_cols[0].caption("No official TED URL")
+        action_cols = st.columns([1, 1], gap="small")
+        official_url = resolve_official_notice_url(notice)
+        if official_url:
+            action_cols[0].link_button("View source", official_url, width="stretch")
+        elif notice.get("is_demo_record"):
+            action_cols[0].caption("No live source link")
+        else:
+            action_cols[0].caption("No official source link")
 
-    if action_cols[1].button(
-        "Open summary",
-        key=f"review_notice_{card_index}_{notice['id']}",
-        type="primary",
-        width="stretch",
-    ):
-        open_notice_detail(notice["id"])
-        st.rerun()
+        if action_cols[1].button(
+            "View details",
+            key=f"review_notice_{card_index}_{notice['id']}",
+            type="primary",
+            width="stretch",
+        ):
+            open_notice_detail(notice["id"])
+            st.rerun()
 
 
 def notice_source_label(item: dict[str, Any]) -> str:

@@ -708,37 +708,21 @@
             width: 35%;
             color: var(--cb-text-dim);
         }
-        .cb-result-card {
-            border: 1px solid var(--cb-line);
-            border-left: 4px solid #d7e2f0;
-            border-radius: 14px;
-            background: var(--cb-surface);
-            padding: 1rem 1.05rem;
-            margin-bottom: 0.85rem;
-            box-shadow: 0 4px 18px rgba(20, 32, 51, 0.04);
-            transition:
-                transform var(--cb-motion-base) var(--cb-ease-fluid),
-                box-shadow var(--cb-motion-base) var(--cb-ease-fluid),
-                border-color var(--cb-motion-fast) ease;
+        .cb-result-shell {
+            padding: 0.15rem 0.1rem 0.35rem 0.1rem;
             animation: cb-fade-up var(--cb-motion-base) var(--cb-ease-fluid) both;
             animation-delay: var(--cb-enter-delay, 0ms);
-            will-change: transform, opacity;
         }
-        .cb-result-card.cb-dossier-high { border-left-color: #2f67d8; }
-        .cb-result-card.cb-dossier-good { border-left-color: #1f8a63; }
-        .cb-result-card.cb-dossier-watch { border-left-color: #a87006; }
-        .cb-result-card.cb-dossier-ignore { border-left-color: #8a98ab; }
-        .cb-result-card.cb-dossier-conditional { border-left-color: #c75454; }
         .cb-result-head {
             display: grid;
-            grid-template-columns: 84px minmax(0, 1fr);
+            grid-template-columns: 84px minmax(0, 1fr) 160px;
             gap: 1rem;
             align-items: start;
         }
         .cb-result-score-block {
-            background: #f5f8fd;
-            border: 1px solid #dde6f2;
-            border-radius: 12px;
+            background: #f6f3ff;
+            border: 1px solid #ddd5ef;
+            border-radius: 14px;
             padding: 0.8rem 0.7rem;
             text-align: center;
         }
@@ -758,6 +742,23 @@
         }
         .cb-result-main {
             min-width: 0;
+        }
+        .cb-result-status-card {
+            border: 1px solid #e5def2;
+            background: #faf8fe;
+            border-radius: 14px;
+            padding: 0.8rem;
+        }
+        .cb-result-status-title {
+            color: var(--cb-text);
+            font-size: 0.92rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+        .cb-result-status-note {
+            color: var(--cb-text-soft);
+            font-size: 0.82rem;
+            line-height: 1.45;
         }
         .cb-result-title {
             color: var(--cb-text);
