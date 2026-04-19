@@ -11,7 +11,7 @@ from app.config import KeywordPack, SearchProfileRegistry, Settings
 from app.ingestion.normalize import normalize_notice
 from app.models.enums import AuditEventType, FitLabel, PriorityBucket
 from app.repositories.audit import AuditRepository
-from app.repositories.notices import NoticeRepository
+from app.repositories.notices import NoticeRepository, looks_like_awarded_notice
 from app.repositories.scan_runs import ScanRunRepository
 from app.repositories.users import UserRepository
 from app.scoring.engine import ScoringEngine
@@ -113,6 +113,12 @@ class ScanService:
                         raw_notice,
                         extraction_version=self.settings.analysis_extraction_version,
                     )
+                    if looks_like_awarded_notice(normalized.notice_type, normalized.title, normalized.summary):
+                        logger.info(
+                            "scan_notice_skipped_awarded",
+                            extra={"publication_number": normalized.publication_number},
+                        )
+                        continue
                     scored = self.scoring_engine.score(
                         normalized,
                         profile=profile,

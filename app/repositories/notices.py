@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Any
 
-from sqlalchemy import Select, case, func, select
+from sqlalchemy import Select, case, func, or_, select
 from sqlalchemy.orm import Session, contains_eager, selectinload
 
 from app.models import AnalystNote, Notice, NoticeAnalysis, ScanRun
@@ -32,6 +32,33 @@ class NoticeListFilters:
     include_dismissed: bool = False
     saved_only: bool = False
     search: str | None = None
+
+
+AWARDED_NOTICE_PATTERNS = (
+    "contract award",
+    "award notice",
+    "award of contract",
+    "awarded contract",
+    "has already been awarded",
+    "already been awarded",
+    "result of the procurement procedure",
+    "concession award",
+)
+
+
+def looks_like_awarded_notice(*values: str | None) -> bool:
+    text = " ".join(value.strip().lower() for value in values if isinstance(value, str) and value.strip())
+    return any(pattern in text for pattern in AWARDED_NOTICE_PATTERNS)
+
+
+def _non_awarded_notice_clause():
+    searchable_fields = (
+        func.lower(func.coalesce(Notice.notice_type, "")),
+        func.lower(func.coalesce(Notice.title, "")),
+        func.lower(func.coalesce(Notice.summary, "")),
+    )
+    award_matches = [field.like(f"%{pattern}%") for field in searchable_fields for pattern in AWARDED_NOTICE_PATTERNS]
+    return ~or_(*award_matches)
 
 
 class NoticeRepository:
@@ -121,6 +148,7 @@ class NoticeRepository:
             select(Notice)
             .join(Notice.analysis)
             .options(contains_eager(Notice.analysis))
+            .where(_non_awarded_notice_clause())
             .order_by(Notice.publication_date.desc().nullslast(), Notice.updated_at.desc())
             .limit(limit)
         )
@@ -150,27 +178,33 @@ class NoticeRepository:
     def dashboard_metrics(self) -> dict[str, Any]:
         now = datetime.now(tz=UTC)
         soon = now + timedelta(days=7)
+        reviewable_notice_filter = _non_awarded_notice_clause()
 
-        total_notices = self.session.scalar(select(func.count()).select_from(Notice)) or 0
+        total_notices = self.session.scalar(
+            select(func.count()).select_from(Notice).where(reviewable_notice_filter)
+        ) or 0
         high_fit = self.session.scalar(
             select(func.count())
             .select_from(NoticeAnalysis)
-            .where(NoticeAnalysis.priority_bucket == PriorityBucket.HIGH)
+            .join(Notice, Notice.id == NoticeAnalysis.notice_id)
+            .where(NoticeAnalysis.priority_bucket == PriorityBucket.HIGH, reviewable_notice_filter)
         ) or 0
         conditional = self.session.scalar(
             select(func.count())
             .select_from(NoticeAnalysis)
-            .where(NoticeAnalysis.fit_label == FitLabel.CONDITIONAL)
+            .join(Notice, Notice.id == NoticeAnalysis.notice_id)
+            .where(NoticeAnalysis.fit_label == FitLabel.CONDITIONAL, reviewable_notice_filter)
         ) or 0
         expiring_soon = self.session.scalar(
             select(func.count())
             .select_from(Notice)
-            .where(Notice.deadline.is_not(None), Notice.deadline <= soon, Notice.deadline >= now)
+            .where(reviewable_notice_filter, Notice.deadline.is_not(None), Notice.deadline <= soon, Notice.deadline >= now)
         ) or 0
         hard_lock = self.session.scalar(
             select(func.count())
             .select_from(NoticeAnalysis)
-            .where(NoticeAnalysis.hard_lock_detected.is_(True))
+            .join(Notice, Notice.id == NoticeAnalysis.notice_id)
+            .where(NoticeAnalysis.hard_lock_detected.is_(True), reviewable_notice_filter)
         ) or 0
         freshest_scan = self.session.scalar(select(func.max(ScanRun.completed_at)))
 
@@ -184,6 +218,7 @@ class NoticeRepository:
         }
 
     def _apply_filters(self, stmt: Select[tuple[Notice]], filters: NoticeListFilters) -> Select[tuple[Notice]]:
+        stmt = stmt.where(_non_awarded_notice_clause())
         if filters.relevant_only:
             stmt = stmt.where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
         if filters.country:

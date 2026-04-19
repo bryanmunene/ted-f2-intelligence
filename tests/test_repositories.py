@@ -156,6 +156,28 @@ def test_notice_repository_default_queue_hides_stale_no_deadline_notices(db_sess
     assert relaxed_total == 2
 
 
+def test_notice_repository_hides_awarded_tenders_from_review_queue(db_session, seeded_notice: str) -> None:
+    repository = NoticeRepository(db_session)
+    awarded_notice_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "33333-2026",
+            "notice-title": "Contract award: document management platform for regional archives",
+            "buyer-name": "Regional Archives Authority",
+            "buyer-country": "DK",
+            "publication-date": "2026-03-29",
+            "deadline": None,
+            "notice-type": "Contract award notice",
+            "additional-information": "This procurement has already been awarded and is published for transparency purposes.",
+        },
+    )
+
+    notices, total = repository.list(NoticeListFilters(), page=1, page_size=25)
+
+    assert awarded_notice_id not in {notice.id for notice in notices}
+    assert total == 1
+
+
 def test_notice_repository_supports_score_confidence_and_date_filters(db_session, seeded_notice: str) -> None:
     repository = NoticeRepository(db_session)
     notice = repository.get_by_id(seeded_notice)
