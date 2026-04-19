@@ -61,20 +61,56 @@ def render_profile_cards(
                         )
 
 
-def render_recent_scan_cards(recent_scans: list[dict[str, Any]], *, ui_timezone: str) -> None:
-    for scan in recent_scans:
+def render_recent_scan_cards(
+    recent_scans: list[dict[str, Any]],
+    *,
+    ui_timezone: str,
+    open_shortlist_view: Callable[[], None] | None = None,
+    open_search_view: Callable[[], None] | None = None,
+) -> None:
+    for index, scan in enumerate(recent_scans):
+        added = int(scan.get("total_notices_ingested") or 0)
+        strong_matches = int(scan.get("total_high_fit") or 0)
+        headline = "New tenders added" if added else "No new tenders this time"
+        helper_text = (
+            "Your updated shortlist is ready to review."
+            if added
+            else "Try another search if you want more options."
+        )
+
         with st.container(border=True):
             st.markdown(
                 f"""
-                <div class="cb-note-title">{html.escape(str(scan['status']).replace('_', ' ').title())}</div>
-                <div class="cb-note-copy">Started {html.escape(format_datetime(scan['started_at'], ui_timezone))}</div>
+                <div class="cb-note-title">{html.escape(headline)}</div>
+                <div class="cb-note-copy">{html.escape(helper_text)} Started {html.escape(format_datetime(scan['started_at'], ui_timezone))}</div>
                 """,
                 unsafe_allow_html=True,
             )
             detail_cols = st.columns(3, gap="small")
-            detail_cols[0].metric("Added", scan["total_notices_ingested"])
-            detail_cols[1].metric("Strong matches", scan["total_high_fit"])
+            detail_cols[0].metric("Added", added)
+            detail_cols[1].metric("Strong matches", strong_matches)
             detail_cols[2].metric("Searches", scan["request_count"])
+
+            action_cols = st.columns(2, gap="small")
+            if action_cols[0].button(
+                "View shortlist",
+                key=f"recent_scan_shortlist_{scan.get('id', index)}",
+                type="secondary",
+                width="stretch",
+            ):
+                if open_shortlist_view is not None:
+                    open_shortlist_view()
+                    st.rerun()
+            if action_cols[1].button(
+                "Run another search",
+                key=f"recent_scan_search_{scan.get('id', index)}",
+                type="secondary",
+                width="stretch",
+            ):
+                if open_search_view is not None:
+                    open_search_view()
+                    st.rerun()
+
             if scan["rate_limit_events"]:
                 st.caption(f"Rate-limit events: {scan['rate_limit_events']}")
 

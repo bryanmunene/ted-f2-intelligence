@@ -260,7 +260,12 @@ def _render_profile_cards() -> None:
 
 
 def _render_recent_scan_cards(recent_scans: list[dict[str, Any]]) -> None:
-    _render_recent_scan_cards_impl(recent_scans, ui_timezone=settings.ui_timezone)
+    _render_recent_scan_cards_impl(
+        recent_scans,
+        ui_timezone=settings.ui_timezone,
+        open_shortlist_view=_open_shortlist_view,
+        open_search_view=lambda: _go_to_view("Live Scan"),
+    )
 
 
 def _render_predictive_outlook(outlook: dict[str, Any]) -> None:
@@ -367,6 +372,38 @@ def _seed_selected_notice(notices: list[dict[str, Any]]) -> None:
 
 def _go_to_view(view_name: str) -> None:
     st.session_state["active_view"] = view_name
+
+
+def _set_results_filter_state(**overrides: Any) -> None:
+    filter_state = dict(_default_filter_state())
+    filter_state.update(overrides)
+    selected_countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
+    filter_state["countries"] = selected_countries
+    st.session_state["results_filter_state"] = filter_state
+
+    country_options = _country_filter_options()
+    selected_country = selected_countries[0] if selected_countries else ""
+    selected_country_label = next((label for label, code in country_options if code == selected_country), "Any")
+    raw_score_min = filter_state.get("score_min")
+    score_min_ten = max(0.0, min(10.0, float(raw_score_min or 0) / 10.0))
+
+    st.session_state["results_country_label"] = selected_country_label
+    st.session_state["results_search"] = filter_state.get("search") or ""
+    st.session_state["results_minimum_score_ten"] = score_min_ten
+    st.session_state["results_relevant_only"] = bool(filter_state.get("relevant_only"))
+    st.session_state["results_fit_label"] = filter_state.get("fit_label") or "Any"
+    st.session_state["results_priority_bucket"] = filter_state.get("priority_bucket") or "Any"
+    st.session_state["results_confidence_indicator"] = filter_state.get("confidence_indicator") or "Any"
+    st.session_state["results_min_days_remaining"] = int(filter_state.get("min_days_remaining") or 0)
+    st.session_state["results_hard_lock_only"] = bool(filter_state.get("hard_lock_only"))
+    st.session_state["results_saved_only"] = bool(filter_state.get("saved_only"))
+    st.session_state["results_include_dismissed"] = bool(filter_state.get("include_dismissed"))
+
+
+def _open_shortlist_view(**overrides: Any) -> None:
+    _set_results_filter_state(**overrides)
+    st.session_state["results_return_view"] = "Dashboard"
+    _go_to_view("Results")
 
 
 def _open_notice_detail(notice_id: str) -> None:
@@ -759,34 +796,67 @@ def _render_dashboard() -> None:
         "Home",
     )
     st.info(
-        "Start with a quick search, then open the most promising tenders from your shortlist."
+        "Tap any card below to jump straight to the right shortlist or next action."
     )
-    _render_stat_cards(
-        [
-            {
-                "label": "Saved tenders",
-                "value": str(metrics["total_notices"]),
-                "note": "Everything currently in your workspace",
-            },
-            {
-                "label": "Strong matches",
-                "value": str(metrics["high_fit"]),
-                "note": "Opportunities worth first attention",
-            },
-            {
-                "label": "Needs a closer look",
-                "value": str(metrics["conditional"]),
-                "note": "Relevant, but may need extra checking",
-            },
-            {
-                "label": "Last update",
-                "value": format_datetime(metrics["scan_freshness"], settings.ui_timezone),
-                "note": "Most recent completed search",
-            },
-        ]
-    )
+
+    summary_cols = st.columns(4, gap="medium")
+    quick_cards = [
+        {
+            "label": "Saved tenders",
+            "value": str(metrics.get("saved_count", 0)),
+            "note": "Opportunities you have marked to return to",
+            "button": "Open saved",
+            "button_type": "secondary",
+        },
+        {
+            "label": "All tenders",
+            "value": str(metrics["total_notices"]),
+            "note": "Everything currently in your shortlist",
+            "button": "Open shortlist",
+            "button_type": "primary",
+        },
+        {
+            "label": "Strong matches",
+            "value": str(metrics["high_fit"]),
+            "note": "The best-fit opportunities to review first",
+            "button": "See best matches",
+            "button_type": "secondary",
+        },
+        {
+            "label": "Needs review",
+            "value": str(metrics["conditional"]),
+            "note": "Relevant tenders that may need a closer look",
+            "button": "Review now",
+            "button_type": "secondary",
+        },
+    ]
+
+    for index, (column, card) in enumerate(zip(summary_cols, quick_cards)):
+        with column:
+            with st.container(border=True):
+                st.markdown(
+                    f"""
+                    <div class="cb-action-stat">
+                      <div class="cb-action-stat-label">{html.escape(card['label'])}</div>
+                      <div class="cb-action-stat-value">{html.escape(card['value'])}</div>
+                      <div class="cb-action-stat-note">{html.escape(card['note'])}</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                if st.button(card["button"], key=f"dashboard_quick_action_{index}", type=card["button_type"], width="stretch"):
+                    if index == 0:
+                        _open_shortlist_view(saved_only=True)
+                    elif index == 1:
+                        _open_shortlist_view()
+                    elif index == 2:
+                        _open_shortlist_view(relevant_only=True, priority_bucket="HIGH")
+                    else:
+                        _open_shortlist_view(fit_label="CONDITIONAL")
+                    st.rerun()
+
     st.caption(
-        f"Expiring soon: {metrics['expiring_soon']} | Hard locks: {metrics['hard_lock']}"
+        f"Last update: {format_datetime(metrics['scan_freshness'], settings.ui_timezone)} • Closing soon: {metrics['expiring_soon']} • Hard locks: {metrics['hard_lock']}"
     )
 
     scans_tab, queue_tab, forecast_tab = st.tabs(["Latest updates", "Best matches", "Trends"])
@@ -809,7 +879,7 @@ def _render_dashboard() -> None:
                     )
                     action_cols = st.columns([0.8, 1.2, 1.2], gap="small")
                     action_cols[0].metric("Score", _format_score_out_of_ten(notice["score"], include_suffix=True))
-                    if action_cols[1].button("Inspect", key=f"inspect_top_{notice['id']}", type="primary", width="stretch"):
+                    if action_cols[1].button("Open summary", key=f"inspect_top_{notice['id']}", type="primary", width="stretch"):
                         _open_notice_detail(notice["id"])
                         st.rerun()
                     official_url = _resolve_official_notice_url(notice)

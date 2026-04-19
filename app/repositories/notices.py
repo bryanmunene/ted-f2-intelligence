@@ -183,6 +183,9 @@ class NoticeRepository:
         total_notices = self.session.scalar(
             select(func.count()).select_from(Notice).where(reviewable_notice_filter)
         ) or 0
+        saved_count = self.session.scalar(
+            select(func.count()).select_from(Notice).where(reviewable_notice_filter, Notice.saved.is_(True))
+        ) or 0
         high_fit = self.session.scalar(
             select(func.count())
             .select_from(NoticeAnalysis)
@@ -210,6 +213,7 @@ class NoticeRepository:
 
         return {
             "total_notices": int(total_notices),
+            "saved_count": int(saved_count),
             "high_fit": int(high_fit),
             "conditional": int(conditional),
             "expiring_soon": int(expiring_soon),
