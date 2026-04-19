@@ -1,20 +1,20 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
         :root {
-            --cb-bg: #f4f7fb;
-            --cb-bg-soft: #edf3f9;
+            --cb-bg: #f3f7fc;
+            --cb-bg-soft: #e8eff8;
             --cb-surface: #ffffff;
             --cb-surface-2: #f8fbff;
             --cb-surface-3: #eef4fb;
-            --cb-line: #dbe4f0;
-            --cb-text: #142033;
-            --cb-text-soft: #4d627c;
-            --cb-text-dim: #73849c;
-            --cb-accent: #2f67d8;
-            --cb-accent-2: #5b8def;
-            --cb-good: #1f8a63;
-            --cb-watch: #a87006;
-            --cb-risk: #c75454;
-            --cb-sidebar: #0f1b2d;
+            --cb-line: #cbd8e6;
+            --cb-text: #0f172a;
+            --cb-text-soft: #334155;
+            --cb-text-dim: #64748b;
+            --cb-accent: #1d4ed8;
+            --cb-accent-2: #3b82f6;
+            --cb-good: #15803d;
+            --cb-watch: #b45309;
+            --cb-risk: #b91c1c;
+            --cb-sidebar: #0b1730;
             --cb-motion-fast: 180ms;
             --cb-motion-base: 320ms;
             --cb-motion-slow: 540ms;
@@ -166,61 +166,69 @@
         .stDownloadButton > button,
         .stFormSubmitButton button,
         [data-testid^="stBaseButton-"] {
-            border-radius: 10px !important;
-            min-height: 2.6rem !important;
+            border-radius: 12px !important;
+            min-height: 2.75rem !important;
             font-weight: 700 !important;
             letter-spacing: 0.01em !important;
-            box-shadow: none !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
             opacity: 1 !important;
             text-shadow: none !important;
+            transition: background 140ms ease, color 140ms ease, border-color 140ms ease, box-shadow 140ms ease !important;
             -webkit-text-fill-color: currentColor !important;
         }
         .stButton > button *,
         .stDownloadButton > button *,
         .stFormSubmitButton button *,
-        [data-testid^="stBaseButton-"] * {
+        .stButton > button [data-testid="stMarkdownContainer"],
+        .stButton > button [data-testid="stMarkdownContainer"] *,
+        .stDownloadButton > button [data-testid="stMarkdownContainer"],
+        .stDownloadButton > button [data-testid="stMarkdownContainer"] *,
+        .stFormSubmitButton button [data-testid="stMarkdownContainer"],
+        .stFormSubmitButton button [data-testid="stMarkdownContainer"] *,
+        [data-testid^="stBaseButton-"] *,
+        [data-testid^="stBaseButton-"] [data-testid="stMarkdownContainer"],
+        [data-testid^="stBaseButton-"] [data-testid="stMarkdownContainer"] * {
             color: inherit !important;
             fill: currentColor !important;
+            stroke: currentColor !important;
             opacity: 1 !important;
             -webkit-text-fill-color: currentColor !important;
         }
         .stButton > button,
         .stDownloadButton > button,
         .stFormSubmitButton button,
-        button[kind="secondary"],
-        button[kind="secondaryFormSubmit"],
         [data-testid="stBaseButton-secondary"],
         [data-testid="stBaseButton-secondaryFormSubmit"] {
             background: #ffffff !important;
-            color: #17315f !important;
-            border: 1px solid #bfd2f5 !important;
+            color: #0f172a !important;
+            border: 1px solid #94a3b8 !important;
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover,
         .stFormSubmitButton button:hover,
-        button[kind="secondary"]:hover,
-        button[kind="secondaryFormSubmit"]:hover,
         [data-testid="stBaseButton-secondary"]:hover,
         [data-testid="stBaseButton-secondaryFormSubmit"]:hover {
-            background: #eef4ff !important;
-            border-color: #aac4f0 !important;
-            color: #102645 !important;
+            background: #eff6ff !important;
+            border-color: #60a5fa !important;
+            color: #0f172a !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
         }
         button[kind="primary"],
         button[kind="primaryFormSubmit"],
         [data-testid="stBaseButton-primary"],
         [data-testid="stBaseButton-primaryFormSubmit"] {
             background: var(--cb-accent) !important;
-            color: #f7fbff !important;
-            border: 1px solid #2a59bb !important;
+            color: #ffffff !important;
+            border: 1px solid #1e40af !important;
         }
         button[kind="primary"]:hover,
         button[kind="primaryFormSubmit"]:hover,
         [data-testid="stBaseButton-primary"]:hover,
         [data-testid="stBaseButton-primaryFormSubmit"]:hover {
-            background: #2556bb !important;
-            border-color: #214ea9 !important;
+            background: #1e40af !important;
+            border-color: #1d3b8b !important;
             color: #ffffff !important;
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.2) !important;
         }
         button[kind="tertiary"],
         button[kind="tertiaryFormSubmit"],
@@ -234,9 +242,9 @@
         .stDownloadButton > button:disabled,
         .stFormSubmitButton button:disabled,
         [data-testid^="stBaseButton-"]:disabled {
-            background: #d8e4f5 !important;
-            color: #526a86 !important;
-            border-color: #c4d4eb !important;
+            background: #dbe4ef !important;
+            color: #475569 !important;
+            border-color: #c5d2e1 !important;
             opacity: 1 !important;
             -webkit-text-fill-color: currentColor !important;
         }
@@ -255,30 +263,20 @@
             color: var(--cb-text);
         }
         [data-testid="stSidebar"] .stButton > button,
-        [data-testid="stSidebar"] .stDownloadButton > button {
-            background: #eaf2ff;
-            color: #102645;
-            border-color: #bfd2f5;
-        }
-        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"],
-        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"],
-        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button {
-            background: #eaf2ff !important;
-            color: #102645 !important;
-            border-color: #bfd2f5 !important;
+        [data-testid="stSidebar"] .stDownloadButton > button,
+        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button,
+        [data-testid="stSidebar"] [data-testid^="stBaseButton-"] {
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #f8fbff !important;
+            border-color: rgba(191, 210, 245, 0.5) !important;
         }
         [data-testid="stSidebar"] .stButton > button:hover,
-        [data-testid="stSidebar"] .stDownloadButton > button:hover {
-            background: #dce9ff;
-            color: #0b203e;
-            border-color: #aac4f0;
-        }
-        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"]:hover,
-        [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"]:hover,
-        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button:hover {
-            background: #dce9ff !important;
-            color: #0b203e !important;
-            border-color: #aac4f0 !important;
+        [data-testid="stSidebar"] .stDownloadButton > button:hover,
+        [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button:hover,
+        [data-testid="stSidebar"] [data-testid^="stBaseButton-"]:hover {
+            background: rgba(96, 165, 250, 0.22) !important;
+            color: #ffffff !important;
+            border-color: rgba(147, 197, 253, 0.8) !important;
         }
         [data-testid="stSidebar"] .stLinkButton a {
             background: rgba(255, 255, 255, 0.1);

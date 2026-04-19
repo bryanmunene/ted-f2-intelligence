@@ -115,12 +115,14 @@ st.set_page_config(
 
 
 def _apply_theme() -> None:
-    css = _load_streamlit_theme_css()
+    css_path = Path(__file__).parent / "app" / "static" / "css" / "streamlit_theme.css"
+    css = _load_streamlit_theme_css(int(css_path.stat().st_mtime_ns))
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
 @st.cache_data(show_spinner=False)
-def _load_streamlit_theme_css() -> str:
+def _load_streamlit_theme_css(version: int) -> str:
+    del version
     css_path = Path(__file__).parent / "app" / "static" / "css" / "streamlit_theme.css"
     return css_path.read_text(encoding="utf-8")
 
