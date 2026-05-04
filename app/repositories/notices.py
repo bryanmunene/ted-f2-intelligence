@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session, contains_eager, selectinload
 
 from app.models import AnalystNote, Notice, NoticeAnalysis, ScanRun
 from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
-from app.utils.countries import ted_country_code_variants
+from app.utils.countries import TED_COUNTRY_TO_NAME, normalize_ted_country_code, ted_country_code_variants
 
 
 @dataclass(slots=True)
@@ -266,8 +266,14 @@ class NoticeRepository:
             stmt = stmt.where(NoticeAnalysis.fit_label.in_([FitLabel.YES, FitLabel.CONDITIONAL]))
         if filters.country:
             country_variants = self._country_variants(filters.country)
+            place_patterns = self._country_place_patterns(filters.country)
+            country_clauses = []
             if country_variants:
-                stmt = stmt.where(Notice.buyer_country.in_(country_variants))
+                country_clauses.append(Notice.buyer_country.in_(country_variants))
+            place_of_performance_text = func.lower(func.coalesce(Notice.place_of_performance, ""))
+            country_clauses.extend(place_of_performance_text.like(f"%{pattern}%") for pattern in place_patterns)
+            if country_clauses:
+                stmt = stmt.where(or_(*country_clauses))
         if filters.fit_label:
             stmt = stmt.where(NoticeAnalysis.fit_label == FitLabel(filters.fit_label))
         if filters.priority_bucket:
@@ -341,3 +347,29 @@ class NoticeRepository:
                     seen.add(variant)
                     variants.append(variant)
         return variants
+
+    def _country_place_patterns(self, value: str | builtins.list[str] | None) -> builtins.list[str]:
+        if value is None:
+            return []
+
+        raw_values: list[str]
+        if isinstance(value, str):
+            raw_values = [part.strip() for part in value.split(",") if part.strip()]
+        else:
+            raw_values = [part.strip() for part in value if isinstance(part, str) and part.strip()]
+
+        patterns: list[str] = []
+        seen: set[str] = set()
+        for raw in raw_values:
+            normalized = normalize_ted_country_code(raw)
+            candidates = [raw.lower()]
+            if normalized:
+                candidates.append(normalized.lower())
+                canonical_name = TED_COUNTRY_TO_NAME.get(normalized)
+                if canonical_name:
+                    candidates.append(canonical_name.lower())
+            for candidate in candidates:
+                if candidate and candidate not in seen:
+                    seen.add(candidate)
+                    patterns.append(candidate)
+        return patterns

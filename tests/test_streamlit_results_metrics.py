@@ -50,9 +50,9 @@ def test_streamlit_default_results_filter_hides_expired_tenders() -> None:
     assert default_state["min_days_remaining"] == 0
 
 
-def test_overall_live_scan_fetches_deeper_than_country_scan() -> None:
-    assert _default_live_scan_max_pages("DNK") == 1
-    assert _default_live_scan_max_pages(" DK ") == 1
+def test_live_scan_uses_same_depth_with_or_without_country_filter() -> None:
+    assert _default_live_scan_max_pages("DNK") == min(3, settings.ted_max_pages_per_scan)
+    assert _default_live_scan_max_pages(" DK ") == min(3, settings.ted_max_pages_per_scan)
     assert _default_live_scan_max_pages(None) == min(3, settings.ted_max_pages_per_scan)
 
 

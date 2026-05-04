@@ -79,6 +79,28 @@ def test_notice_repository_country_filter_accepts_multiple_countries(db_session,
     assert {notice.id for notice in notices_csv} == {seeded_notice, swe_notice_id}
 
 
+def test_notice_repository_country_filter_matches_place_of_performance(db_session, seeded_notice: str) -> None:
+    repository = NoticeRepository(db_session)
+    german_delivery_notice_id = _store_scored_notice(
+        db_session,
+        {
+            "publication-number": "77702-2026",
+            "notice-title": "Cross-border records portal",
+            "buyer-name": "EU Digital Program Office",
+            "buyer-country": "BE",
+            "place-of-performance-country-proc": "DEU",
+            "publication-date": "2026-03-28",
+            "deadline": "2026-06-20T10:00:00Z",
+            "additional-information": "Records management, workflow automation and archiving.",
+        },
+    )
+
+    notices, total = repository.list(NoticeListFilters(country="DE"), page=1, page_size=25)
+
+    assert total == 1
+    assert {notice.id for notice in notices} == {german_delivery_notice_id}
+
+
 def test_notice_repository_default_review_queue_is_broader_but_can_be_narrowed(
     db_session,
     seeded_notice: str,

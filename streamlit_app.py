@@ -498,9 +498,6 @@ def _resolve_official_notice_url(notice: dict[str, Any]) -> str | None:
 
 
 def _default_live_scan_max_pages(country: str | None) -> int:
-    normalized_country = (country or "").strip()
-    if normalized_country:
-        return 1
     return min(3, settings.ted_max_pages_per_scan)
 
 
@@ -714,9 +711,9 @@ def _render_live_scan() -> None:
             )
         if country:
             st.caption(f"Country filter: {_country_display_label(country)}")
-            st.caption("Country scans use a focused TED pull.")
+            st.caption("Country filters narrow the TED query, but the scan still checks the same page depth as an overall search.")
         else:
-            st.caption("Overall scans use a deeper TED pull across multiple result pages.")
+            st.caption("Overall scans use the same page depth, but without narrowing the TED query to one buyer country.")
         st.caption("Scan uses the default review settings.")
 
         submitted = st.form_submit_button("Find matching tenders", type="primary", width="stretch")
