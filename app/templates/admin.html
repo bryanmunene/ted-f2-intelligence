@@ -1,32 +1,147 @@
 {% extends "base.html" %}
 {% block title %}Admin | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>Config / Admin</h1>
-    <p>Runtime visibility for scoring profiles, rate-limit posture, and deployment settings.</p>
+<section class="hero-banner panel settings-hero">
+  <div class="hero-copy">
+    <span class="eyebrow">Control room</span>
+    <h1>Keep the search system legible, safe, and easy to tune</h1>
+    <p>This page brings together the profile catalogue, runtime posture, and operational reference settings so the team can understand how discovery and review are configured.</p>
+    <div class="hero-trust-row settings-trust-row">
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">{{ profiles | length }}</span>
+        <span class="hero-trust-label">search profiles available</span>
+      </div>
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">{{ app_settings | length }}</span>
+        <span class="hero-trust-label">saved settings in storage</span>
+      </div>
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">{{ runtime_settings.env }}</span>
+        <span class="hero-trust-label">active runtime environment</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-side">
+    <div class="hero-callout">
+      <div class="summary-label">Operational posture</div>
+      <div class="summary-value">{{ runtime_settings.ted_requests_per_minute }} rpm</div>
+      <div class="summary-helper">This is the configured TED request budget used to keep the app within its normal search posture.</div>
+      <div class="hero-callout-list">
+        <div><strong>{{ runtime_settings.ui_timezone }}</strong> display timezone</div>
+        <div><strong>{{ runtime_settings.ted_cache_ttl_seconds }}</strong> cache seconds</div>
+        <div><strong>{{ runtime_settings.env }}</strong> deployment environment</div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="card-grid">
-  {% with label="Environment", value=runtime_settings.env, helper="Runtime environment" %}
+<section class="entry-grid settings-entry-grid">
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-radar"></use></svg></div>
+    <div>
+      <h2>Profile Coverage</h2>
+      <p>See how the search profiles are positioned before changing terms or widening scope.</p>
+    </div>
+  </article>
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-shield"></use></svg></div>
+    <div>
+      <h2>Runtime Posture</h2>
+      <p>Review the environment and request budget so operations stay predictable.</p>
+    </div>
+  </article>
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-clock"></use></svg></div>
+    <div>
+      <h2>Reference Settings</h2>
+      <p>Check the persisted settings inventory that supports internal maintenance and audits.</p>
+    </div>
+  </article>
+</section>
+
+<section class="card-grid settings-metrics-grid">
+  {% with label="Environment", value=runtime_settings.env, helper="Where the app is currently running" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="UI Timezone", value=runtime_settings.ui_timezone, helper="Business-facing display timezone" %}
+  {% with label="Display Timezone", value=runtime_settings.ui_timezone, helper="Timezone used for dates and deadlines" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="TED RPM", value=runtime_settings.ted_requests_per_minute, helper="Client-side request budget" %}
+  {% with label="TED Requests Per Minute", value=runtime_settings.ted_requests_per_minute, helper="Request budget used when searching TED" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="Cache TTL", value=runtime_settings.ted_cache_ttl_seconds, helper="Seconds for identical query reuse" %}
+  {% with label="Cache Time", value=runtime_settings.ted_cache_ttl_seconds, helper="Seconds identical searches may be reused" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
+</section>
+
+<section class="split-layout dashboard-insight-layout">
+  <article class="panel insight-panel">
+    <div class="panel-header compact-header">
+      <div>
+        <h2>How To Use This Page</h2>
+        <p class="panel-intro">A quick guide for operators, maintainers, and reviewers.</p>
+      </div>
+    </div>
+    <div class="meter-list">
+      <article class="meter-card">
+        <div class="meter-head">
+          <div>
+            <div class="meter-label">Profile tuning</div>
+            <div class="meter-hint">Use profiles to control discovery intent before touching scoring rules.</div>
+          </div>
+          <svg class="ui-icon meter-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-radar"></use></svg>
+        </div>
+      </article>
+      <article class="meter-card">
+        <div class="meter-head">
+          <div>
+            <div class="meter-label">Runtime checks</div>
+            <div class="meter-hint">Confirm environment, timezone, cache, and request posture before raising platform issues.</div>
+          </div>
+          <svg class="ui-icon meter-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-shield"></use></svg>
+        </div>
+      </article>
+      <article class="meter-card">
+        <div class="meter-head">
+          <div>
+            <div class="meter-label">Settings inventory</div>
+            <div class="meter-hint">Use the saved-settings table as a maintenance and audit reference, not as the primary tuning surface.</div>
+          </div>
+          <svg class="ui-icon meter-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-settings"></use></svg>
+        </div>
+      </article>
+    </div>
+  </article>
+
+  <article class="panel insight-panel">
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Visual Language</h2>
+        <p class="panel-intro">This admin surface now follows the same product language as the rest of the app.</p>
+      </div>
+    </div>
+    <div class="settings-style-grid">
+      <article class="settings-style-card">
+        <svg class="ui-icon settings-style-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-palette"></use></svg>
+        <h3>Shared theme</h3>
+        <p>Warm backgrounds, dark editorial contrast, and a consistent premium shell across pages.</p>
+      </article>
+      <article class="settings-style-card">
+        <svg class="ui-icon settings-style-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-spark"></use></svg>
+        <h3>Reusable icons</h3>
+        <p>Local SVG icons can now be reused in navigation, landing modules, and settings content.</p>
+      </article>
+    </div>
+  </article>
 </section>
 
 <section class="split-layout">
   <article class="panel">
-    <div class="panel-header">
-      <h2>Search Profiles</h2>
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Search Profiles</h2>
+        <p class="panel-intro">Profiles are reusable search setups. Most users only need to pick one and run a search.</p>
+      </div>
     </div>
     <div class="profile-grid">
       {% for profile in profiles %}
@@ -44,8 +159,11 @@
   </article>
 
   <article class="panel">
-    <div class="panel-header">
-      <h2>Database Settings</h2>
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Saved App Settings</h2>
+        <p class="panel-intro">Reference information for administrators and maintainers.</p>
+      </div>
     </div>
     {% if app_settings %}
       <table class="data-table compact">
@@ -65,7 +183,7 @@
         </tbody>
       </table>
     {% else %}
-      <p class="empty-state">No app settings have been persisted yet.</p>
+      <p class="empty-state">No saved app settings have been persisted yet.</p>
     {% endif %}
   </article>
 </section>

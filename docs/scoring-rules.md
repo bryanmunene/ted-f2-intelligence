@@ -8,6 +8,7 @@
 
 ## Positive Domains
 
+- only the positive keyword groups enabled by the active search profile contribute domain points
 - document and records management
 - case handling and workflow orchestration
 - correspondence and registry
@@ -27,6 +28,7 @@
 
 ## Negative Signals
 
+- only the negative keyword groups enabled by the active search profile contribute penalties
 - hardware-only and network equipment
 - security-only procurement
 - website-only or mobile-only delivery
@@ -36,9 +38,18 @@
 
 ## Platform Lock Logic
 
+- hard lock, soft lock, and openness signals are configured in the keyword pack and weighted by the active search profile
 - hard lock terms create strong penalties and can force a `CONDITIONAL` or `NO` fit label
 - soft lock terms are treated as qualification risks, not automatic exclusions
 - openness wording offsets some lock risk where equivalent solutions seem acceptable
+
+## Profile And Thresholds
+
+- the active search profile also controls profile-specific country bias, sector weighting, and platform-lock multipliers
+- notices below 15 points are classified as `NO`
+- notices with blockers, hard non-software scope, or very weak fit remain `NO`
+- notices below 70 points, or notices with soft blockers, are classified as `CONDITIONAL`
+- only high-confidence, blocker-free notices at 70+ score can reach `YES`
 
 ## Outputs
 

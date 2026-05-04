@@ -1,162 +1,305 @@
 {% extends "base.html" %}
 {% block title %}Results | {{ app_name }}{% endblock %}
 {% block content %}
+{% set metrics = namespace(high_fit=0, conditional=0, hard_locks=0, saved=0, demo=0) %}
+{% for notice in notices %}
+  {% if notice.analysis and notice.analysis.fit_label and notice.analysis.fit_label.value == "YES" %}
+    {% set metrics.high_fit = metrics.high_fit + 1 %}
+  {% elif notice.analysis and notice.analysis.fit_label and notice.analysis.fit_label.value == "CONDITIONAL" %}
+    {% set metrics.conditional = metrics.conditional + 1 %}
+  {% endif %}
+  {% if notice.analysis and notice.analysis.hard_lock_detected %}
+    {% set metrics.hard_locks = metrics.hard_locks + 1 %}
+  {% endif %}
+  {% if notice.saved %}
+    {% set metrics.saved = metrics.saved + 1 %}
+  {% endif %}
+  {% if notice.raw_payload_json.get("_seed_fixture") %}
+    {% set metrics.demo = metrics.demo + 1 %}
+  {% endif %}
+{% endfor %}
 <section class="page-header">
   <div>
-    <h1>Results</h1>
-    <p>Sortable review queue of TED notices scored against F2-fit rules.</p>
+    <h1>Shortlist</h1>
+    <p>Review the queue with a cleaner shortlist view, stronger score hierarchy, and faster next actions.</p>
   </div>
-  <a href="/scan" class="button button-primary">New Scan</a>
+  <a href="/scan" class="button button-primary">Start New Search</a>
 </section>
 
+{% if feedback_message %}
+  <section class="feedback-banner feedback-{{ feedback_kind or 'info' }}">
+    <strong>{{ feedback_message }}</strong>
+  </section>
+{% endif %}
+
 {% if scan_run %}
-  <section class="panel banner-panel">
-    <div class="banner-title">Latest Scan Run</div>
-    <div class="banner-metrics">
-      <span>{{ scan_run.status }}</span>
-      <span>{{ scan_run.total_notices_ingested }} ingested</span>
-      <span>{{ scan_run.total_high_fit }} high fit</span>
-      <span>{{ scan_run.request_count }} requests</span>
+  <section class="panel banner-panel scan-summary-panel">
+    <div class="panel-header compact-header">
+      <div>
+        <div class="banner-title">Latest Scan Run</div>
+        <p class="panel-intro">This section keeps the latest intake context visible while you work through the shortlist.</p>
+      </div>
+      <span class="badge status-badge">{{ scan_run.status }}</span>
+    </div>
+    <div class="results-overview scan-overview">
+      <article class="summary-card metric-card">
+        <div class="summary-label">Ingested</div>
+        <div class="summary-value">{{ scan_run.total_notices_ingested }}</div>
+        <div class="summary-helper">Official notices brought into this run.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">High Fit</div>
+        <div class="summary-value">{{ scan_run.total_high_fit }}</div>
+        <div class="summary-helper">Strong matches identified by the scoring rules.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">Conditional</div>
+        <div class="summary-value">{{ scan_run.total_conditional }}</div>
+        <div class="summary-helper">Worth review, but with qualification risk attached.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">Requests</div>
+        <div class="summary-value">{{ scan_run.request_count }}</div>
+        <div class="summary-helper">TED API requests used for the run.</div>
+      </article>
     </div>
   </section>
 {% endif %}
 
-<form method="get" action="/results" class="panel form-panel">
-  <div class="form-grid compact-grid">
-    <label>
-      <span>Country</span>
-      <input type="text" name="country" value="{{ filters.country or '' }}">
-    </label>
-    <label>
-      <span>Fit Label</span>
-      <select name="fit_label">
-        <option value="">Any</option>
-        {% for value in ["YES", "CONDITIONAL", "NO"] %}
-          <option value="{{ value }}" {% if filters.fit_label == value %}selected{% endif %}>{{ value }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>
-      <span>Priority</span>
-      <select name="priority_bucket">
-        <option value="">Any</option>
-        {% for value in ["HIGH", "GOOD", "WATCHLIST", "IGNORE"] %}
-          <option value="{{ value }}" {% if filters.priority_bucket == value %}selected{% endif %}>{{ value }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <label>
-      <span>Minimum Score</span>
-      <input type="number" name="min_score" min="0" max="100" value="{{ filters.min_score if filters.min_score is not none else '' }}">
-    </label>
-    <label>
-      <span>Deadline Window (Days)</span>
-      <input type="number" name="deadline_window_days" min="1" max="365" value="{{ filters.deadline_window_days or '' }}">
-    </label>
-    <label>
-      <span>Search</span>
-      <input type="text" name="search" value="{{ filters.search or '' }}">
-    </label>
-  </div>
-  <div class="toggle-row">
-    <label class="toggle">
-      <input type="checkbox" name="hard_lock_only" {% if filters.hard_lock_only %}checked{% endif %}>
-      <span>Hard lock only</span>
-    </label>
-    <label class="toggle">
-      <input type="checkbox" name="saved_only" {% if filters.saved_only %}checked{% endif %}>
-      <span>Saved only</span>
-    </label>
-    <label class="toggle">
-      <input type="checkbox" name="include_dismissed" {% if filters.include_dismissed %}checked{% endif %}>
-      <span>Include dismissed</span>
-    </label>
-  </div>
-  <div class="action-row">
-    <button type="submit" class="button button-primary">Apply Filters</button>
-  </div>
-</form>
+<section class="results-layout">
+  <aside class="panel form-panel results-sidebar">
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Refine View</h2>
+        <p class="panel-intro">Keep the shortlist focused without losing the main review context.</p>
+      </div>
+    </div>
+    <form method="get" action="/results" class="results-filter-form">
+      {% if scan_run %}
+        <input type="hidden" name="scan_id" value="{{ scan_run.id }}">
+      {% endif %}
+      <div class="form-grid compact-grid">
+        <label>
+          <span>Country</span>
+          <input type="text" name="country" value="{{ filters.country or '' }}" placeholder="e.g. Denmark">
+        </label>
+        <label>
+          <span>Fit Label</span>
+          <select name="fit_label">
+            <option value="">Any</option>
+            {% for value in ["YES", "CONDITIONAL", "NO"] %}
+              <option value="{{ value }}" {% if filters.fit_label == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Priority</span>
+          <select name="priority_bucket">
+            <option value="">Any</option>
+            {% for value in ["HIGH", "GOOD", "WATCHLIST", "IGNORE"] %}
+              <option value="{{ value }}" {% if filters.priority_bucket == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Minimum Score</span>
+          <input type="number" name="min_score" min="0" max="100" value="{{ filters.min_score if filters.min_score is not none else '' }}">
+        </label>
+        <label>
+          <span>Deadline Window (Days)</span>
+          <input type="number" name="deadline_window_days" min="1" max="365" value="{{ filters.deadline_window_days or '' }}">
+        </label>
+        <label>
+          <span>Search</span>
+          <input type="text" name="search" value="{{ filters.search or '' }}" placeholder="Title, buyer, publication number">
+        </label>
+        <label>
+          <span>Sort By</span>
+          <select name="sort_by">
+            {% for value, label in sort_options.items() %}
+              <option value="{{ value }}" {% if sort_by == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>Items Per Page</span>
+          <select name="page_size">
+            {% for value in [10, 25, 50, 100] %}
+              <option value="{{ value }}" {% if page_size == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+      <div class="toggle-row results-toggle-row">
+        <label class="toggle">
+          <input type="checkbox" name="hard_lock_only" {% if filters.hard_lock_only %}checked{% endif %}>
+          <span>Hard lock only</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="saved_only" {% if filters.saved_only %}checked{% endif %}>
+          <span>Saved only</span>
+        </label>
+        <label class="toggle">
+          <input type="checkbox" name="include_dismissed" {% if filters.include_dismissed %}checked{% endif %}>
+          <span>Include dismissed</span>
+        </label>
+      </div>
+      <div class="action-row split-actions">
+        <button type="submit" class="button button-primary">Apply Filters</button>
+        <a href="/results{% if scan_run %}?scan_id={{ scan_run.id }}{% endif %}" class="button button-ghost">Clear</a>
+      </div>
+    </form>
+  </aside>
 
-<section class="panel">
-  <div class="panel-header">
-    <h2>{{ total }} Notices</h2>
-  </div>
+  <div class="results-content">
+    <section class="results-overview">
+      <article class="summary-card metric-card accent-card">
+        <div class="summary-label">Matching Notices</div>
+        <div class="summary-value">{{ total }}</div>
+        <div class="summary-helper">Total notices matching the current filter state.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">High Fit In View</div>
+        <div class="summary-value">{{ metrics.high_fit }}</div>
+        <div class="summary-helper">Immediate shortlist candidates on the current page.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">Conditional</div>
+        <div class="summary-value">{{ metrics.conditional }}</div>
+        <div class="summary-helper">Promising notices that need qualification checks.</div>
+      </article>
+      <article class="summary-card metric-card">
+        <div class="summary-label">Hard Locks</div>
+        <div class="summary-value">{{ metrics.hard_locks }}</div>
+        <div class="summary-helper">Records flagged with platform or eligibility constraints.</div>
+      </article>
+    </section>
+
+    <section class="panel results-panel">
+      <div class="panel-header results-panel-header">
+        <div>
+          <h2>Review Queue</h2>
+          <p class="panel-intro">{{ notices | length }} notices shown on this page. Page {{ page }} of {{ total_pages }}. Saved notices in view: {{ metrics.saved }}. Demo records: {{ metrics.demo }}.</p>
+        </div>
+        <span class="badge subtle">Sorted by {{ sort_options[sort_by] }}</span>
+      </div>
   {% if notices %}
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Notice</th>
-          <th>Buyer</th>
-          <th>Timing</th>
-          <th>Fit</th>
-          <th>Evidence</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for notice in notices %}
-          <tr>
-            <td>
-              <a class="table-title" href="/results/{{ notice.id }}">{{ notice.title }}</a>
-              <div class="table-subtext">{{ notice.publication_number }}</div>
-            </td>
-            <td>
-              <div>{{ notice.buyer or "Unknown buyer" }}</div>
-              <div class="table-subtext">{{ notice.buyer_country or "N/A" }}</div>
-            </td>
-            <td>
-              <div>Published {{ notice.publication_date | display_date }}</div>
-              <div class="table-subtext">Deadline {{ notice.deadline | display_datetime }}</div>
-            </td>
-            <td>
-              <div class="score-stack">
-                <span class="score-pill">{{ notice.analysis.score if notice.analysis else 0 }}</span>
+    <div class="results-list">
+      {% for notice in notices %}
+        <article class="notice-card">
+          <div class="notice-card-head">
+            <div class="notice-heading">
+              <div class="notice-kicker">
+                <span class="eyebrow">{{ notice.publication_number }}</span>
+                {% if notice.saved %}
+                  <span class="badge subtle">Saved</span>
+                {% endif %}
+                {% if notice.raw_payload_json.get("_seed_fixture") %}
+                  <span class="badge subtle">Demo</span>
+                {% endif %}
+              </div>
+              <h3><a class="table-title" href="/results/{{ notice.id }}">{{ notice.title }}</a></h3>
+              <p class="notice-subtitle">{{ notice.buyer or "Unknown buyer" }} / {{ notice.buyer_country or "N/A" }}</p>
+            </div>
+            <div class="notice-score-cluster">
+              <span class="score-pill large">{{ notice.analysis.score if notice.analysis else 0 }}</span>
+              <div class="score-stack stacked-badges">
                 <span class="badge">{{ notice.analysis.fit_label.value if notice.analysis else "N/A" }}</span>
                 <span class="badge subtle">{{ notice.analysis.priority_bucket.value if notice.analysis else "N/A" }}</span>
-              </div>
-            </td>
-            <td>
-              <div class="chip-row">
-                {% for hit in (notice.analysis.keyword_hits if notice.analysis else [])[:4] %}
-                  <span class="chip">{{ hit.term }} - {{ hit.scope }}</span>
-                {% endfor %}
-                {% if notice.analysis and notice.analysis.hard_lock_detected %}
-                  <span class="chip chip-alert">Hard lock</span>
+                {% if notice.analysis and notice.analysis.confidence_indicator %}
+                  <span class="badge subtle">{{ notice.analysis.confidence_indicator.value }}</span>
                 {% endif %}
               </div>
-            </td>
-            <td>
-              <div class="inline-actions">
-                {% if notice.raw_payload_json.get("_seed_fixture") %}
-                  <span class="table-subtext">Demo notice only</span>
-                {% else %}
-                  <a href="/results/{{ notice.id }}/open-ted" class="button button-secondary small" target="_blank" rel="noreferrer">
-                    Open TED
-                  </a>
-                  {% if notice.pdf_url %}
-                    <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary small">
-                      Download PDF
-                    </a>
-                  {% endif %}
-                {% endif %}
-                <form method="post" action="/results/{{ notice.id }}/save">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-                  <input type="hidden" name="next_url" value="{{ request.url }}">
-                  <button type="submit" class="button button-secondary small">Save</button>
-                </form>
-                <form method="post" action="/results/{{ notice.id }}/dismiss">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-                  <input type="hidden" name="next_url" value="{{ request.url }}">
-                  <button type="submit" class="button button-ghost small" data-confirm="Dismiss this notice from the active queue?">Dismiss</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+            </div>
+          </div>
+
+          <div class="notice-detail-grid">
+            <div class="notice-fact">
+              <span class="fact-label">Published</span>
+              <strong>{{ notice.publication_date | display_date }}</strong>
+            </div>
+            <div class="notice-fact">
+              <span class="fact-label">Deadline</span>
+              <strong>{{ notice.deadline | display_datetime }}</strong>
+            </div>
+            <div class="notice-fact">
+              <span class="fact-label">View</span>
+              <strong>{{ notice.analysis.priority_bucket.value if notice.analysis else "Unscored" }}</strong>
+            </div>
+            <div class="notice-fact">
+              <span class="fact-label">Status</span>
+              <strong>{% if notice.analysis and notice.analysis.hard_lock_detected %}Needs caution{% else %}Ready for review{% endif %}</strong>
+            </div>
+          </div>
+
+          <p class="notice-summary">{{ notice.summary or "No summary extracted for this notice yet. Use the detail view for the full TED payload and scoring evidence." }}</p>
+
+          <div class="chip-row">
+            {% for hit in (notice.analysis.keyword_hits if notice.analysis else [])[:5] %}
+              <span class="chip">{{ hit.term }} / {{ hit.scope }}</span>
+            {% endfor %}
+            {% if notice.analysis and notice.analysis.hard_lock_detected %}
+              <span class="chip chip-alert">Hard lock</span>
+            {% endif %}
+            {% if not (notice.analysis and notice.analysis.keyword_hits) %}
+              <span class="chip chip-muted">No keyword evidence captured</span>
+            {% endif %}
+          </div>
+
+          <div class="result-action-row">
+            <a href="/results/{{ notice.id }}" class="button button-primary small">Open Review</a>
+            {% if notice.raw_payload_json.get("_seed_fixture") %}
+              <span class="table-subtext">Live TED actions are disabled for demo notices.</span>
+            {% else %}
+              <a href="/results/{{ notice.id }}/open-ted" class="button button-secondary small" target="_blank" rel="noreferrer">
+                Open TED
+              </a>
+              {% if notice.pdf_url %}
+                <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary small">
+                  Download PDF
+                </a>
+              {% endif %}
+            {% endif %}
+            <form method="post" action="/results/{{ notice.id }}/save">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+              <input type="hidden" name="next_url" value="{{ request.url }}">
+              <button type="submit" class="button button-secondary small">Save</button>
+            </form>
+            <form method="post" action="/results/{{ notice.id }}/dismiss">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+              <input type="hidden" name="next_url" value="{{ request.url }}">
+              <button type="submit" class="button button-ghost small" data-confirm="Dismiss this notice from the active queue?">Dismiss</button>
+            </form>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+    {% if total_pages > 1 %}
+      <div class="pagination-row">
+        {% if page > 1 %}
+          <a href="{{ request.url.include_query_params(page=page-1) }}" class="button button-ghost small">Previous</a>
+        {% else %}
+          <span class="button button-ghost small button-disabled">Previous</span>
+        {% endif %}
+        <span class="pagination-status">Page {{ page }} of {{ total_pages }}</span>
+        {% if page < total_pages %}
+          <a href="{{ request.url.include_query_params(page=page+1) }}" class="button button-ghost small">Next</a>
+        {% else %}
+          <span class="button button-ghost small button-disabled">Next</span>
+        {% endif %}
+      </div>
+    {% endif %}
   {% else %}
-    <p class="empty-state">No notices matched the current filters.</p>
+    <div class="empty-guidance">
+      <p class="empty-state">No notices matched the current filters.</p>
+      <p class="panel-intro">Try clearing one or two filters, lowering the minimum score, or running a broader search from the Start Search page.</p>
+      <div class="action-row">
+        <a href="/results{% if scan_run %}?scan_id={{ scan_run.id }}{% endif %}" class="button button-secondary small">Clear Filters</a>
+        <a href="/scan" class="button button-ghost small">Start New Search</a>
+      </div>
+    </div>
   {% endif %}
+    </section>
+  </div>
 </section>
 {% endblock %}

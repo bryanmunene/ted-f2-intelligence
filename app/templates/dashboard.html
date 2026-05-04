@@ -1,39 +1,166 @@
 {% extends "base.html" %}
 {% block title %}Dashboard | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>Dashboard</h1>
-    <p>Operational overview of scanned TED notices scored for cBrain F2 fit.</p>
+<section class="hero-banner panel">
+  <div class="hero-copy">
+    <span class="eyebrow">F2 opportunity desk</span>
+    <h1>Turn TED volume into a shortlist your team can act on</h1>
+    <p>This workspace is built for quick public-sector opportunity review: search the TED market, understand the queue at a glance, and move straight into the strongest F2-aligned notices.</p>
+    <div class="action-row hero-actions">
+      <a href="/scan" class="button button-primary">Start a Search</a>
+      <a href="/results" class="button button-secondary">Open Shortlist</a>
+    </div>
+    <div class="hero-trust-row">
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">TED-only</span>
+        <span class="hero-trust-label">Official notice source</span>
+      </div>
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">Explainable</span>
+        <span class="hero-trust-label">Deterministic fit scoring</span>
+      </div>
+      <div class="hero-trust-item">
+        <span class="hero-trust-value">Action-first</span>
+        <span class="hero-trust-label">Shortlist built for review speed</span>
+      </div>
+    </div>
   </div>
-  <a href="/scan" class="button button-primary">Run Scan</a>
+  <div class="hero-side">
+    <div class="hero-callout">
+      <div class="summary-label">Today’s desk status</div>
+      <div class="summary-value">{{ metrics.high_fit }} ready to review</div>
+      <div class="summary-helper">Use the guided search to refresh intake, then open the shortlist and work from the strongest matches downward.</div>
+      <div class="hero-callout-list">
+        <div><strong>{{ metrics.expiring_soon }}</strong> closing soon</div>
+        <div><strong>{{ metrics.conditional }}</strong> need qualification</div>
+        <div><strong>{{ metrics.saved_count }}</strong> already saved</div>
+      </div>
+    </div>
+    <div class="landing-card panel">
+      <div class="section-kicker">Workspace flow</div>
+      <h2>One clear path from search to decision</h2>
+      <p class="panel-intro">Search first, sort the queue second, then open detail pages only for the notices worth team time.</p>
+    </div>
+  </div>
 </section>
 
-<section class="card-grid">
-  {% with label="Total Notices", value=metrics.total_notices, helper="All stored TED notices" %}
+<section class="entry-grid">
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-search"></use></svg></div>
+    <div>
+      <h2>Search Desk</h2>
+      <p>Launch a guided TED search with the profile system already tuned for F2 discovery.</p>
+    </div>
+    <a href="/scan" class="text-link">Open search setup</a>
+  </article>
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-stack"></use></svg></div>
+    <div>
+      <h2>Executive Queue</h2>
+      <p>Review the shortlist with clear scoring, confidence, and timing cues instead of raw procurement noise.</p>
+    </div>
+    <a href="/results" class="text-link">Open shortlist</a>
+  </article>
+  <article class="panel entry-card">
+    <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-settings"></use></svg></div>
+    <div>
+      <h2>Control Room</h2>
+      <p>Check profile coverage, runtime settings, and internal reference information when you need to tune the system.</p>
+    </div>
+    <a href="/admin" class="text-link">Open settings</a>
+  </article>
+</section>
+
+<section class="card-grid beginner-metrics">
+  {% with label="All Saved Notices", value=metrics.total_notices, helper="Everything currently stored in the app" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="High Fit", value=metrics.high_fit, helper="Immediate review candidates" %}
+  {% with label="Strong Matches", value=metrics.high_fit, helper="Best candidates to review first" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="Conditional", value=metrics.conditional, helper="Platform or qualification risk present" %}
+  {% with label="Needs Checking", value=metrics.conditional, helper="Promising notices with some risk or uncertainty" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="Expiring Soon", value=metrics.expiring_soon, helper="Deadlines within 7 days" %}
+  {% with label="Closing Soon", value=metrics.expiring_soon, helper="Deadlines within the next 7 days" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="Hard Locks", value=metrics.hard_lock, helper="Named platform constraints flagged" %}
+  {% with label="Hard Locks", value=metrics.hard_lock, helper="Notices with strong eligibility or platform restrictions" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
-  {% with label="Scan Freshness", value=(metrics.scan_freshness | display_datetime) if metrics.scan_freshness else "No scans yet", helper="Latest completed scan" %}
+  {% with label="Last Search", value=(metrics.scan_freshness | display_datetime) if metrics.scan_freshness else "No searches yet", helper="Most recent completed search" %}
     {% include "partials/summary_card.html" %}
   {% endwith %}
+</section>
+
+<section class="split-layout dashboard-insight-layout">
+  <article class="panel insight-panel">
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Queue Composition</h2>
+        <p class="panel-intro">A quick visual read of the current review queue.</p>
+      </div>
+    </div>
+    <div class="meter-list">
+      {% for item in queue_mix %}
+        <article class="meter-card">
+          <div class="meter-head">
+            <div>
+              <div class="meter-label">{{ item.label }}</div>
+              <div class="meter-hint">{{ item.hint }}</div>
+            </div>
+            <div class="meter-value">{{ item.value }}</div>
+          </div>
+          <div class="meter-track">
+            <div class="meter-fill tone-{{ item.tone }}" style="width: {{ item.percent }}%"></div>
+          </div>
+          <div class="meter-foot">{{ item.percent }}% of the active reviewable queue</div>
+        </article>
+      {% endfor %}
+    </div>
+  </article>
+
+  <article class="panel insight-panel">
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Recent Search Intake</h2>
+        <p class="panel-intro">Latest run sizes and how much each search added to the queue.</p>
+      </div>
+    </div>
+    {% if recent_scans %}
+      <div class="scan-timeline">
+        {% for scan in recent_scans %}
+          {% set width = ((scan.total_notices_ingested or 0) / recent_scan_max * 100) | round(0, 'ceil') | int %}
+          <article class="scan-bar-card">
+            <div class="scan-bar-meta">
+              <div>
+                <div class="scan-bar-title">{{ scan.profile_name }}</div>
+                <div class="scan-bar-subtitle">{{ scan.started_at | display_datetime }}</div>
+              </div>
+              <span class="badge">{{ scan.status.value }}</span>
+            </div>
+            <div class="scan-bar-track">
+              <div class="scan-bar-fill" style="width: {{ [width, 10] | max }}%"></div>
+            </div>
+            <div class="scan-bar-foot">
+              <span>{{ scan.total_notices_ingested }} found</span>
+              <span>{{ scan.request_count }} requests</span>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">No searches have been run yet. Start with the guided search page.</p>
+    {% endif %}
+  </article>
 </section>
 
 <section class="split-layout">
   <article class="panel">
-    <div class="panel-header">
-      <h2>Recent Scan Runs</h2>
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Recent Searches</h2>
+        <p class="panel-intro">Operational detail for the latest runs, useful when you want exact context behind the queue.</p>
+      </div>
     </div>
     {% if recent_scans %}
       <table class="data-table compact">
@@ -42,7 +169,7 @@
             <th>Started</th>
             <th>Profile</th>
             <th>Status</th>
-            <th>Ingested</th>
+            <th>Found</th>
             <th>Requests</th>
           </tr>
         </thead>
@@ -59,14 +186,17 @@
         </tbody>
       </table>
     {% else %}
-      <p class="empty-state">No scan history yet.</p>
+      <p class="empty-state">No searches have been run yet. Start with the guided search page.</p>
     {% endif %}
   </article>
 
   <article class="panel">
-    <div class="panel-header">
-      <h2>Top Review Queue</h2>
-      <a href="/results" class="text-link">Open results</a>
+    <div class="panel-header compact-header">
+      <div>
+        <h2>Best Matches To Review</h2>
+        <p class="panel-intro">These are the notices most likely to reward attention right now.</p>
+      </div>
+      <a href="/results" class="text-link">Open shortlist</a>
     </div>
     {% if top_notices %}
       <div class="notice-list">
@@ -84,9 +214,23 @@
         {% endfor %}
       </div>
     {% else %}
-      <p class="empty-state">Run a TED scan to populate the dashboard.</p>
+      <p class="empty-state">Run your first search to populate the shortlist.</p>
     {% endif %}
   </article>
+</section>
+
+<section class="panel helper-panel">
+  <div class="panel-header compact-header">
+    <div>
+      <h2>Review Guidance</h2>
+      <p class="panel-intro">Short rules to keep the team working consistently and quickly.</p>
+    </div>
+  </div>
+  <ul class="plain-list helper-list">
+    <li>Use the guided search first. It keeps the search surface broad enough to avoid missing viable F2 opportunities.</li>
+    <li>Read the shortlist in score order, then use timing and hard-lock cues to decide whether a notice deserves a full review.</li>
+    <li>Save is for keepers, Dismiss is for queue cleanup, and conditional notices should usually be opened only after the strong matches are covered.</li>
+  </ul>
 </section>
 {% endblock %}
 

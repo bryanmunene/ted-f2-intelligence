@@ -99,7 +99,14 @@ class NoticeRepository:
         self.session.flush()
         return notice
 
-    def list(self, filters: NoticeListFilters, *, page: int = 1, page_size: int = 25) -> tuple[list[Notice], int]:
+    def list(
+        self,
+        filters: NoticeListFilters,
+        *,
+        page: int = 1,
+        page_size: int = 25,
+        sort_by: str = "recommended",
+    ) -> tuple[list[Notice], int]:
         priority_rank = case(
             (NoticeAnalysis.priority_bucket == PriorityBucket.HIGH, 0),
             (NoticeAnalysis.priority_bucket == PriorityBucket.GOOD, 1),
@@ -117,19 +124,51 @@ class NoticeRepository:
             select(Notice)
             .join(Notice.analysis)
             .options(contains_eager(Notice.analysis), selectinload(Notice.notes))
-            .order_by(
-                priority_rank,
-                fit_rank,
-                NoticeAnalysis.score.desc(),
-                Notice.deadline.asc().nullslast(),
-                Notice.updated_at.desc(),
-            )
+            .order_by(*self._build_sort_order(sort_by, priority_rank=priority_rank, fit_rank=fit_rank))
         )
         stmt = self._apply_filters(stmt, filters)
 
         total = self.session.scalar(select(func.count()).select_from(stmt.subquery())) or 0
         paged = stmt.offset((page - 1) * page_size).limit(page_size)
         return list(self.session.scalars(paged).unique().all()), int(total)
+
+    def _build_sort_order(self, sort_by: str, *, priority_rank, fit_rank) -> tuple[Any, ...]:
+        if sort_by == "highest_score":
+            return (
+                NoticeAnalysis.score.desc(),
+                priority_rank,
+                fit_rank,
+                Notice.deadline.asc().nullslast(),
+                Notice.updated_at.desc(),
+            )
+        if sort_by == "closing_soon":
+            return (
+                Notice.deadline.asc().nullslast(),
+                priority_rank,
+                NoticeAnalysis.score.desc(),
+                Notice.updated_at.desc(),
+            )
+        if sort_by == "newest":
+            return (
+                Notice.publication_date.desc().nullslast(),
+                Notice.updated_at.desc(),
+                priority_rank,
+                NoticeAnalysis.score.desc(),
+            )
+        if sort_by == "buyer":
+            return (
+                Notice.buyer.asc().nullslast(),
+                priority_rank,
+                NoticeAnalysis.score.desc(),
+                Notice.updated_at.desc(),
+            )
+        return (
+            priority_rank,
+            fit_rank,
+            NoticeAnalysis.score.desc(),
+            Notice.deadline.asc().nullslast(),
+            Notice.updated_at.desc(),
+        )
 
     def get_by_id(self, notice_id: str) -> Notice | None:
         stmt = (

@@ -108,7 +108,7 @@ initialize_streamlit_storage()
 
 st.set_page_config(
     page_title="cBrain TED F2 Intelligence",
-    page_icon="📘",
+    page_icon="🧭",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -168,6 +168,7 @@ def load_filtered_notices(
     include_dismissed: bool,
     saved_only: bool,
     search: str | None,
+    page: int,
     page_size: int,
 ) -> dict[str, Any]:
     session = get_session_factory()()
@@ -192,10 +193,12 @@ def load_filtered_notices(
             saved_only=saved_only,
             search=search,
         )
-        notices, total = NoticeRepository(session).list(filters, page=1, page_size=page_size)
+        notices, total = NoticeRepository(session).list(filters, page=page, page_size=page_size)
         return {
             "items": [notice_to_summary_dict(notice) for notice in notices],
             "total": total,
+            "page": page,
+            "page_size": page_size,
         }
     finally:
         session.close()
@@ -282,9 +285,9 @@ def _render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
         <div class="cb-sidebar-brand">
-          <div class="cb-sidebar-mark">TED</div>
-          <div class="cb-sidebar-title">Tender workspace</div>
-          <div class="cb-sidebar-subtitle">Simple navigation and focused review tools.</div>
+                    <div class="cb-sidebar-mark">cB</div>
+                    <div class="cb-sidebar-title">Opportunity desk</div>
+                    <div class="cb-sidebar-subtitle">Search, shortlist, and review with the same F2-focused language as the main web app.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -325,6 +328,8 @@ def _ensure_backfill_state(profile_names: list[str]) -> None:
 
 def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
+    current_page = max(1, int(filter_state.get("page") or 1))
+    page_size = max(1, int(filter_state.get("page_size") or 20))
     payload = load_filtered_notices(
         country=countries or None,
         fit_label=filter_state.get("fit_label"),
@@ -343,11 +348,21 @@ def _load_notices_for_filter_state(filter_state: dict[str, Any]) -> tuple[list[d
         include_dismissed=bool(filter_state.get("include_dismissed")),
         saved_only=bool(filter_state.get("saved_only")),
         search=filter_state.get("search"),
-        page_size=int(filter_state.get("page_size") or 20),
+        page=current_page,
+        page_size=page_size,
     )
     updated_state = dict(filter_state)
     updated_state["total_matches"] = int(payload["total"])
+    updated_state["page"] = int(payload["page"])
+    updated_state["page_size"] = int(payload["page_size"])
     return payload["items"], updated_state
+
+
+def _should_reset_results_page(previous_filter_state: dict[str, Any], next_filter_state: dict[str, Any]) -> bool:
+    pagination_keys = {"page", "page_size", "total_matches"}
+    prior_filter_signature = {key: value for key, value in previous_filter_state.items() if key not in pagination_keys}
+    next_filter_signature = {key: value for key, value in next_filter_state.items() if key not in pagination_keys}
+    return next_filter_signature != prior_filter_signature
 
 
 def _render_result_card(notice: dict[str, Any], *, card_index: int) -> None:
@@ -893,6 +908,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
     filter_state = dict(st.session_state.get("results_filter_state", _default_filter_state()))
     if filter_state.get("min_days_remaining") is None:
         filter_state["min_days_remaining"] = 0
+    filter_state["page"] = max(1, int(filter_state.get("page") or 1))
     selected_countries = _normalize_country_filter_values(filter_state.get("countries", filter_state.get("country")))
     filter_state["countries"] = selected_countries
 
@@ -1029,7 +1045,7 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         saved_only = st.checkbox("Saved only", key="results_saved_only")
         include_dismissed = st.checkbox("Show dismissed too", key="results_include_dismissed")
 
-    filter_state = {
+    next_filter_state = {
         "countries": countries,
         "search": search,
         "relevant_only": relevant_only,
@@ -1047,9 +1063,13 @@ def _render_filters(*, render_sidebar: bool = True) -> tuple[list[dict[str, Any]
         "hard_lock_only": hard_lock_only,
         "saved_only": saved_only,
         "include_dismissed": include_dismissed,
+        "page": filter_state.get("page", 1),
         "page_size": 20,
     }
-    notices, updated_state = _load_notices_for_filter_state(filter_state)
+    if _should_reset_results_page(filter_state, next_filter_state):
+        next_filter_state["page"] = 1
+
+    notices, updated_state = _load_notices_for_filter_state(next_filter_state)
     st.session_state["results_filter_state"] = dict(updated_state)
     return notices, updated_state
 
@@ -1071,13 +1091,37 @@ def _render_results() -> list[dict[str, Any]]:
         "Shortlist",
     )
     total_matches = filter_state["total_matches"]
+    current_page = max(1, int(filter_state.get("page") or 1))
+    page_size = max(1, int(filter_state.get("page_size") or 20))
+    total_pages = max(1, (total_matches + page_size - 1) // page_size)
 
     if not notices:
         st.warning("No notices match the current filters. Clear a filter or lower the minimum score to widen the review queue.")
         return notices
 
-    st.caption(f"Showing {len(notices)} of {total_matches} opportunities matching your current view.")
+    st.caption(
+        f"Showing {len(notices)} of {total_matches} opportunities matching your current view. "
+        f"Page {current_page} of {total_pages}."
+    )
     st.info("Open the summary for the easy guided view, or use the official notice when you need the original source.")
+
+    if total_pages > 1:
+        pager_cols = st.columns([0.2, 0.2, 0.6], gap="small")
+        previous_disabled = current_page <= 1
+        next_disabled = current_page >= total_pages
+        if pager_cols[0].button("Previous", key="results_previous_page", disabled=previous_disabled, width="stretch"):
+            st.session_state["results_filter_state"] = {
+                **filter_state,
+                "page": current_page - 1,
+            }
+            st.rerun()
+        if pager_cols[1].button("Next", key="results_next_page", disabled=next_disabled, width="stretch"):
+            st.session_state["results_filter_state"] = {
+                **filter_state,
+                "page": current_page + 1,
+            }
+            st.rerun()
+        pager_cols[2].caption(f"Browse all matches when the shortlist is broader than the first {page_size} items.")
 
     active_filter_chips = _summarize_results_filters(filter_state)
     if active_filter_chips:

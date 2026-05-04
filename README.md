@@ -107,6 +107,26 @@ ruff check .
 mypy app
 ```
 
+## Screenshot-Based UI Review
+
+For visual regression review of the server-rendered UI, install the Playwright browser once:
+
+```bash
+pip install -e .[dev]
+python -m playwright install chromium
+set UI_REVIEW_APPROVE=1
+pytest tests/test_ui_visual_review.py -q
+```
+
+The first approved run writes baselines to `tests/ui-baselines/`. Normal runs then compare fresh screenshots in `tests/.artifacts/ui-review/` against those approved baselines.
+
+After the first approval, clear the env var and run:
+
+```bash
+set UI_REVIEW_APPROVE=
+pytest tests/test_ui_visual_review.py -q
+```
+
 ## Configuration Files
 
 - `config/keyword_pack.yaml`: canonical scoring vocabulary and signal weights

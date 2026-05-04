@@ -1,6 +1,6 @@
 version: "2026.04.1"
 timing:
-  min_days_to_deadline: 0
+  min_days_to_deadline: 7
   exclude_after_days_since_publication: 90
   expiring_soon_days: 7
   missing_deadline_penalty: 14
@@ -32,6 +32,13 @@ positive_groups:
       - document tracking
       - file tracking system
       - electronic archiving
+      - electronic document management system
+      - enterprise document management
+      - electronic content management
+      - document repository
+      - information repository
+      - knowledge repository
+      - content management
   - id: records_management
     name: Records Management / Archives
     weight: 18
@@ -52,6 +59,13 @@ positive_groups:
       - records retention
       - records information management
       - registry management
+      - records information system
+      - records lifecycle
+      - disposal schedule
+      - records centre
+      - records center
+      - institutional records
+      - official records
   - id: case_management
     name: Case Management / Case Handling
     weight: 18
@@ -71,6 +85,13 @@ positive_groups:
       - complaint management system
       - matter tracking
       - complaints handling
+      - service request system
+      - dispute management system
+      - case file management
+      - registry and case handling
+      - administrative casework
+      - grievance portal
+      - complaints portal
   - id: workflow_bpm
     name: Workflow / BPM / Process Automation
     weight: 18
@@ -90,6 +111,15 @@ positive_groups:
       - process automation system
       - approvals workflow
       - process orchestration
+      - approval system
+      - approval workflow
+      - routing and approval
+      - task management
+      - document-centric workflow
+      - business rules
+      - low-code platform
+      - no-code platform
+      - process platform
   - id: correspondence_registry
     name: Correspondence / Registry
     weight: 16
@@ -108,6 +138,9 @@ positive_groups:
         requires_all:
           - document
       - file tracking
+      - mail registry
+      - incoming and outgoing correspondence
+      - official correspondence
   - id: digital_services
     name: E-filing / Digital Services / Forms
     weight: 17
@@ -127,6 +160,16 @@ positive_groups:
       - permit management system
       - licensing system
       - public service portal
+      - e-services portal
+      - citizen portal
+      - service delivery portal
+      - online licensing
+      - online permits
+      - service request management
+      - online application portal
+      - submission portal
+      - digital forms
+      - forms automation
   - id: egov
     name: E-government / Citizen Services
     weight: 18
@@ -143,6 +186,15 @@ positive_groups:
       - municipal digital services
       - institutional process digitization
       - public administration digitization
+      - service delivery system
+      - public administration platform
+      - public sector platform
+      - public sector modernization
+      - administrative workflow
+      - government workflow
+      - digital transformation platform
+      - e-office
+      - paperless office
   - id: compliance_audit
     name: Audit / Compliance / Retention
     weight: 14
@@ -155,6 +207,16 @@ positive_groups:
       - retention policy
       - records compliance
       - procurement records system
+      - contract management system
+      - contract lifecycle management
+      - procurement management system
+      - e-procurement records
+      - tender management system
+      - metadata management
+      - document versioning
+      - search and retrieval
+      - management reporting
+      - dashboard reporting
   - id: digitisation_platform
     name: Scanning / Archiving with Platform Need
     weight: 10
@@ -166,6 +228,9 @@ positive_groups:
       - document imaging
       - scanning workflow
       - archiving platform
+      - records digitization
+      - archives digitization
+      - e-archiving
   - id: interoperability
     name: Integration / Interoperability / Data Exchange
     weight: 12
@@ -182,6 +247,12 @@ positive_groups:
       - service bus
       - workflow integration
       - platform orchestration
+      - middleware
+      - data migration
+      - solution delivery
+      - platform implementation
+      - legacy replacement
+      - modernisation
 
 negative_groups:
   - id: hardware_supply
@@ -200,6 +271,13 @@ negative_groups:
       - networking gear
       - switch
       - router
+      - laptops
+      - desktops
+      - servers
+      - network switches
+      - cabling
+      - power equipment
+      - ups
   - id: security_only
     name: Security-only Procurement
     penalty: 18
@@ -214,6 +292,8 @@ negative_groups:
       - siem
       - soc services
       - security operations center
+      - soc
+      - backup appliance
   - id: website_only
     name: Website-only Redesign
     penalty: 14
@@ -226,6 +306,9 @@ negative_groups:
       - cms redesign
       - web portal design only
       - ux redesign
+      - branding only
+      - social media only
+      - seo only
   - id: mobile_only
     name: Pure Mobile App Delivery
     penalty: 16
@@ -237,6 +320,7 @@ negative_groups:
       - ios app
       - android app
       - mobile app only
+      - pure mobile app development
   - id: construction
     name: Construction / Civil Works
     penalty: 24
@@ -249,6 +333,9 @@ negative_groups:
       - building works
       - road works
       - renovation works
+      - water works
+      - drilling
+      - electrical installation
   - id: vehicles_logistics
     name: Vehicles / Logistics / Fuel
     penalty: 20
@@ -261,6 +348,9 @@ negative_groups:
       - fuel supply
       - logistics services
       - transport services
+      - motorcycles
+      - tractors
+      - commodity supply
   - id: staffing_only
     name: Staffing-only Procurement
     penalty: 18
@@ -283,6 +373,8 @@ negative_groups:
       - cloud hosting only
       - infrastructure hosting
       - managed hosting
+      - isp services
+      - data center only
   - id: isolated_ocr
     name: Isolated OCR / Digitisation
     penalty: 12
@@ -306,6 +398,9 @@ negative_groups:
       - payroll system
       - accounting system
       - enterprise resource planning
+      - pure erp replacement
+      - core banking
+      - hr payroll
 
 combo_rules:
   - id: case_workflow_pattern
@@ -352,6 +447,8 @@ platform_signals:
         - microsoft power platform only
         - power platform mandatory
         - delivered on power platform
+        - bidder must use existing microsoft power platform
+        - solution must use microsoft 365 platform
     - id: sharepoint_required
       name: SharePoint delivery mandated
       penalty: 22
@@ -362,6 +459,9 @@ platform_signals:
         - implemented on sharepoint
         - sharepoint only
         - sharepoint based solution
+        - solution shall be built on sharepoint
+        - sharepoint online as required platform
+        - sharepoint as mandatory platform
     - id: named_platform_required
       name: Named platform implementation only
       penalty: 20
@@ -372,6 +472,7 @@ platform_signals:
         - sap platform required
         - oracle platform required
         - named platform mandatory
+        - no alternative platform accepted
   soft_lock:
     - id: microsoft_environment
       name: Existing Microsoft environment
@@ -382,6 +483,12 @@ platform_signals:
         - incumbent sharepoint
         - microsoft stack preferred
         - preferred power platform
+        - microsoft licenses provided
+        - enterprise agreement
+        - integration with microsoft 365
+        - compatibility with microsoft tools
+        - current sharepoint deployment
+        - power platform environment available
     - id: incumbent_platform
       name: Incumbent platform referenced
       penalty: 7
@@ -416,13 +523,17 @@ qualification_questions:
     - Is hosting included?
     - What is the budget range?
     - Is there openness to replacing Microsoft or SharePoint if lower total cost and stronger fit can be demonstrated?
+    - What is the annual Microsoft Enterprise Agreement or license cost?
   missing_deadline:
     - Can the buyer confirm the final submission deadline and clarification window?
   hard_lock:
     - Is the named platform truly mandatory, or can equivalent platforms be proposed?
     - Is the requirement for Microsoft, SharePoint, ServiceNow, Salesforce, SAP, or Oracle driven by policy, integration, or incumbent constraints?
+    - How many total end users are in scope?
+    - What is the tender budget?
   soft_lock:
     - Are existing licenses a preference only, or a mandatory delivery constraint?
+    - Would the buyer consider cBrain F2 as an alternative platform if it lowers total cost and reduces tool fragmentation?
   integration:
     - Which core systems must the solution integrate with?
   timing:

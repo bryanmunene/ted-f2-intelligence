@@ -6,6 +6,7 @@ from streamlit_app import (
     _build_results_metrics,
     _default_filter_state,
     _default_live_scan_max_pages,
+    _should_reset_results_page,
     settings,
 )
 
@@ -53,3 +54,37 @@ def test_overall_live_scan_fetches_deeper_than_country_scan() -> None:
     assert _default_live_scan_max_pages("DNK") == 1
     assert _default_live_scan_max_pages(" DK ") == 1
     assert _default_live_scan_max_pages(None) == min(3, settings.ted_max_pages_per_scan)
+
+
+def test_results_pagination_resets_when_filters_change() -> None:
+    previous_state = {
+        "countries": [],
+        "search": None,
+        "relevant_only": False,
+        "page": 3,
+        "page_size": 20,
+        "total_matches": 87,
+    }
+    next_state = {
+        **previous_state,
+        "countries": ["DNK"],
+    }
+
+    assert _should_reset_results_page(previous_state, next_state) is True
+
+
+def test_results_pagination_does_not_reset_for_page_only_changes() -> None:
+    previous_state = {
+        "countries": [],
+        "search": None,
+        "relevant_only": False,
+        "page": 1,
+        "page_size": 20,
+        "total_matches": 87,
+    }
+    next_state = {
+        **previous_state,
+        "page": 2,
+    }
+
+    assert _should_reset_results_page(previous_state, next_state) is False

@@ -1,20 +1,20 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
         :root {
-            --cb-bg: #fbfafc;
-            --cb-bg-soft: #f4f1fb;
-            --cb-surface: #ffffff;
-            --cb-surface-2: #fdfbff;
-            --cb-surface-3: #f7f4fb;
-            --cb-line: #e5deef;
-            --cb-text: #2c3044;
-            --cb-text-soft: #5c647c;
-            --cb-text-dim: #7f869d;
-            --cb-accent: #7c6cf2;
-            --cb-accent-2: #9c8cff;
-            --cb-good: #2f8f6b;
-            --cb-watch: #c08932;
-            --cb-risk: #c75e63;
-            --cb-sidebar: #f8f4fc;
+            --cb-bg: #f4efe7;
+            --cb-bg-soft: #efe6d9;
+            --cb-surface: rgba(255, 252, 247, 0.96);
+            --cb-surface-2: #fffdfa;
+            --cb-surface-3: #f4ece2;
+            --cb-line: #e1d5c7;
+            --cb-text: #1d2430;
+            --cb-text-soft: #645a50;
+            --cb-text-dim: #7a6e63;
+            --cb-accent: #183a5a;
+            --cb-accent-2: #35678f;
+            --cb-good: #2f7758;
+            --cb-watch: #b17a2f;
+            --cb-risk: #b24f45;
+            --cb-sidebar: #f6efe5;
             --cb-motion-fast: 180ms;
             --cb-motion-base: 320ms;
             --cb-motion-slow: 540ms;
@@ -38,19 +38,19 @@
         [data-testid="stAppViewContainer"] > .main,
         [data-testid="stMain"] {
             background:
-                radial-gradient(circle at top left, rgba(108, 99, 255, 0.09), transparent 24%),
-                radial-gradient(circle at top right, rgba(104, 211, 255, 0.08), transparent 20%),
-                linear-gradient(180deg, #fcfbff 0%, #f6f7ff 100%);
+                radial-gradient(circle at top left, rgba(24, 58, 90, 0.1), transparent 24%),
+                radial-gradient(circle at top right, rgba(185, 137, 66, 0.12), transparent 20%),
+                linear-gradient(180deg, #f9f4ee 0%, #efe6da 100%);
             color: var(--cb-text);
         }
         [data-testid="stHeader"] {
-            background: rgba(255, 255, 255, 0.9);
-            border-bottom: 1px solid rgba(216, 222, 240, 0.9);
-            backdrop-filter: blur(8px);
+            background: rgba(255, 251, 246, 0.88);
+            border-bottom: 1px solid rgba(209, 195, 178, 0.9);
+            backdrop-filter: blur(14px);
         }
         [data-testid="stSidebar"] {
-            background: linear-gradient(180deg, #fbf8ff 0%, #f5f1fb 100%);
-            border-right: 1px solid #e8e0f1;
+            background: linear-gradient(180deg, #fbf6ef 0%, #f2e8db 100%);
+            border-right: 1px solid #e0d2c2;
             min-width: 244px !important;
             max-width: 244px !important;
         }
@@ -63,7 +63,7 @@
         }
         [data-testid="stSidebar"] [data-testid="stExpander"] {
             background: rgba(255, 255, 255, 0.75);
-            border: 1px solid #e7dff2;
+            border: 1px solid #e2d8cc;
         }
         [data-testid="stSidebar"] div[data-baseweb="input"] > div,
         [data-testid="stSidebar"] div[data-baseweb="select"] > div,
@@ -71,7 +71,7 @@
         [data-testid="stSidebar"] .stDateInput > div > div,
         [data-testid="stSidebar"] .stNumberInput > div > div {
             background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #ded7ea;
+            border: 1px solid #d9cfbf;
             color: #2e3550;
         }
         [data-testid="stSidebar"] input,
@@ -83,7 +83,7 @@
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label {
             background: rgba(255, 255, 255, 0.92);
-            border: 1px solid #e2d9ee;
+            border: 1px solid #ddd0c0;
             border-radius: 10px;
             padding: 0.42rem 0.62rem;
             margin-bottom: 0.24rem;
@@ -91,7 +91,7 @@
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
             background: #ffffff;
-            border-color: #cfc2ea;
+            border-color: #c4b39e;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label p {
             color: #2e3550 !important;
@@ -100,13 +100,13 @@
             opacity: 1 !important;
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] input[type="radio"] {
-            accent-color: #8b7dff;
+            accent-color: #183a5a;
             filter: saturate(1.05);
         }
         [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input[type="radio"]:checked) {
-            background: linear-gradient(135deg, #efeaff 0%, #f7f3ff 100%);
-            border-color: #c7baea;
-            box-shadow: 0 0 0 1px rgba(139, 125, 255, 0.15) inset;
+            background: linear-gradient(135deg, #f2e9dd 0%, #fbf6ef 100%);
+            border-color: #c7b097;
+            box-shadow: 0 0 0 1px rgba(24, 58, 90, 0.12) inset;
         }
         .main .block-container {
             max-width: 1120px;
@@ -115,7 +115,7 @@
         }
         h1, h2, h3, h4, h5, h6 {
             color: var(--cb-text);
-            font-family: "IBM Plex Sans", sans-serif;
+            font-family: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
             letter-spacing: -0.02em;
         }
         p, li, label, span, div {
@@ -203,35 +203,35 @@
         [data-testid="stBaseButton-secondaryFormSubmit"] {
             background: rgba(255, 255, 255, 0.96) !important;
             color: #24324a !important;
-            border: 1px solid #c8d0ea !important;
+            border: 1px solid #cdbca7 !important;
         }
         .stButton > button:hover,
         .stDownloadButton > button:hover,
         .stFormSubmitButton button:hover,
         [data-testid="stBaseButton-secondary"]:hover,
         [data-testid="stBaseButton-secondaryFormSubmit"]:hover {
-            background: #f5f3ff !important;
-            border-color: #9f95ff !important;
+            background: #f6efe5 !important;
+            border-color: #183a5a !important;
             color: #1f2940 !important;
-            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.12) !important;
+            box-shadow: 0 0 0 4px rgba(24, 58, 90, 0.1) !important;
             transform: translateY(-1px) !important;
         }
         button[kind="primary"],
         button[kind="primaryFormSubmit"],
         [data-testid="stBaseButton-primary"],
         [data-testid="stBaseButton-primaryFormSubmit"] {
-            background: linear-gradient(135deg, #6c63ff 0%, #4f8cff 100%) !important;
+            background: linear-gradient(135deg, #0f2941 0%, #245681 82%) !important;
             color: #ffffff !important;
-            border: 1px solid #6758f3 !important;
+            border: 1px solid #183a5a !important;
         }
         button[kind="primary"]:hover,
         button[kind="primaryFormSubmit"]:hover,
         [data-testid="stBaseButton-primary"]:hover,
         [data-testid="stBaseButton-primaryFormSubmit"]:hover {
-            background: linear-gradient(135deg, #5f56f3 0%, #437de6 100%) !important;
-            border-color: #584de8 !important;
+            background: linear-gradient(135deg, #112f4b 0%, #2d628e 100%) !important;
+            border-color: #112f4b !important;
             color: #ffffff !important;
-            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.18) !important;
+            box-shadow: 0 0 0 4px rgba(24, 58, 90, 0.14) !important;
             transform: translateY(-1px) !important;
         }
         button[kind="tertiary"],
@@ -278,9 +278,9 @@
         [data-testid="stSidebar"] .stDownloadButton > button:hover,
         [data-testid="stSidebar"] [data-testid="stFormSubmitButton"] > button:hover,
         [data-testid="stSidebar"] [data-testid^="stBaseButton-"]:hover {
-            background: #f6f2ff !important;
+            background: #f8efe4 !important;
             color: #2b3150 !important;
-            border-color: #cdbfee !important;
+            border-color: #c3af98 !important;
         }
         [data-testid="stSidebar"] .stLinkButton a {
             background: #ffffff;
@@ -298,11 +298,11 @@
         }
         [data-baseweb="tab-list"] {
             gap: 0.4rem;
-            background: #fbf8fd;
-            border: 1px solid #e6def1;
+            background: #f8f1e6;
+            border: 1px solid #e2d5c6;
             border-radius: 16px;
             padding: 0.35rem;
-            box-shadow: 0 6px 18px rgba(118, 111, 160, 0.07);
+            box-shadow: 0 6px 18px rgba(78, 62, 41, 0.08);
         }
         button[data-baseweb="tab"] {
             height: 2.7rem;
@@ -316,14 +316,14 @@
         }
         button[data-baseweb="tab"]:hover {
             background: #ffffff;
-            border-color: #e1d8ee;
+            border-color: #d7c7b7;
             color: #313955;
         }
         button[data-baseweb="tab"][aria-selected="true"] {
             background: #ffffff;
-            border-color: #cbbdea;
-            color: #5d4fe5;
-            box-shadow: 0 4px 12px rgba(124, 108, 242, 0.12);
+            border-color: #c1ad96;
+            color: #183a5a;
+            box-shadow: 0 4px 12px rgba(24, 58, 90, 0.12);
         }
         [data-testid="stExpander"] {
             background: var(--cb-surface);
@@ -332,13 +332,14 @@
         }
         .cb-shell-hero {
             border: 1px solid var(--cb-line);
-            border-radius: 18px;
-            padding: 1rem 1.1rem;
+            border-radius: 24px;
+            padding: 1.1rem 1.2rem;
             margin-bottom: 1rem;
             background:
-                radial-gradient(circle at top right, rgba(139, 125, 255, 0.12), transparent 26%),
-                linear-gradient(135deg, #ffffff 0%, #f8f6ff 100%);
-            box-shadow: 0 10px 28px rgba(108, 99, 255, 0.08);
+                radial-gradient(circle at top right, rgba(24, 58, 90, 0.14), transparent 26%),
+                radial-gradient(circle at bottom left, rgba(185, 137, 66, 0.16), transparent 34%),
+                linear-gradient(135deg, #fffdf8 0%, #f2e8db 100%);
+            box-shadow: 0 16px 34px rgba(50, 33, 14, 0.09);
         }
         .cb-shell-grid {
             display: block;
@@ -444,7 +445,7 @@
             position: relative;
             padding: 0.15rem 0 0.7rem 0;
             margin-bottom: 0.55rem;
-            border-bottom: 1px solid #e6deef;
+            border-bottom: 1px solid #e0d2c2;
         }
         .cb-sidebar-mark {
             display: inline-flex;
@@ -454,8 +455,8 @@
             height: 1.65rem;
             padding: 0 0.6rem;
             border-radius: 999px;
-            background: #ede8ff;
-            color: #5446d8;
+            background: #e7ddd0;
+            color: #183a5a;
             font-family: "IBM Plex Sans", sans-serif;
             font-size: 0.72rem;
             font-weight: 700;
@@ -463,7 +464,7 @@
             box-shadow: none;
         }
         .cb-sidebar-title {
-            color: #2f3753;
+            color: #1d2430;
             font-family: "IBM Plex Sans", sans-serif;
             font-size: 0.92rem;
             line-height: 1.15;
@@ -471,7 +472,7 @@
             font-weight: 700;
         }
         .cb-sidebar-subtitle {
-            color: #6d7690;
+            color: #6c6258;
             font-size: 0.76rem;
             line-height: 1.4;
         }
@@ -480,21 +481,21 @@
             align-items: center;
             padding: 0.3rem 0.6rem;
             border-radius: 999px;
-            border: 1px solid #d6e1f0;
+            border: 1px solid #dacbbd;
             font-size: 0.72rem;
             font-weight: 700;
             line-height: 1;
             text-transform: none;
             letter-spacing: 0.01em;
-            background: #f4f8ff;
-            color: #395272;
+            background: #f5eee4;
+            color: #35506a;
         }
-        .cb-badge-source { color: var(--cb-accent); border-color: #c8d8f8; background: #edf4ff; }
+        .cb-badge-source { color: var(--cb-accent); border-color: #d3c5b3; background: #efe6db; }
         .cb-badge-fit { color: #17315f; }
         .cb-badge-priority { color: #17315f; }
-        .cb-badge-good { color: var(--cb-good); border-color: #cce9dd; background: #effaf5; }
-        .cb-badge-watch { color: var(--cb-watch); border-color: #efdcb6; background: #fff8ea; }
-        .cb-badge-alert { color: var(--cb-risk); border-color: #f1cdcd; background: #fff2f2; }
+        .cb-badge-good { color: var(--cb-good); border-color: #cce2d5; background: #eef7f1; }
+        .cb-badge-watch { color: var(--cb-watch); border-color: #e6d0af; background: #fbf3e3; }
+        .cb-badge-alert { color: var(--cb-risk); border-color: #ebc9c2; background: #fdf1ee; }
         .cb-badge-neutral { color: var(--cb-text-dim); }
         .cb-chip-row {
             display: flex;
@@ -507,9 +508,9 @@
             align-items: center;
             padding: 0.32rem 0.62rem;
             border-radius: 999px;
-            background: #f3f7fc;
-            border: 1px solid #d9e3ef;
-            color: #48617d;
+            background: #f3ebe0;
+            border: 1px solid #ddcfc0;
+            color: #4d5f72;
             font-size: 0.77rem;
             font-weight: 600;
             line-height: 1;
@@ -534,13 +535,13 @@
             position: absolute;
             inset: 0 auto 0 0;
             width: 4px;
-            background: #cedaec;
+            background: #c5b49f;
         }
-        .cb-dossier-high::before { background: #2f67d8; }
-        .cb-dossier-good::before { background: #1f8a63; }
-        .cb-dossier-watch::before { background: #a87006; }
+        .cb-dossier-high::before { background: #245681; }
+        .cb-dossier-good::before { background: #2f7758; }
+        .cb-dossier-watch::before { background: #b17a2f; }
         .cb-dossier-ignore::before { background: #8a98ab; }
-        .cb-dossier-conditional::before { background: #c75454; }
+        .cb-dossier-conditional::before { background: #b24f45; }
         .cb-dossier-grid {
             display: grid;
             grid-template-columns: minmax(120px, 0.18fr) minmax(0, 1fr);
@@ -549,7 +550,7 @@
         }
         .cb-dossier-rail {
             padding-right: 0.85rem;
-            border-right: 1px solid #e6edf5;
+            border-right: 1px solid #e3d7c9;
         }
         .cb-dossier-score {
             color: var(--cb-text);

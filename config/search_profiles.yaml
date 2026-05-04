@@ -25,18 +25,25 @@ profiles:
       - isolated_ocr
       - erp_only
     search_terms:
-      - document management system
-      - electronic records management
       - case management
+      - records management
+      - electronic document management system
+      - enterprise content management
       - workflow automation
       - correspondence management
-      - records management
-      - audit trail
-      - scanning and archiving
-      - e-government platform
+      - business process management
+      - e-services portal
+      - citizen services portal
+      - service delivery portal
+      - grievance redress system
       - permit management system
+      - licensing system
+      - digitization of records
+      - electronic archiving
+      - public administration platform
+      - configurable process platform
+      - document repository
       - service request system
-      - interoperability platform
     hard_lock_penalty_multiplier: 1.0
     soft_lock_penalty_multiplier: 1.0
     openness_bonus_multiplier: 1.0
@@ -64,12 +71,22 @@ profiles:
       - construction
       - vehicles_logistics
     search_terms:
-      - document management system
-      - workflow system
-      - citizen services portal
-      - digitization of records
-      - service delivery portal
-      - digital filing system
+      - document and records management
+      - electronic records management
+      - case management platform
+      - government workflow platform
+      - digital government system
+      - citizen services platform
+      - grievance management system
+      - complaint handling system
+      - records digitization
+      - e-filing system
+      - administrative process automation
+      - permits and licensing platform
+      - public administration software
+      - public sector information management
+      - document imaging and archiving
+      - low-code government platform
     hard_lock_penalty_multiplier: 0.9
     soft_lock_penalty_multiplier: 0.8
     openness_bonus_multiplier: 1.0
@@ -96,6 +113,10 @@ profiles:
       - document management system
       - file registry system
       - electronic archiving
+      - records lifecycle management
+      - document repository system
+      - records archive
+      - document imaging
     hard_lock_penalty_multiplier: 1.0
     soft_lock_penalty_multiplier: 0.9
     openness_bonus_multiplier: 1.0
@@ -123,6 +144,10 @@ profiles:
       - process automation system
       - approvals workflow
       - complaint management system
+      - grievance redress system
+      - case tracking system
+      - matter management system
+      - administrative workflow
     hard_lock_penalty_multiplier: 1.0
     soft_lock_penalty_multiplier: 0.9
     openness_bonus_multiplier: 1.0
@@ -148,6 +173,10 @@ profiles:
       - licensing system
       - permit management system
       - public service portal
+      - service delivery portal
+      - online application portal
+      - digital forms
+      - service request platform
     hard_lock_penalty_multiplier: 1.0
     soft_lock_penalty_multiplier: 0.8
     openness_bonus_multiplier: 1.1

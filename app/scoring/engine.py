@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from typing import Any
 
-from app.config import KeywordPack, SearchProfile
+from app.config import KeywordPack, KeywordTerm, NegativeKeywordGroup, PositiveKeywordGroup, SearchProfile
 from app.ingestion.models import NormalizedNotice
 from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
 from app.scoring.types import RuleContribution, ScoreResult, SignalEvidence
@@ -88,6 +88,8 @@ class ScoringEngine:
     def __init__(self, *, keyword_pack: KeywordPack, scoring_version: str) -> None:
         self.keyword_pack = keyword_pack
         self.scoring_version = scoring_version
+        self.positive_group_map = keyword_pack.positive_group_map()
+        self.negative_group_map = keyword_pack.negative_group_map()
 
     def score(
         self,
@@ -98,7 +100,6 @@ class ScoringEngine:
         exclude_old: bool = True,
         include_soft_locks: bool = True,
     ) -> ScoreResult:
-        del profile
         now = (evaluated_at or datetime.now(tz=UTC)).astimezone(UTC)
         context = self._build_match_context(notice)
         result = ScoreResult(analysis_timestamp=now, scoring_version=self.scoring_version)
@@ -110,45 +111,49 @@ class ScoringEngine:
         soft_blockers: list[str] = []
         questions: list[str] = []
         timing_penalty = 0
+        matched_group_ids: list[str] = []
 
         deadline_days = self._days_until_deadline(notice.deadline, now)
         publication_days = self._publication_age_days(notice.publication_date, now.date())
-        if deadline_days is not None and deadline_days < 7:
+        min_days_to_deadline = max(0, self.keyword_pack.timing.min_days_to_deadline)
+        max_publication_age = max(0, self.keyword_pack.timing.exclude_after_days_since_publication)
+        if deadline_days is not None and deadline_days < min_days_to_deadline:
             result.viable_timing = False
-            soft_blockers.append("deadline under 7 days")
-            negative_reasons.append("deadline under 7 days")
-            result.timing_flags.append({"flag": "deadline_under_7_days", "message": "Submission deadline is under 7 days away."})
-            score_penalty = -8
+            soft_blockers.append(f"deadline under {min_days_to_deadline} days")
+            negative_reasons.append(f"deadline under {min_days_to_deadline} days")
+            result.timing_flags.append({"flag": "deadline_under_7_days", "message": f"Submission deadline is under {min_days_to_deadline} days away."})
+            score_penalty = -self.keyword_pack.timing.short_deadline_penalty
             timing_penalty += score_penalty
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.deadline_under_7_days", label="Deadline under 7 days", points=score_penalty, evidence=[notice.deadline.isoformat()] if notice.deadline else [], category="negative"),
+                signal=SignalEvidence(id="timing.deadline_under_7_days", label=f"Deadline under {min_days_to_deadline} days", points=score_penalty, evidence=[notice.deadline.isoformat()] if notice.deadline else [], category="negative"),
                 rule_id="timing.deadline_under_7_days",
             )
-        if exclude_old and publication_days is not None and publication_days > 90:
+        if exclude_old and publication_days is not None and publication_days > max_publication_age:
             result.viable_timing = False
-            soft_blockers.append("publication older than 90 days")
-            negative_reasons.append("publication older than 90 days")
-            result.timing_flags.append({"flag": "publication_older_than_90_days", "message": "Notice was published more than 90 days ago."})
-            score_penalty = -10
+            soft_blockers.append(f"publication older than {max_publication_age} days")
+            negative_reasons.append(f"publication older than {max_publication_age} days")
+            result.timing_flags.append({"flag": "publication_older_than_90_days", "message": f"Notice was published more than {max_publication_age} days ago."})
+            score_penalty = -self.keyword_pack.timing.stale_publication_penalty
             timing_penalty += score_penalty
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.publication_older_than_90_days", label="Publication older than 90 days", points=score_penalty, evidence=[notice.publication_date.isoformat()] if notice.publication_date else [], category="negative"),
+                signal=SignalEvidence(id="timing.publication_older_than_90_days", label=f"Publication older than {max_publication_age} days", points=score_penalty, evidence=[notice.publication_date.isoformat()] if notice.publication_date else [], category="negative"),
                 rule_id="timing.publication_older_than_90_days",
             )
 
         score = 0
-        score += self.score_positive_domains(context, result, matched_domains, positive_reasons)
-        score += self.score_public_sector_signals(context, notice, result, positive_reasons)
+        score += self.score_positive_domains(context, result, matched_domains, matched_group_ids, positive_reasons, profile)
+        score += self.score_public_sector_signals(context, notice, result, positive_reasons, profile)
         score += self.score_structural_fit(context, result, positive_reasons)
+        score += self.score_combo_rules(result, matched_group_ids, positive_reasons)
         score += self.score_cpv(context.cpv_codes, context.cpv_labels, result, positive_reasons, negative_reasons)
-        score += self.score_negative_scope(context.full_text, result, negative_reasons, hard_blockers)
+        score += self.score_negative_scope(context, result, negative_reasons, hard_blockers, profile)
         score += timing_penalty
 
-        lock_status, lock_matches, openness_matches = self.detect_platform_lock(context.full_text)
+        lock_status, lock_matches, openness_matches, lock_penalty = self.detect_platform_lock(context.full_text, profile)
         if openness_matches:
             result.openness_detected = True
             self._record_signal(
@@ -160,38 +165,39 @@ class ScoringEngine:
         if lock_status == "hard":
             result.hard_lock_detected = True
             hard_blockers.append("hard platform lock")
-            questions.append("Is the authority open to an alternative platform?")
-            score -= 35
+            questions.extend(self.keyword_pack.qualification_questions.hard_lock)
+            score += lock_penalty
             negative_reasons.append("hard platform lock")
             self._record_signal(
                 result,
                 signal_list=result.platform_lock_signals,
-                signal=SignalEvidence(id="hard_platform_lock", label="Hard platform lock detected", points=-35, evidence=lock_matches, category="platform_lock", severity="hard"),
+                signal=SignalEvidence(id="hard_platform_lock", label="Hard platform lock detected", points=lock_penalty, evidence=lock_matches, category="platform_lock", severity="hard"),
                 rule_id="platform.hard_lock",
             )
         elif lock_status == "soft" and include_soft_locks:
             result.soft_lock_detected = True
             soft_blockers.append("soft platform lock")
-            questions.append("Is the buyer open to an alternative platform?")
-            score -= 6
+            questions.extend(self.keyword_pack.qualification_questions.soft_lock)
+            score += lock_penalty
             negative_reasons.append("soft platform lock")
             self._record_signal(
                 result,
                 signal_list=result.platform_lock_signals,
-                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=-6, evidence=lock_matches, category="platform_lock", severity="soft"),
+                signal=SignalEvidence(id="soft_platform_lock", label="Soft platform lock detected", points=lock_penalty, evidence=lock_matches, category="platform_lock", severity="soft"),
                 rule_id="platform.soft_lock",
             )
 
         if notice.deadline is None:
             result.viable_timing = False
             result.timing_flags.append({"flag": "missing_deadline", "message": "Submission deadline missing."})
+            questions.extend(self.keyword_pack.qualification_questions.missing_deadline)
             questions.append("What is the submission deadline?")
             negative_reasons.append("deadline missing")
-            score -= 4
+            score -= self.keyword_pack.timing.missing_deadline_penalty
             self._record_signal(
                 result,
                 signal_list=result.negative_signals,
-                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-4, evidence=[], category="negative"),
+                signal=SignalEvidence(id="timing.missing_deadline", label="Missing submission deadline", points=-self.keyword_pack.timing.missing_deadline_penalty, evidence=[], category="negative"),
                 rule_id="timing.missing_deadline",
             )
         else:
@@ -227,10 +233,10 @@ class ScoringEngine:
             soft_blockers.append("product vs implementation scope unclear")
             questions.append("Is the scope a product/platform procurement or implementation of a fixed stack?")
         if any(signal.id == "delivery_scope" for signal in result.positive_signals):
-            questions.append("What integrations are mandatory?")
+            questions.extend(self.keyword_pack.qualification_questions.integration)
         if any(self._contains_term(context.full_text, normalize_text(term)) for term in ("hosting", "cloud hosting", "saas")):
             questions.append("Is hosting part of the tender?")
-        questions.append("How many end-users and departments are in scope?")
+        questions.extend(self.keyword_pack.qualification_questions.default)
 
         if self._is_nonsoftware_hard_blocker(context.full_text, matched_domains, result.negative_signals):
             hard_blockers.append("notice is clearly non-software / hardware-only / works-only")
@@ -244,20 +250,33 @@ class ScoringEngine:
         result.keyword_hits = self._dedupe_keyword_hits(result.keyword_hits)
         return result
 
-    def score_positive_domains(self, context: MatchContext, result: ScoreResult, matched_domains: list[str], positive_reasons: list[str]) -> int:
+    def score_positive_domains(
+        self,
+        context: MatchContext,
+        result: ScoreResult,
+        matched_domains: list[str],
+        matched_group_ids: list[str],
+        positive_reasons: list[str],
+        profile: SearchProfile,
+    ) -> int:
         total = 0
-        for group_id, label, points, scopes, terms in DOMAIN_RULES:
-            matches = self._match_terms(context, terms, scopes=scopes)
+        active_group_ids = profile.keyword_group_ids or list(self.positive_group_map)
+        for group_id in active_group_ids:
+            group = self.positive_group_map.get(group_id)
+            if group is None:
+                continue
+            matches = self._match_keyword_terms(context, group.materialized_terms())
             if not matches:
                 continue
+            points = self._group_positive_points(group, matches)
             total += points
-            matched_domains.append(label)
-            positive_reasons.append(label)
-            self._record_domain_match(result, group_id=group_id, label=label, points=points, matches=matches)
+            matched_group_ids.append(group_id)
+            matched_domains.append(group.name)
+            positive_reasons.append(group.name)
+            self._record_domain_match(result, group_id=group_id, label=group.name, points=points, matches=matches)
         return total
 
-    def score_public_sector_signals(self, context: MatchContext, notice: NormalizedNotice, result: ScoreResult, positive_reasons: list[str]) -> int:
-        del notice
+    def score_public_sector_signals(self, context: MatchContext, notice: NormalizedNotice, result: ScoreResult, positive_reasons: list[str], profile: SearchProfile) -> int:
         total = 0
         buyer_matches = self._match_terms(context, BUYER_TERMS, scopes=("buyer", "title", "summary"))
         if buyer_matches:
@@ -274,6 +293,52 @@ class ScoringEngine:
             total += 6
             positive_reasons.append("implementation and rollout scope")
             self._record_positive_signal(result, signal_id="delivery_scope", label="Implementation / migration / integration scope", points=6, matches=delivery_matches)
+        country_bonus = profile.country_bias.get((notice.buyer_country or "").upper(), 0)
+        strategic_country_bonus = self.keyword_pack.strategic_weighting.preferred_countries.get((notice.buyer_country or "").upper(), 0)
+        if country_bonus + strategic_country_bonus:
+            total += country_bonus + strategic_country_bonus
+            positive_reasons.append("strategic country fit")
+            self._record_signal(
+                result,
+                signal_list=result.positive_signals,
+                signal=SignalEvidence(id="strategic_country_fit", label="Strategic country fit", points=country_bonus + strategic_country_bonus, evidence=[notice.buyer_country or "Unknown"], category="positive"),
+                rule_id="positive.strategic_country_fit",
+            )
+        buyer_keyword_bonus = self._strategic_keyword_bonus(context.scopes["buyer"], self.keyword_pack.strategic_weighting.preferred_buyer_keywords)
+        if buyer_keyword_bonus:
+            total += buyer_keyword_bonus
+            positive_reasons.append("preferred public-sector buyer context")
+            self._record_signal(
+                result,
+                signal_list=result.positive_signals,
+                signal=SignalEvidence(id="buyer_context_fit", label="Preferred public-sector buyer context", points=buyer_keyword_bonus, evidence=[notice.buyer or "Unknown buyer"], category="positive"),
+                rule_id="positive.buyer_context_fit",
+            )
+        sector_bonus = self._strategic_keyword_bonus(context.full_text, self.keyword_pack.strategic_weighting.preferred_sector_keywords)
+        if sector_bonus:
+            total += sector_bonus
+            positive_reasons.append("public-sector administrative process signal")
+            self._record_signal(
+                result,
+                signal_list=result.positive_signals,
+                signal=SignalEvidence(id="sector_context_fit", label="Public-sector administrative process signal", points=sector_bonus, evidence=[], category="positive"),
+                rule_id="positive.sector_context_fit",
+            )
+        return total
+
+    def score_combo_rules(self, result: ScoreResult, matched_group_ids: list[str], positive_reasons: list[str]) -> int:
+        total = 0
+        matched_set = set(matched_group_ids)
+        for combo_rule in self.keyword_pack.combo_rules:
+            if combo_rule.group_ids and all(group_id in matched_set for group_id in combo_rule.group_ids):
+                total += combo_rule.bonus
+                positive_reasons.append(combo_rule.name)
+                self._record_signal(
+                    result,
+                    signal_list=result.positive_signals,
+                    signal=SignalEvidence(id=combo_rule.id, label=combo_rule.name, points=combo_rule.bonus, evidence=combo_rule.group_ids, category="positive"),
+                    rule_id=f"positive.{combo_rule.id}",
+                )
         return total
 
     def score_structural_fit(self, context: MatchContext, result: ScoreResult, positive_reasons: list[str]) -> int:
@@ -322,54 +387,57 @@ class ScoringEngine:
                 negative_reasons.append(label)
         return total
 
-    def score_negative_scope(self, text: str, result: ScoreResult, negative_reasons: list[str], hard_blockers: list[str]) -> int:
+    def score_negative_scope(self, context: MatchContext, result: ScoreResult, negative_reasons: list[str], hard_blockers: list[str], profile: SearchProfile) -> int:
         total = 0
-        for rule_id, label, points, terms in NEGATIVE_RULES:
-            evidence = [term for term in terms if self._contains_term(text, normalize_text(term))]
-            if not evidence:
+        active_group_ids = profile.negative_group_ids or list(self.negative_group_map)
+        for group_id in active_group_ids:
+            group = self.negative_group_map.get(group_id)
+            if group is None:
                 continue
+            matches = self._match_keyword_terms(context, group.materialized_terms())
+            if not matches:
+                continue
+            points = -self._group_negative_points(group, matches)
             total += points
-            negative_reasons.append(label)
-            self._record_signal(result, signal_list=result.negative_signals, signal=SignalEvidence(id=rule_id, label=label, points=points, evidence=evidence, category="negative"), rule_id=rule_id)
-            if rule_id in {"hardware_only", "construction_only"}:
-                hard_blockers.append(label)
+            negative_reasons.append(group.name)
+            signal_id = self._legacy_negative_signal_id(group_id)
+            self._record_signal(result, signal_list=result.negative_signals, signal=SignalEvidence(id=signal_id, label=group.name, points=points, evidence=self._format_match_evidence(matches), category="negative"), rule_id=group_id)
+            if group_id in {"hardware_supply", "construction"}:
+                hard_blockers.append(group.name)
         return total
 
-    def detect_platform_lock(self, text: str) -> tuple[str, list[str], list[str]]:
-        open_hits = unique_preserve_order(term for term in LOCK_OPEN if self._contains_term(text, normalize_text(term)))
-        hard_hits: list[str] = []
-        soft_hits: list[str] = []
-        for platform in PLATFORMS:
-            normalized_platform = normalize_text(platform)
-            if not self._contains_term(text, normalized_platform):
-                continue
-            if any(self._contains_term(text, normalize_text(trigger)) for trigger in LOCK_HARD):
-                hard_hits.append(platform)
-            elif any(self._contains_term(text, normalize_text(trigger)) for trigger in LOCK_SOFT):
-                soft_hits.append(platform)
-            if any(self._contains_term(text, normalize_text(term)) for term in (f"implementation partner for {platform}", f"implementation of {platform}", f"{platform} as the delivery platform")):
-                hard_hits.append(platform)
-        hard_hits = unique_preserve_order(hard_hits)
-        soft_hits = unique_preserve_order(soft_hits)
-        if hard_hits and not open_hits:
-            return "hard", hard_hits, open_hits
+    def detect_platform_lock(self, text: str, profile: SearchProfile) -> tuple[str, list[str], list[str], int]:
+        hard_hits = self._platform_signal_matches(text, self.keyword_pack.platform_signals.hard_lock)
+        soft_hits = self._platform_signal_matches(text, self.keyword_pack.platform_signals.soft_lock)
+        openness_hits = self._platform_signal_matches(text, self.keyword_pack.platform_signals.openness)
+
+        open_evidence = unique_preserve_order(evidence for _, evidence, _ in openness_hits)
+        hard_evidence = unique_preserve_order(evidence for _, evidence, _ in hard_hits)
+        soft_evidence = unique_preserve_order(evidence for _, evidence, _ in soft_hits)
+
+        hard_penalty = -round(sum(penalty for _, _, penalty in hard_hits) * profile.hard_lock_penalty_multiplier)
+        soft_penalty = -round(sum(penalty for _, _, penalty in (soft_hits or hard_hits)) * profile.soft_lock_penalty_multiplier)
+        openness_bonus = round(sum(bonus for _, _, bonus in openness_hits) * profile.openness_bonus_multiplier)
+
+        if hard_hits and not openness_hits:
+            return "hard", hard_evidence, open_evidence, hard_penalty
         if hard_hits or soft_hits:
-            return "soft", hard_hits or soft_hits, open_hits
-        return "none", [], open_hits
+            return "soft", hard_evidence or soft_evidence, open_evidence, soft_penalty + openness_bonus
+        return "none", [], open_evidence, openness_bonus
 
     def thin_scope_text(self, notice: NormalizedNotice, context: MatchContext) -> bool:
         return len(normalize_text(notice.summary or "")) < 40 and len(" ".join(context.lot_titles + context.lot_descriptions)) < 40
 
     def classify(self, *, score: int, blockers: list[str], soft_blockers: list[str], force_no: bool = False) -> FitLabel:
-        if force_no or blockers or score < 10:
+        if force_no or blockers or score < 15:
             return FitLabel.NO
-        if 10 <= score <= 54 or (score >= 55 and soft_blockers):
+        if score < 70 or soft_blockers:
             return FitLabel.CONDITIONAL
         return FitLabel.YES
 
     def _determine_priority(self, fit_label: FitLabel, score: int) -> PriorityBucket:
         if fit_label == FitLabel.YES:
-            return PriorityBucket.HIGH if score >= 68 else PriorityBucket.GOOD
+            return PriorityBucket.HIGH if score >= 82 else PriorityBucket.GOOD
         return PriorityBucket.WATCHLIST if fit_label == FitLabel.CONDITIONAL else PriorityBucket.IGNORE
 
     def _determine_confidence(self, result: ScoreResult, notice: NormalizedNotice, context: MatchContext) -> ConfidenceIndicator:
@@ -476,6 +544,88 @@ class ScoringEngine:
                 deduped.append(match)
         return deduped
 
+    def _match_keyword_terms(self, context: MatchContext, terms: list[KeywordTerm]) -> list[TermMatch]:
+        matches: list[TermMatch] = []
+        for term in terms:
+            if term.requires_all and not all(self._contains_term(context.full_text, normalize_text(required)) for required in term.requires_all):
+                continue
+            variants = unique_preserve_order([term.text, *term.aliases])
+            for variant in variants:
+                normalized_variant = normalize_text(variant)
+                if not normalized_variant:
+                    continue
+                candidate_scopes = ("title", "summary", "buyer", "metadata") if term.scope == "all" else (term.scope,)
+                matched_scope = next(
+                    (
+                        candidate_scope
+                        for candidate_scope in candidate_scopes
+                        if context.scopes.get(candidate_scope, "") and self._contains_term(context.scopes[candidate_scope], normalized_variant)
+                    ),
+                    None,
+                )
+                if matched_scope:
+                    matches.append(TermMatch(term=term.text, scope=matched_scope, matched_as=normalized_variant))
+                    break
+        deduped: list[TermMatch] = []
+        seen: set[tuple[str, str]] = set()
+        for match in matches:
+            key = (match.term.lower(), match.scope)
+            if key not in seen:
+                seen.add(key)
+                deduped.append(match)
+        return deduped
+
+    def _group_positive_points(self, group: PositiveKeywordGroup, matches: list[TermMatch]) -> int:
+        points = group.weight
+        if len(matches) > 1:
+            points += (len(matches) - 1) * group.extra_match_weight
+        if any(match.scope == "title" for match in matches):
+            points += group.title_match_bonus
+        if group.max_score is not None:
+            points = min(points, group.max_score)
+        return points
+
+    def _group_negative_points(self, group: NegativeKeywordGroup, matches: list[TermMatch]) -> int:
+        penalty = group.penalty
+        if len(matches) > 1:
+            penalty += (len(matches) - 1) * group.extra_match_penalty
+        if any(match.scope == "title" for match in matches):
+            penalty += group.title_match_bonus
+        if group.max_penalty is not None:
+            penalty = min(penalty, group.max_penalty)
+        return penalty
+
+    def _strategic_keyword_bonus(self, text: str, weights: dict[str, int]) -> int:
+        bonus = 0
+        for term, points in weights.items():
+            if self._contains_term(text, normalize_text(term)):
+                bonus += points
+        return bonus
+
+    def _legacy_negative_signal_id(self, group_id: str) -> str:
+        aliases = {
+            "hardware_supply": "hardware_only",
+            "construction": "construction_only",
+            "hosting_only": "infrastructure_only",
+        }
+        return aliases.get(group_id, group_id)
+
+    def _platform_signal_matches(self, text: str, signals: list[Any]) -> list[tuple[str, str, int]]:
+        matches: list[tuple[str, str, int]] = []
+        for signal in signals:
+            keyword_terms = signal.materialized_terms() if hasattr(signal, "materialized_terms") else []
+            for term in keyword_terms:
+                variants = unique_preserve_order([term.text, *term.aliases])
+                matched_variant = next(
+                    (variant for variant in variants if self._contains_term(text, normalize_text(variant))),
+                    None,
+                )
+                if matched_variant:
+                    points = signal.penalty if getattr(signal, "penalty", 0) else getattr(signal, "bonus", 0)
+                    matches.append((signal.name, matched_variant, points))
+                    break
+        return matches
+
     def _contains_term(self, text: str, term: str) -> bool:
         if not text or not term:
             return False
@@ -550,7 +700,7 @@ class ScoringEngine:
     def _is_nonsoftware_hard_blocker(self, text: str, matched_domains: list[str], negative_signals: list[SignalEvidence]) -> bool:
         if matched_domains:
             return False
-        strong_negative_ids = {signal.id for signal in negative_signals} & {"hardware_only", "construction_only", "infrastructure_only"}
+        strong_negative_ids = {signal.id for signal in negative_signals} & {"hardware_supply", "construction", "hosting_only", "security_only"}
         return bool(strong_negative_ids and any(self._contains_term(text, normalize_text(term)) for term in ("supply of", "construction works", "network infrastructure")))
 
     def _dedupe_keyword_hits(self, hits: list[dict[str, Any]]) -> list[dict[str, Any]]:

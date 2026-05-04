@@ -1,214 +1,293 @@
 {% extends "base.html" %}
 {% block title %}Notice Detail | {{ app_name }}{% endblock %}
 {% block content %}
-<section class="page-header">
-  <div>
-    <h1>{{ notice.title }}</h1>
-    <p>{{ notice.publication_number }} - {{ notice.buyer or "Unknown buyer" }} - {{ notice.buyer_country or "N/A" }}</p>
-  </div>
-  <div class="score-stack">
-    <span class="score-pill large">{{ notice.score }}</span>
-    <span class="badge">{{ notice.fit_label }}</span>
-    <span class="badge subtle">{{ notice.priority_bucket }}</span>
-  </div>
-</section>
-
-<section class="panel">
-  <div class="inline-actions">
-    {% if notice.is_demo_record %}
-      <span class="empty-state">No live TED notice or PDF is available for this record.</span>
-    {% else %}
-      <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
-        Open Official TED Notice
-      </a>
-      {% if notice.pdf_url %}
-        <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary">
-          Download Notice PDF
-        </a>
-      {% endif %}
-      {% if tender_documents %}
-        <a href="#tender-documents" class="button button-secondary">
-          Tender Documents ({{ tender_documents | length }})
-        </a>
-      {% endif %}
-    {% endif %}
-  </div>
-</section>
-
-<section class="detail-grid">
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Metadata</h2>
+{% if feedback_message %}
+  <section class="feedback-banner feedback-{{ feedback_kind or 'info' }}">
+    <strong>{{ feedback_message }}</strong>
+  </section>
+{% endif %}
+<section class="detail-hero panel">
+  <div class="detail-hero-copy">
+    <div class="notice-kicker">
+      <span class="eyebrow">{{ notice.publication_number }}</span>
+      <span class="badge">{{ notice.fit_label or "Unscored" }}</span>
+      <span class="badge subtle">{{ notice.priority_bucket or "No priority" }}</span>
     </div>
-    <dl class="detail-list">
-      <div><dt>Buyer</dt><dd>{{ notice.buyer or "Unknown" }}</dd></div>
-      <div><dt>Notice Type</dt><dd>{{ notice.notice_type or "Unknown" }}</dd></div>
-      <div><dt>Procedure Type</dt><dd>{{ notice.procedure_type or "Unknown" }}</dd></div>
-      <div><dt>Publication Date</dt><dd>{{ notice.publication_date | display_date }}</dd></div>
-      <div><dt>Deadline</dt><dd>{{ notice.deadline | display_datetime }}</dd></div>
-      <div><dt>Place of Performance</dt><dd>{{ notice.place_of_performance or "Unknown" }}</dd></div>
-      <div><dt>CPV Codes</dt><dd>{{ notice.cpv_codes | join(", ") if notice.cpv_codes else "None" }}</dd></div>
-    </dl>
-    <div class="official-links">
+    <h1>{{ notice.title }}</h1>
+    <p class="detail-hero-subtitle">{{ notice.buyer or "Unknown buyer" }} / {{ notice.buyer_country or "N/A" }} / {{ notice.place_of_performance or "Place of performance not specified" }}</p>
+    <p class="detail-hero-summary">{{ notice.summary or "No short summary is available for this notice yet. Use the sections below for the full fit reasoning, eligibility evidence, downloads, and raw TED payload." }}</p>
+  </div>
+  <div class="detail-hero-side">
+    <div class="detail-score-panel">
+      <span class="score-pill large">{{ notice.score }}</span>
+      <div class="score-stack stacked-badges">
+        {% if notice.confidence_indicator %}
+          <span class="badge subtle">{{ notice.confidence_indicator }}</span>
+        {% endif %}
+        {% if notice.hard_lock_detected %}
+          <span class="badge alert-badge">Hard lock detected</span>
+        {% endif %}
+      </div>
+    </div>
+    <div class="detail-hero-actions">
       {% if notice.is_demo_record %}
-        <span>Live TED links are unavailable for this record.</span>
+        <span class="empty-state">No live TED notice or PDF is available for this record.</span>
       {% else %}
-        <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
+        <a href="/results/{{ notice.id }}/open-ted" class="button button-primary" target="_blank" rel="noreferrer">
+          Open Official TED Notice
+        </a>
         {% if notice.pdf_url %}
-          <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
+          <a href="/results/{{ notice.id }}/download/pdf" class="button button-secondary">
+            Download Notice PDF
+          </a>
         {% endif %}
       {% endif %}
+      {% if tender_documents %}
+        <a href="#tender-documents" class="button button-ghost">Tender Documents ({{ tender_documents | length }})</a>
+      {% endif %}
     </div>
-  </article>
+  </div>
+</section>
 
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Fit Assessment</h2>
-    </div>
-    <p class="reasoning">{{ notice.reasoning }}</p>
-    <div class="chip-row spaced">
-      {% for signal in notice.positive_signals %}
-        <span class="chip">{{ signal.label }} (+{{ signal.points }})</span>
-      {% endfor %}
-      {% for signal in notice.negative_signals %}
-        <span class="chip chip-muted">{{ signal.label }} ({{ signal.points }})</span>
-      {% endfor %}
-      {% for signal in notice.platform_lock_signals %}
-        <span class="chip {% if signal.severity == 'hard' %}chip-alert{% endif %}">
-          {{ signal.label }} ({{ signal.points }})
-        </span>
-      {% endfor %}
-    </div>
+<section class="detail-overview">
+  <article class="summary-card metric-card accent-card">
+    <div class="summary-label">Score</div>
+    <div class="summary-value">{{ notice.score }}</div>
+    <div class="summary-helper">Overall fit score for this opportunity.</div>
   </article>
+  <article class="summary-card metric-card">
+    <div class="summary-label">Matched Keywords</div>
+    <div class="summary-value">{{ notice.keyword_evidence_module.matched_keyword_count }}</div>
+    <div class="summary-helper">Relevant keyword matches found across the notice.</div>
+  </article>
+  <article class="summary-card metric-card">
+    <div class="summary-label">Matched Domains</div>
+    <div class="summary-value">{{ notice.keyword_evidence_module.matched_domain_count }}</div>
+    <div class="summary-helper">Domain themes contributing to the fit assessment.</div>
+  </article>
+  <article class="summary-card metric-card">
+    <div class="summary-label">Tender Documents</div>
+    <div class="summary-value">{{ tender_documents | length }}</div>
+    <div class="summary-helper">Downloadable buyer-side documents linked from the notice.</div>
+  </article>
+</section>
 
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Eligibility Keywords</h2>
-    </div>
-    <p class="reasoning">{{ notice.keyword_evidence_module.statement }}</p>
-    <dl class="detail-list">
-      <div><dt>Matched Keywords</dt><dd>{{ notice.keyword_evidence_module.matched_keyword_count }}</dd></div>
-      <div><dt>Matched Domains</dt><dd>{{ notice.keyword_evidence_module.matched_domain_count }}</dd></div>
-      <div><dt>Title Hits</dt><dd>{{ notice.keyword_evidence_module.title_keyword_count }}</dd></div>
-      <div><dt>Summary Hits</dt><dd>{{ notice.keyword_evidence_module.summary_keyword_count }}</dd></div>
-    </dl>
-    {% if notice.keyword_evidence_module.domain_matches %}
-      <h3>Matched Domains</h3>
-      <div class="note-list">
-        {% for domain in notice.keyword_evidence_module.domain_matches %}
-          <article class="note-card">
-            <div class="note-meta">{{ domain.label }}{% if domain.points %} | {{ domain.points }} pts{% endif %}</div>
-            <div class="chip-row spaced">
-              {% for term in domain.terms %}
-                <span class="chip">{{ term }}</span>
-              {% endfor %}
-            </div>
-            {% if domain.scope_labels %}
-              <div class="table-subtext">Matched in: {{ domain.scope_labels | join(", ") }}</div>
-            {% endif %}
-          </article>
-        {% endfor %}
+<section class="detail-workspace">
+  <div class="detail-main">
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Fit Assessment</h2>
+          <p class="panel-intro">The current recommendation and the main scoring drivers for this opportunity.</p>
+        </div>
       </div>
-    {% endif %}
-    {% if notice.keyword_evidence_module.weakening_factors %}
-      <h3>Weakening Factors</h3>
+      <p class="reasoning">{{ notice.reasoning or "No fit reasoning was generated for this notice." }}</p>
       <div class="chip-row spaced">
-        {% for item in notice.keyword_evidence_module.weakening_factors %}
-          <span class="chip chip-muted">{{ item.label }} ({{ item.points }})</span>
+        {% for signal in notice.positive_signals %}
+          <span class="chip">{{ signal.label }} (+{{ signal.points }})</span>
+        {% endfor %}
+        {% for signal in notice.negative_signals %}
+          <span class="chip chip-muted">{{ signal.label }} ({{ signal.points }})</span>
+        {% endfor %}
+        {% for signal in notice.platform_lock_signals %}
+          <span class="chip {% if signal.severity == 'hard' %}chip-alert{% else %}chip-muted{% endif %}">
+            {{ signal.label }} ({{ signal.points }})
+          </span>
         {% endfor %}
       </div>
-    {% endif %}
-  </article>
+    </article>
 
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Qualification Questions</h2>
-    </div>
-    <ul class="plain-list">
-      {% for question in notice.qualification_questions %}
-        <li>{{ question }}</li>
-      {% endfor %}
-    </ul>
-  </article>
-
-  <article class="panel" id="tender-documents">
-    <div class="panel-header">
-      <h2>Tender Documents</h2>
-    </div>
-    {% if notice.is_demo_record %}
-      <p class="empty-state">Tender document downloads are unavailable for demo records.</p>
-    {% elif tender_documents %}
-      <div class="note-list">
-        {% for document in tender_documents %}
-          <article class="note-card">
-            <div class="note-meta">Document {{ loop.index }}</div>
-            <div>{{ document.filename }}</div>
-            <div class="action-row">
-              <a href="{{ document.url }}" class="button button-secondary">Download</a>
-            </div>
-          </article>
-        {% endfor %}
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Eligibility Keywords</h2>
+          <p class="panel-intro">Keyword evidence behind the current fit label.</p>
+        </div>
       </div>
-    {% else %}
-      <p class="empty-state">No downloadable tender documents were found in the TED payload for this notice.</p>
-    {% endif %}
-  </article>
+      <p class="reasoning">{{ notice.keyword_evidence_module.statement }}</p>
+      <div class="notice-detail-grid detail-mini-grid">
+        <div class="notice-fact">
+          <span class="fact-label">Matched Keywords</span>
+          <strong>{{ notice.keyword_evidence_module.matched_keyword_count }}</strong>
+        </div>
+        <div class="notice-fact">
+          <span class="fact-label">Matched Domains</span>
+          <strong>{{ notice.keyword_evidence_module.matched_domain_count }}</strong>
+        </div>
+        <div class="notice-fact">
+          <span class="fact-label">Title Hits</span>
+          <strong>{{ notice.keyword_evidence_module.title_keyword_count }}</strong>
+        </div>
+        <div class="notice-fact">
+          <span class="fact-label">Summary Hits</span>
+          <strong>{{ notice.keyword_evidence_module.summary_keyword_count }}</strong>
+        </div>
+      </div>
+      {% if notice.keyword_evidence_module.domain_matches %}
+        <h3>Matched Domains</h3>
+        <div class="note-list">
+          {% for domain in notice.keyword_evidence_module.domain_matches %}
+            <article class="note-card">
+              <div class="note-meta">{{ domain.label }}{% if domain.points %} / {{ domain.points }} pts{% endif %}</div>
+              <div class="chip-row spaced">
+                {% for term in domain.terms %}
+                  <span class="chip">{{ term }}</span>
+                {% endfor %}
+              </div>
+              {% if domain.scope_labels %}
+                <div class="table-subtext">Matched in: {{ domain.scope_labels | join(", ") }}</div>
+              {% endif %}
+            </article>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% if notice.keyword_evidence_module.weakening_factors %}
+        <h3>Weakening Factors</h3>
+        <div class="chip-row spaced">
+          {% for item in notice.keyword_evidence_module.weakening_factors %}
+            <span class="chip chip-muted">{{ item.label }} ({{ item.points }})</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </article>
 
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Score Breakdown</h2>
-    </div>
-    <table class="data-table compact">
-      <thead>
-        <tr>
-          <th>Rule</th>
-          <th>Points</th>
-          <th>Evidence</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for rule in notice.score_breakdown %}
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Qualification Questions</h2>
+          <p class="panel-intro">Questions to resolve before moving the opportunity forward.</p>
+        </div>
+      </div>
+      {% if notice.qualification_questions %}
+        <ul class="plain-list question-list">
+          {% for question in notice.qualification_questions %}
+            <li>{{ question }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty-state">No qualification questions were generated for this notice.</p>
+      {% endif %}
+    </article>
+
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Score Breakdown</h2>
+          <p class="panel-intro">Rule-by-rule view of how the final score was assembled.</p>
+        </div>
+      </div>
+      <table class="data-table compact">
+        <thead>
           <tr>
-            <td>{{ rule.label }}</td>
-            <td>{{ rule.points }}</td>
-            <td>{{ rule.evidence | join(", ") }}</td>
+            <th>Rule</th>
+            <th>Points</th>
+            <th>Evidence</th>
           </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </article>
+        </thead>
+        <tbody>
+          {% for rule in notice.score_breakdown %}
+            <tr>
+              <td>{{ rule.label }}</td>
+              <td>{{ rule.points }}</td>
+              <td>{{ rule.evidence | join(", ") }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </article>
 
-  <article class="panel">
-    <div class="panel-header">
-      <h2>Analyst Notes</h2>
-    </div>
-    <form method="post" action="/results/{{ notice.id }}/notes" class="note-form">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
-      <input type="hidden" name="next_url" value="{{ request.url }}">
-      <textarea name="note_text" rows="4" placeholder="Add qualification notes, follow-ups, or commercial concerns."></textarea>
-      <div class="action-row">
-        <button type="submit" class="button button-primary">Save Note</button>
+    <details class="panel detail-card advanced-panel">
+      <summary class="advanced-summary">Advanced details and raw TED payload</summary>
+      <div class="advanced-panel-body">
+        <p class="panel-intro">Open this section only when you need the raw source payload for debugging or deeper validation.</p>
+        <pre class="json-panel">{{ notice.raw_payload_json | tojson(indent=2) }}</pre>
       </div>
-    </form>
-    {% if notice.notes %}
-      <div class="note-list">
-        {% for note in notice.notes %}
-          <article class="note-card">
-            <div class="note-meta">{{ note.user_display_name }} - {{ note.created_at | display_datetime }}</div>
-            <div>{{ note.note_text }}</div>
-          </article>
-        {% endfor %}
-      </div>
-    {% else %}
-      <p class="empty-state">No analyst notes yet.</p>
-    {% endif %}
-  </article>
+    </details>
+  </div>
 
-  <article class="panel full-span">
-    <div class="panel-header">
-      <h2>Raw TED Payload</h2>
-    </div>
-    <pre class="json-panel">{{ notice.raw_payload_json | tojson(indent=2) }}</pre>
-  </article>
+  <aside class="detail-aside">
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Opportunity Facts</h2>
+          <p class="panel-intro">The core procurement metadata you usually need first.</p>
+        </div>
+      </div>
+      <dl class="detail-list detail-facts-list">
+        <div><dt>Buyer</dt><dd>{{ notice.buyer or "Unknown" }}</dd></div>
+        <div><dt>Notice Type</dt><dd>{{ notice.notice_type or "Unknown" }}</dd></div>
+        <div><dt>Procedure Type</dt><dd>{{ notice.procedure_type or "Unknown" }}</dd></div>
+        <div><dt>Publication Date</dt><dd>{{ notice.publication_date | display_date }}</dd></div>
+        <div><dt>Deadline</dt><dd>{{ notice.deadline | display_datetime }}</dd></div>
+        <div><dt>Place of Performance</dt><dd>{{ notice.place_of_performance or "Unknown" }}</dd></div>
+        <div><dt>CPV Codes</dt><dd>{{ notice.cpv_codes | join(", ") if notice.cpv_codes else "None" }}</dd></div>
+      </dl>
+      <div class="official-links detail-links">
+        {% if notice.is_demo_record %}
+          <span>Live TED links are unavailable for this record.</span>
+        {% else %}
+          <a href="/results/{{ notice.id }}/open-ted" target="_blank" rel="noreferrer">Official TED Page</a>
+          {% if notice.pdf_url %}
+            <a href="/results/{{ notice.id }}/download/pdf">Official PDF Download</a>
+          {% endif %}
+        {% endif %}
+      </div>
+    </article>
+
+    <article class="panel detail-card" id="tender-documents">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Tender Documents</h2>
+          <p class="panel-intro">Buyer-side downloads linked from the official notice.</p>
+        </div>
+      </div>
+      {% if notice.is_demo_record %}
+        <p class="empty-state">Tender document downloads are unavailable for demo records.</p>
+      {% elif tender_documents %}
+        <div class="note-list">
+          {% for document in tender_documents %}
+            <article class="note-card">
+              <div class="note-meta">Document {{ loop.index }}</div>
+              <div>{{ document.filename }}</div>
+              <div class="action-row">
+                <a href="{{ document.url }}" class="button button-secondary">Download</a>
+              </div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state">No downloadable tender documents were found in the TED payload for this notice.</p>
+      {% endif %}
+    </article>
+
+    <article class="panel detail-card">
+      <div class="panel-header compact-header">
+        <div>
+          <h2>Analyst Notes</h2>
+          <p class="panel-intro">Internal notes, follow-ups, and qualification concerns.</p>
+        </div>
+      </div>
+      <form method="post" action="/results/{{ notice.id }}/notes" class="note-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token(request) }}">
+        <input type="hidden" name="next_url" value="{{ request.url }}">
+        <textarea name="note_text" rows="4" placeholder="Add qualification notes, follow-ups, or commercial concerns."></textarea>
+        <div class="action-row">
+          <button type="submit" class="button button-primary">Save Note</button>
+        </div>
+      </form>
+      {% if notice.notes %}
+        <div class="note-list">
+          {% for note in notice.notes %}
+            <article class="note-card">
+              <div class="note-meta">{{ note.user_display_name }} / {{ note.created_at | display_datetime }}</div>
+              <div>{{ note.note_text }}</div>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="empty-state">No analyst notes yet.</p>
+      {% endif %}
+    </article>
+  </aside>
 </section>
 {% endblock %}
