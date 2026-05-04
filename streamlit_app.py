@@ -110,7 +110,7 @@ st.set_page_config(
     page_title="cBrain TED F2 Intelligence",
     page_icon="🧭",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
 
@@ -285,13 +285,75 @@ def _render_sidebar_brand() -> None:
     st.sidebar.markdown(
         """
         <div class="cb-sidebar-brand">
-                    <div class="cb-sidebar-mark">cB</div>
-                    <div class="cb-sidebar-title">Opportunity desk</div>
-                    <div class="cb-sidebar-subtitle">Search, shortlist, and review with the same F2-focused language as the main web app.</div>
+          <div class="cb-sidebar-mark">cB</div>
+          <div class="cb-sidebar-title">Opportunity desk</div>
+          <div class="cb-sidebar-subtitle">Use the sidebar for contextual tools like shortlist filters, not primary navigation.</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
+
+
+def _render_sidebar_note(current_view: str) -> None:
+    note_map = {
+        "Dashboard": "The main navigation now lives in the top workspace bar.",
+        "Live Scan": "Use this sidebar only when a page needs secondary controls.",
+        "Historical Backfill": "Historical backfill settings live in the page body for easier review.",
+        "Results": "Shortlist filters stay in the sidebar so the main page can focus on result cards.",
+        "Notice Detail": "Return to Shortlist or Home from the top workspace bar.",
+    }
+    st.sidebar.markdown(
+        f"""
+        <div class="cb-sidebar-note">
+          <div class="cb-sidebar-line">Active area</div>
+          <div class="cb-sidebar-note-title">{html.escape(current_view)}</div>
+          <div class="cb-sidebar-note-copy">{html.escape(note_map.get(current_view, ""))}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_workspace_nav(active_view: str, view_labels: dict[str, str]) -> None:
+    nav_views = ["Dashboard", "Live Scan", "Historical Backfill", "Results"]
+    if active_view == "Notice Detail":
+        nav_views.append("Notice Detail")
+
+    copy_map = {
+        "Dashboard": "Read the queue, recent scans, and F2-fit signals from a single landing page.",
+        "Live Scan": "Run guided TED searches without falling back to a technical control panel.",
+        "Historical Backfill": "Review broader historical intake when you need a wider procurement picture.",
+        "Results": "Triage the shortlist in score order, then open details only for the strongest candidates.",
+        "Notice Detail": "Stay in the same workspace while checking fit evidence, documents, and analyst notes.",
+    }
+
+    st.markdown(
+        f"""
+        <section class="cb-workspace-shell">
+          <div class="cb-workspace-kicker">TED F2 workspace</div>
+          <div class="cb-workspace-head">
+            <div>
+              <h1 class="cb-workspace-title">Opportunity desk</h1>
+              <p class="cb-workspace-copy">{html.escape(copy_map.get(active_view, copy_map['Dashboard']))}</p>
+            </div>
+            <div class="cb-workspace-status">{html.escape(view_labels[active_view])}</div>
+          </div>
+        </section>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    nav_cols = st.columns(len(nav_views), gap="small")
+    for index, view_name in enumerate(nav_views):
+        button_type = "primary" if view_name == active_view else "secondary"
+        if nav_cols[index].button(
+            view_labels[view_name],
+            key=f"workspace_nav_{view_name.lower().replace(' ', '_')}",
+            type=button_type,
+            width="stretch",
+        ):
+            _go_to_view(view_name)
+            st.rerun()
 
 
 def _ensure_live_scan_state(profile_names: list[str]) -> None:
@@ -1262,16 +1324,10 @@ def main() -> None:
         active_view = "Dashboard"
 
     _render_sidebar_brand()
-    st.sidebar.markdown("### Navigate")
-    selected_label = st.sidebar.radio(
-        "Workspace",
-        options=[view_labels[view] for view in views],
-        index=[view_labels[view] for view in views].index(view_labels[active_view]),
-        label_visibility="collapsed",
-    )
-    current_view = inverse_view_labels[selected_label]
+    _render_sidebar_note(view_labels[active_view])
+    current_view = active_view
     st.session_state["active_view"] = current_view
-    st.sidebar.markdown("---")
+    _render_workspace_nav(current_view, view_labels)
     if current_view == "Dashboard":
         _render_dashboard()
     elif current_view == "Live Scan":
