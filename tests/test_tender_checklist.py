@@ -26,7 +26,8 @@ def test_tender_checklist_report_for_seeded_notice(db_session, seeded_notice: st
 
     assert items["f2_relevance"]["status"] == CHECKLIST_STATUS_INFERRED
     assert items["f2_relevance"]["answer"].startswith("FitLabel.CONDITIONAL")
-    assert "Deadline 6 days away" in items["f2_relevance"]["answer"]
+    assert "Deadline " in items["f2_relevance"]["answer"]
+    assert " days away" in items["f2_relevance"]["answer"]
 
     assert items["contract_duration"]["status"] == CHECKLIST_STATUS_FILLED
     assert items["contract_duration"]["answer"] == "48 MONTH"

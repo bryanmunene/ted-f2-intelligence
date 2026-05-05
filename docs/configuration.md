@@ -15,10 +15,9 @@ Environment variables are loaded with the `APP_` prefix. Key values:
 ## Externalized Scoring Assets
 
 - `config/keyword_pack.yaml` contains scoring weights, term groups, timing rules, strategic weighting, and qualification question templates.
-- `config/search_profiles.yaml` defines analyst-friendly search strategies and lock sensitivity.
+- `config/search_profiles.yaml` defines the unified F2 discovery profile, legacy profile aliases, and lock sensitivity.
 
 ## Authentication Preparation
 
 - `APP_AUTH_ENABLED=false` uses a configured internal actor context.
 - `APP_AUTH_ENABLED=true` expects reverse-proxy identity headers.
-

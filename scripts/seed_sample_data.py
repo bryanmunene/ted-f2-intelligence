@@ -19,7 +19,7 @@ def main() -> None:
     settings = get_settings()
     keyword_pack = load_keyword_pack(settings.resolved_keyword_pack_path)
     profiles = load_search_profiles(settings.resolved_search_profiles_path)
-    profile = profiles.by_name("F2 Core")
+    profile = profiles.by_name("F2 All Opportunities")
 
     fixture_path = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "ted_search_response.json"
     payload = json.loads(fixture_path.read_text(encoding="utf-8"))

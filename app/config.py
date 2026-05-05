@@ -119,6 +119,7 @@ class KeywordPack(BaseModel):
 class SearchProfile(BaseModel):
     name: str
     slug: str
+    aliases: list[str] = Field(default_factory=list)
     description: str
     keyword_group_ids: list[str] = Field(default_factory=list)
     negative_group_ids: list[str] = Field(default_factory=list)
@@ -137,8 +138,10 @@ class SearchProfileRegistry(BaseModel):
             raise ValueError("No search profiles configured.")
         if not name:
             return self.profiles[0]
+        requested = name.strip().casefold()
         for profile in self.profiles:
-            if profile.name == name or profile.slug == name:
+            profile_names = [profile.name, profile.slug, *profile.aliases]
+            if any(candidate.strip().casefold() == requested for candidate in profile_names):
                 return profile
         raise KeyError(f"Unknown search profile: {name}")
 

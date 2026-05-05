@@ -1,7 +1,20 @@
 profiles:
-  - name: F2 Core
-    slug: f2-core
-    description: Full-spectrum default scan covering the complete F2 capability set across case, workflow, records, correspondence, digital services, audit, digitisation, and interoperability.
+  - name: F2 All Opportunities
+    slug: f2-all-opportunities
+    aliases:
+      - F2 Core
+      - f2-core
+      - F2 Broad
+      - f2-broad
+      - Records/EDMS Heavy
+      - records-edms-heavy
+      - Case/Workflow Heavy
+      - case-workflow-heavy
+      - E-Gov Services
+      - e-gov-services
+      - Microsoft Lock Review
+      - microsoft-lock-review
+    description: Unified unrestricted scan across every F2 opportunity theme, including case, workflow, records, correspondence, digital services, e-government, audit, digitisation, interoperability, and named-platform lock review.
     keyword_group_ids:
       - document_management
       - records_management
@@ -26,181 +39,159 @@ profiles:
       - erp_only
     search_terms:
       - case management
-      - records management
-      - electronic document management system
-      - enterprise content management
-      - workflow automation
-      - correspondence management
-      - business process management
-      - e-services portal
-      - citizen services portal
-      - service delivery portal
-      - grievance redress system
-      - permit management system
-      - licensing system
-      - digitization of records
-      - electronic archiving
-      - public administration platform
-      - configurable process platform
-      - document repository
-      - service request system
-    hard_lock_penalty_multiplier: 1.0
-    soft_lock_penalty_multiplier: 1.0
-    openness_bonus_multiplier: 1.0
-    country_bias:
-      DK: 4
-      DE: 3
-      SE: 2
-  - name: F2 Broad
-    slug: f2-broad
-    description: Wider net for adjacent platform opportunities that may still merit analyst review.
-    keyword_group_ids:
-      - document_management
-      - records_management
-      - case_management
-      - workflow_bpm
-      - correspondence_registry
-      - digital_services
-      - egov
-      - compliance_audit
-      - digitisation_platform
-      - interoperability
-    negative_group_ids:
-      - hardware_supply
-      - security_only
-      - construction
-      - vehicles_logistics
-    search_terms:
-      - document and records management
-      - electronic records management
-      - case management platform
-      - government workflow platform
-      - digital government system
-      - citizen services platform
-      - grievance management system
-      - complaint handling system
-      - records digitization
-      - e-filing system
-      - administrative process automation
-      - permits and licensing platform
-      - public administration software
-      - public sector information management
-      - document imaging and archiving
-      - low-code government platform
-    hard_lock_penalty_multiplier: 0.9
-    soft_lock_penalty_multiplier: 0.8
-    openness_bonus_multiplier: 1.0
-  - name: Records/EDMS Heavy
-    slug: records-edms-heavy
-    description: Focus on archives, records, retention, and document-heavy procurement.
-    keyword_group_ids:
-      - document_management
-      - records_management
-      - correspondence_registry
-      - compliance_audit
-      - digitisation_platform
-    negative_group_ids:
-      - hardware_supply
-      - website_only
-      - mobile_only
-      - construction
-      - vehicles_logistics
-      - staffing_only
-    search_terms:
-      - electronic records management
-      - archives management
-      - records information management
-      - document management system
-      - file registry system
-      - electronic archiving
-      - records lifecycle management
-      - document repository system
-      - records archive
-      - document imaging
-    hard_lock_penalty_multiplier: 1.0
-    soft_lock_penalty_multiplier: 0.9
-    openness_bonus_multiplier: 1.0
-  - name: Case/Workflow Heavy
-    slug: case-workflow-heavy
-    description: Focus on case handling, approvals, orchestration, and internal institutional processes.
-    keyword_group_ids:
-      - case_management
-      - workflow_bpm
-      - correspondence_registry
-      - digital_services
-      - interoperability
-      - compliance_audit
-    negative_group_ids:
-      - hardware_supply
-      - security_only
-      - website_only
-      - mobile_only
-      - staffing_only
-      - hosting_only
-    search_terms:
-      - case management
       - case handling
-      - workflow management system
-      - process automation system
-      - approvals workflow
-      - complaint management system
-      - grievance redress system
+      - case handling system
+      - casework management
+      - case processing system
       - case tracking system
       - matter management system
-      - administrative workflow
-    hard_lock_penalty_multiplier: 1.0
-    soft_lock_penalty_multiplier: 0.9
-    openness_bonus_multiplier: 1.0
-  - name: E-Gov Services
-    slug: e-gov-services
-    description: Focus on citizen-facing services, licensing, permit, and public service platforms.
-    keyword_group_ids:
-      - digital_services
-      - egov
-      - case_management
-      - workflow_bpm
-      - interoperability
-    negative_group_ids:
-      - hardware_supply
-      - security_only
-      - construction
-      - vehicles_logistics
-      - mobile_only
-    search_terms:
+      - matter tracking system
+      - complaint management system
+      - complaints handling
+      - grievance management system
+      - grievance redress system
+      - service request system
+      - application processing system
+      - workflow system
+      - workflow automation
+      - workflow management system
+      - workflow and case management
+      - business process management
+      - business process automation
+      - government workflow
+      - government workflow platform
+      - process automation system
+      - process management platform
+      - process orchestration
+      - configurable process platform
+      - approvals workflow
+      - approval workflow
+      - routing and approval
+      - document-centric workflow
+      - low-code government platform
+      - low-code platform
+      - no-code platform
+      - electronic document management system
+      - document management system
+      - document and records management
+      - electronic document and records management system
+      - electronic records management
+      - records management
+      - records and information management
+      - records information management
+      - records information system
+      - records lifecycle management
+      - archive and records management
+      - archives management
+      - archival management system
+      - enterprise content management
+      - content services platform
+      - enterprise document management
+      - document repository
+      - document repository system
+      - records archive
+      - electronic archiving
+      - e-archiving
+      - document imaging
+      - document imaging and archiving
+      - digitization of records
+      - records digitization
+      - archives digitization
+      - scanning and archiving
+      - scanning workflow
+      - archiving platform
+      - correspondence management
+      - file registry system
+      - document registry
+      - records registry
+      - registry and archive
+      - mail registry
+      - official correspondence
+      - incoming and outgoing correspondence
       - e-government platform
       - digital government platform
+      - digital government system
+      - digital service delivery
+      - digital services platform
+      - digital transformation platform
+      - e-services platform
+      - e-services portal
       - citizen services portal
-      - licensing system
-      - permit management system
+      - citizen services platform
+      - citizen self-service
+      - citizen portal
+      - government service portal
+      - municipal digital services
       - public service portal
       - service delivery portal
-      - online application portal
-      - digital forms
+      - service delivery system
       - service request platform
-    hard_lock_penalty_multiplier: 1.0
-    soft_lock_penalty_multiplier: 0.8
-    openness_bonus_multiplier: 1.1
-  - name: Microsoft Lock Review
-    slug: microsoft-lock-review
-    description: Surfaces relevant opportunities with Microsoft or named-platform lock risk for qualification assessment.
-    keyword_group_ids:
-      - document_management
-      - records_management
-      - case_management
-      - workflow_bpm
-      - digital_services
+      - online application portal
+      - application portal
+      - submission portal
+      - digital forms
+      - forms management system
+      - forms platform
+      - forms automation
+      - e-filing system
+      - digital filing system
+      - licensing system
+      - permits and licensing platform
+      - permit management system
+      - online licensing
+      - online permits
+      - public administration software
+      - public administration platform
+      - public administration digitization
+      - public sector information management
+      - public sector platform
+      - public sector modernization
+      - institutional process digitization
+      - administrative workflow
+      - administrative process automation
+      - e-office
+      - paperless office
+      - audit trail
+      - compliance workflow
+      - records compliance
+      - retention policy
+      - retention schedule
+      - contract management system
+      - contract lifecycle management
+      - procurement records system
+      - procurement management system
+      - tender management system
+      - metadata management
+      - document versioning
+      - search and retrieval
+      - management reporting
+      - dashboard reporting
+      - integration platform
       - interoperability
-    negative_group_ids:
-      - hardware_supply
-      - construction
-      - vehicles_logistics
-    search_terms:
+      - interoperability platform
+      - data exchange
+      - api integration
+      - system integration
+      - workflow integration
+      - platform orchestration
+      - platform implementation
+      - service bus
+      - middleware
+      - data migration
+      - legacy replacement
+      - modernisation
+      - modernization
       - sharepoint
       - power platform
       - microsoft workflow
-      - case management
-      - records management
-      - digital filing system
-    hard_lock_penalty_multiplier: 0.7
+    hard_lock_penalty_multiplier: 0.8
     soft_lock_penalty_multiplier: 0.8
-    openness_bonus_multiplier: 1.0
+    openness_bonus_multiplier: 1.1
+    country_bias:
+      "DK": 4
+      "DE": 3
+      "SE": 3
+      "NO": 2
+      "FI": 2
+      "NL": 2
+      "BE": 2

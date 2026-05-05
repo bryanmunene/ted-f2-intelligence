@@ -19,7 +19,7 @@ def _rescoring_bundle() -> tuple[ScoringEngine, SearchProfile]:
     settings = get_settings()
     profiles = get_search_profiles_cached()
     try:
-        profile = profiles.by_name("f2-core")
+        profile = profiles.by_name("f2-all-opportunities")
     except KeyError:
         profile = profiles.profiles[0]
     engine = ScoringEngine(

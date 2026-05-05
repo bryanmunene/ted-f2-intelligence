@@ -671,10 +671,10 @@ def _render_live_scan() -> None:
     _render_section_header(
         "",
         "Find new tenders",
-        "Choose a few simple options and start a fresh search.",
+        "Use the unified F2 profile, optionally narrow by country or topic, and start a fresh search.",
     )
     st.info(
-        "Pick a search profile, add an optional country or topic, and click the button below to bring in fresh opportunities."
+        "The unified profile searches across all F2 opportunity themes at once. Optional filters only narrow when you choose to use them."
     )
 
     with st.form("live_ted_scan_form"):
@@ -756,7 +756,7 @@ def _render_historical_backfill() -> None:
     _render_section_header(
         "",
         "Past notices",
-        "Bring in older notices when you want more background and context.",
+        "Bring in older notices with the same unified F2 opportunity search.",
     )
     st.info(
         "Use this when you want extra history. Your main review queue will still stay focused on current tenders."
@@ -1339,4 +1339,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

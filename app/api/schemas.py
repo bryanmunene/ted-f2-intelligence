@@ -9,7 +9,7 @@ from app.models.enums import ConfidenceIndicator, FitLabel, PriorityBucket
 
 
 class ScanRequestPayload(BaseModel):
-    profile_name: str = "F2 Core"
+    profile_name: str = "F2 All Opportunities"
     date_from: date | None = None
     date_to: date | None = None
     country: str | None = None
@@ -125,7 +125,7 @@ class ScanRunResponse(BaseModel):
 
 
 class HistoricalBackfillRequestPayload(BaseModel):
-    profile_name: str = "F2 Core"
+    profile_name: str = "F2 All Opportunities"
     date_from: date
     date_to: date
     country: str | None = None

@@ -9,7 +9,7 @@
     <div class="hero-trust-row settings-trust-row">
       <div class="hero-trust-item">
         <span class="hero-trust-value">{{ profiles | length }}</span>
-        <span class="hero-trust-label">search profiles available</span>
+        <span class="hero-trust-label">unified search profile</span>
       </div>
       <div class="hero-trust-item">
         <span class="hero-trust-value">{{ app_settings | length }}</span>
@@ -40,7 +40,7 @@
     <div class="entry-icon"><svg class="ui-icon" aria-hidden="true"><use href="{{ url_for('static', path='icons/ui-icons.svg') }}#icon-radar"></use></svg></div>
     <div>
       <h2>Profile Coverage</h2>
-      <p>See how the search profiles are positioned before changing terms or widening scope.</p>
+      <p>See how the unified search profile is positioned before changing terms or widening scope.</p>
     </div>
   </article>
   <article class="panel entry-card">
@@ -139,7 +139,7 @@
   <article class="panel">
     <div class="panel-header compact-header">
       <div>
-        <h2>Search Profiles</h2>
+        <h2>Search Profile</h2>
         <p class="panel-intro">Profiles are reusable search setups. Most users only need to pick one and run a search.</p>
       </div>
     </div>
@@ -188,4 +188,3 @@
   </article>
 </section>
 {% endblock %}
-
