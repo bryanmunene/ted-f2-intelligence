@@ -242,7 +242,7 @@ class ScoringEngine:
             hard_blockers.append("notice is clearly non-software / hardware-only / works-only")
 
         result.score = max(0, min(100, score))
-        result.fit_label = self.classify(score=result.score, blockers=hard_blockers, soft_blockers=soft_blockers, force_no=bool(hard_blockers))
+        result.fit_label = self.classify(score=result.score, blockers=hard_blockers, soft_blockers=soft_blockers, force_no=bool(hard_blockers) or not matched_group_ids)
         result.priority_bucket = self._determine_priority(result.fit_label, result.score)
         result.confidence_indicator = self._determine_confidence(result, notice, context)
         result.qualification_questions = unique_preserve_order(question for question in questions if question)
